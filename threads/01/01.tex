@@ -1,0 +1,738 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{physics}
+\usepackage{bm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{xcolor}
+\usepackage{natbib}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=green!50!black,
+    urlcolor=blue!60!black
+}
+
+% Convenience commands
+\newcommand{\Cl}{C_\ell}
+\newcommand{\alm}{a_{\ell m}}
+\newcommand{\Ylm}{Y_{\ell m}}
+\newcommand{\nhat}{\hat{\mathbf{n}}}
+\newcommand{\khat}{\hat{\mathbf{k}}}
+\newcommand{\xhat}{\hat{\mathbf{x}}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\ddn}{\frac{\mathrm{d}n}{\mathrm{d}M}}
+\newcommand{\rhobar}{\bar{\rho}}
+\newcommand{\Plin}{P_{\mathrm{lin}}}
+\newcommand{\utilde}{\tilde{u}}
+\newcommand{\vtilde}{\tilde{v}}
+\newcommand{\sigv}{\langle\sigma v\rangle}
+\newcommand{\mchi}{m_\chi}
+\newcommand{\fsky}{f_{\mathrm{sky}}}
+\newcommand{\Msun}{M_\odot}
+% \newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\ii}{\mathrm{i}}
+
+\title{\textbf{Cross-Correlating HI 21-cm Intensity Mapping \\ with the Unresolved Gamma-Ray Background \\ for Dark Matter Indirect Detection} \\[12pt]
+\large A Structured Tutorial on the Theoretical Formalism}
+
+\author{Reference Document for PhD Research}
+
+\date{\today}
+
+\begin{document}
+
+% \maketitle
+
+% \begin{abstract}
+% The angular cross-power spectrum between neutral hydrogen (HI) intensity maps and the unresolved gamma-ray background (UGRB) provides a powerful probe of particle dark matter annihilation. This document presents a self-contained, PhD-level derivation of the full theoretical formalism, following the framework developed by Fornengo \& Regis (2014, arXiv:1312.4835) and extended to the HI $\times$ UGRB case by Pinetti, Camera, Fornengo \& Regis (2020, arXiv:1911.04989). The treatment covers: the derivation of the angular power spectrum via spherical harmonic decomposition and the Limber approximation; the halo model decomposition into one-halo and two-halo terms; the critical distinction between density and density-squared fields and its consequences for cross-correlation structure; the clumping factor and substructure boost; the window functions encoding the physics of each tracer; the error budget and signal-to-noise framework; and practical considerations for real-world implementation. Key assumptions are flagged and their domains of validity discussed throughout.
+% \end{abstract}
+
+% \newpage
+% \tableofcontents
+% \newpage
+
+
+%=============================================================================
+\section{From Sky Intensity to the Angular Power Spectrum}
+\label{sec:part1}
+%=============================================================================
+
+\subsection{Source intensity as a line-of-sight projection}
+
+We observe two fields on the celestial sphere: the 21-cm brightness temperature $T_b(\nu, \hat{\vect{n}})$ and the gamma-ray intensity $I_\gamma(E, \nhat)$. Both are line-of-sight integrals of three-dimensional source fields weighted by window functions. The general expression for the observed intensity of tracer $i$ along sky direction $\nhat$ is (Fornengo \& Regis, Eq.~1):
+\begin{equation}
+\label{eq:intensity_los}
+I_i(\nhat) = \int \dd\chi \; \tilde{W}_i(\chi) \, g_i(\chi, \nhat),
+\end{equation}
+where $\chi$ is the comoving distance, $g_i(\chi, \nhat)$ is the three-dimensional source density field, and $\tilde{W}_i(\chi)$ is a window function encoding the physics of emission and observation (distance dimming, spectral properties, absorption). We define a normalized window function $W_i(\chi) = \langle g_i \rangle \tilde{W}_i(\chi)$ so that the mean intensity is simply
+\begin{equation}
+\langle I_i \rangle = \int \dd\chi \; W_i(\chi).
+\end{equation}
+
+\subsection{Spherical harmonic expansion and the $\alm$ coefficients}
+
+The intensity fluctuation field $\delta I_i(\nhat) \equiv I_i(\nhat) - \langle I_i \rangle$ is expanded in spherical harmonics (Fornengo \& Regis, Eq.~2):
+\begin{equation}
+\label{eq:sph_harm_expansion}
+\delta I_i(\nhat) = \langle I_i \rangle \sum_{\ell m} \alm^{(i)} \, \Ylm(\nhat),
+\end{equation}
+where the expansion coefficients are obtained by the orthogonality of spherical harmonics:
+\begin{equation}
+\label{eq:alm_def}
+\alm^{(i)} = \int \dd\Omega \; \frac{\delta I_i(\nhat)}{\langle I_i \rangle} \, \Ylm^*(\nhat).
+\end{equation}
+These coefficients encode the full statistical information of the projected field on the sphere. The angular power spectrum is defined as
+\begin{equation}
+\label{eq:Cl_def}
+\Cl^{(ij)} \equiv \langle \alm^{(i)} \, \alm^{(j)*} \rangle,
+\end{equation}
+where statistical isotropy ensures independence of $m$.
+
+\subsection{Rayleigh expansion and the exact double-integral expression}
+
+To connect the three-dimensional power spectrum to the angular coefficients, we write the fluctuation field of tracer $i$ in terms of a fractional perturbation:
+\begin{equation}
+f_{g_i}(\chi, \nhat) \equiv \frac{g_i(\chi, \nhat)}{\langle g_i \rangle} - 1,
+\end{equation}
+and express it via its Fourier transform $\tilde{f}_{g_i}(\vect{k}, \chi)$. The key mathematical tool is the \textbf{Rayleigh expansion} of a plane wave into spherical Bessel functions and spherical harmonics:
+\begin{equation}
+\label{eq:rayleigh}
+\boxed{
+\ee^{\ii \vect{k} \cdot \vect{x}} = 4\pi \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} \ii^\ell \, j_\ell(kr) \, \Ylm^*(\khat) \, \Ylm(\xhat)
+}
+\end{equation}
+This expansion decomposes the plane wave into radial ($j_\ell$) and angular ($\Ylm$) parts, which is precisely the decomposition needed to connect three-dimensional Fourier modes to the angular structure on the sky. Inserting the Fourier representation of $f_{g_i}$ into the expression for $\alm^{(i)}$ and applying the Rayleigh expansion yields (Fornengo \& Regis, Eq.~3):
+\begin{equation}
+\label{eq:alm_fourier}
+\alm^{(i)} = \int \dd\chi \; \frac{W_i(\chi)}{\langle I_i \rangle} \int \frac{\dd^3 k}{(2\pi)^3} \; \tilde{f}_{g_i}(\vect{k}, \chi) \; 4\pi \, \ii^\ell \, j_\ell(k\chi) \, \Ylm^*(\khat).
+\end{equation}
+The orthogonality of spherical harmonics, $\int \dd\Omega \; \Ylm^*(\nhat) \, Y_{\ell' m'}(\nhat) = \delta_{\ell\ell'} \delta_{mm'}$, collapses the angular integral over $\nhat$, while the Rayleigh expansion handles the angular integral over $\khat$.
+
+Forming the angular power spectrum $\Cl^{(ij)} = \langle \alm^{(i)} \, \alm^{(j)*} \rangle$ and using the definition of the three-dimensional power spectrum,
+\begin{equation}
+\langle \tilde{f}_{g_i}(\vect{k}) \, \tilde{f}_{g_j}^*(\vect{k}') \rangle = (2\pi)^3 \, \delta_D^{(3)}(\vect{k} - \vect{k}') \, P_{ij}(k),
+\end{equation}
+the exact (pre-Limber) expression becomes:
+\begin{equation}
+\label{eq:Cl_exact}
+\boxed{
+\Cl^{(ij)} = \frac{2}{\pi} \int_0^\infty k^2 \, \dd k \; P_{ij}(k) \left[\int \dd\chi \; \frac{W_i(\chi)}{\langle I_i \rangle} \, j_\ell(k\chi)\right] \left[\int \dd\chi' \; \frac{W_j(\chi')}{\langle I_j \rangle} \, j_\ell(k\chi')\right]
+}
+\end{equation}
+This is a triple integral involving products of highly oscillatory spherical Bessel functions, making direct numerical evaluation expensive at large $\ell$.
+
+\textit{Textbook reference:} The derivation of projected angular power spectra from three-dimensional fields is covered in detail in Baumann (2022), \textit{Cosmology} (Cambridge University Press), Chapter~12 on large-scale structure and Chapter~6 on CMB anisotropies, where the same Rayleigh expansion technique is used to derive the CMB $\Cl$ from primordial perturbations.
+
+\subsection{The Limber approximation}
+\label{sec:limber}
+
+\subsubsection{Physical justification}
+
+For $\ell \gg 1$, the spherical Bessel function $j_\ell(x)$ is sharply peaked around $x \approx \ell + 1/2$ and oscillates rapidly elsewhere. Consequently, the dominant contribution to the $k$-integral at angular multipole $\ell$ comes from the mode $k \approx (\ell + 1/2)/\chi$. Physically, this reflects the \textbf{thin-shell approximation}: at small angular scales ($\theta \sim \pi/\ell$), the dominant correlation signal arises from pairs of points at nearly the same radial distance, with transverse separation dominating over line-of-sight separation. The rapid oscillations of $j_\ell$ beyond its first peak cancel when integrated against smoothly varying window functions.
+
+\subsubsection{Mathematical derivation}
+
+The mathematical identity underlying the Limber approximation is the closure relation for spherical Bessel functions:
+\begin{equation}
+\label{eq:bessel_closure}
+\int_0^\infty k^2 \, \dd k \; j_\ell(k\chi) \, j_\ell(k\chi') = \frac{\pi}{2\chi^2} \, \delta_D(\chi - \chi').
+\end{equation}
+Applying this to the double $\chi$-integral in \cref{eq:Cl_exact} collapses it to a \textbf{single integral} (Fornengo \& Regis, Eq.~4; Pinetti et al., Eq.~2.2):
+\begin{equation}
+\label{eq:Cl_limber}
+\boxed{
+\Cl^{(ij)} = \int \frac{\dd\chi}{\chi^2} \; \frac{W_i(\chi) \, W_j(\chi)}{\langle I_i \rangle \langle I_j \rangle} \; P_{ij}\!\left(k = \frac{\ell + 1/2}{\chi}, \, \chi\right)
+}
+\end{equation}
+This is the \textbf{master equation} of the entire formalism. The three-dimensional power spectrum $P_{ij}$ is evaluated at $k = \nu/\chi$ where $\nu = \ell + 1/2$. As emphasised by LoVerde \& Afshordi (2008), using $\nu = \ell + 1/2$ rather than simply $\ell$ improves accuracy from $\mathcal{O}(1/\ell)$ to $\mathcal{O}(1/\ell^2)$.
+
+\subsubsection{Corrections at low multipoles}
+
+At $\ell \lesssim 20$--$50$, the Limber approximation introduces percent-level errors that grow at lower $\ell$. LoVerde \& Afshordi (2008) developed a systematic expansion in powers of $1/\nu^2$:
+\begin{equation}
+\Cl = \Cl^{(0)} + \Cl^{(2)} + \Cl^{(4)} + \cdots,
+\end{equation}
+where $\Cl^{(0)}$ is the standard Limber result and $\Cl^{(2)} \propto 1/\nu^2$ involves second derivatives of the integrand with respect to $\chi$. For the multipole range $\ell = 10$--$2000$ relevant to the HI $\times$ UGRB cross-correlation:
+\begin{itemize}[nosep]
+    \item The zeroth-order Limber approximation is adequate for $\ell \gtrsim 50$.
+    \item The second-order correction suffices down to $\ell \sim 10$ with $\mathcal{O}(1/\ell^4)$ residual error.
+    \item Modern FFTLog-based methods (Fang et al.\ 2020) can evaluate the exact double integral efficiently, but for the broad window functions entering the gamma-ray and HI signals, the Limber approximation is excellent throughout the range of interest.
+\end{itemize}
+
+\textit{Textbook reference:} Baumann (2022), \textit{Cosmology}, Section~12.2 discusses the Limber approximation in the context of galaxy angular power spectra and weak lensing. For a thorough treatment of corrections, see LoVerde \& Afshordi (2008, arXiv:0809.5112).
+
+
+%=============================================================================
+\section{The Halo Model Decomposition of the 3D Power Spectrum}
+\label{sec:part2}
+%=============================================================================
+
+\subsection{Density field as a superposition of halo profiles}
+
+The foundational ansatz of the halo model, codified in the review by Cooray \& Sheth (2002, astro-ph/0206508), is that \textbf{all dark matter resides in virialized halos}. The total density field is written as (Fornengo \& Regis, Eq.~5):
+\begin{equation}
+\label{eq:halo_superposition}
+g(\vect{x}) = \sum_a g(\vect{x} - \vect{x}_a \,|\, M_a),
+\end{equation}
+where $a$ labels individual halos at positions $\vect{x}_a$ with masses $M_a$, and $g(\vect{x} | M)$ is the density profile of a halo of mass $M$. The statistical properties of the halo population are encoded in the \textbf{halo mass function} $\dd n/\dd M$, giving the comoving number density of halos per unit mass.
+
+\subsection{Two-point function decomposition: 1-halo and 2-halo terms}
+
+The two-point correlation function of the source fields,
+\begin{equation}
+\xi_{ij}^{(2)}(\vect{x}, \vect{y}) = \langle f_{g_i}(\vect{x}) \, f_{g_j}(\vect{y}) \rangle,
+\end{equation}
+naturally splits into contributions from point pairs within the \textit{same} halo ($a = b$) and pairs in \textit{different} halos ($a \neq b$), following Fornengo \& Regis Eqs.~6--8. Fourier transforming yields the power spectrum decomposition (Eq.~10):
+\begin{equation}
+\label{eq:P_decomposition}
+P_{ij}(k) = P_{ij}^{\mathrm{1h}}(k) + P_{ij}^{\mathrm{2h}}(k).
+\end{equation}
+For the two-halo contribution, the spatial correlation between halos of masses $M_1$ and $M_2$ is approximated via linear bias:
+\begin{equation}
+\xi_s^{(2)}(M_1, M_2, |\vect{x}_i - \vect{x}_j|) \approx b_h(M_1) \, b_h(M_2) \, \xi_{\mathrm{lin}}(|\vect{x}_i - \vect{x}_j|),
+\end{equation}
+where $b_h(M)$ is the halo bias and $\xi_{\mathrm{lin}}$ is the linear matter correlation function.
+
+\subsection{General expressions for $P^{\mathrm{1h}}$ and $P^{\mathrm{2h}}$}
+
+The general expressions are (Fornengo \& Regis, Eqs.~11--12):
+\begin{equation}
+\label{eq:P1h_general}
+\boxed{
+P_{ij}^{\mathrm{1h}}(k) = \int \dd M \; \ddn \; \frac{\tilde{g}_i(k | M)}{\langle g_i \rangle} \; \frac{\tilde{g}_j(k | M)}{\langle g_j \rangle}
+}
+\end{equation}
+\begin{equation}
+\label{eq:P2h_general}
+\boxed{
+P_{ij}^{\mathrm{2h}}(k) = \left[\int \dd M \; \ddn \; b_h(M) \; \frac{\tilde{g}_i(k | M)}{\langle g_i \rangle}\right] \left[\int \dd M \; \ddn \; b_h(M) \; \frac{\tilde{g}_j(k | M)}{\langle g_j \rangle}\right] \Plin(k)
+}
+\end{equation}
+where $\tilde{g}(k | M)$ is the Fourier transform of the halo source profile $g(\vect{x} | M)$.
+
+\subsection{Physical meaning and the transition scale}
+
+\paragraph{1-halo term.} This captures correlations between mass elements \textit{within the same halo} and dominates on small scales ($k \gtrsim 1 \; h \, \mathrm{Mpc}^{-1}$), where the signal reflects the internal density structure of individual halos. At fixed $k$, the integrand is weighted by the mass function (favouring abundant halos) and the product of Fourier-transformed profiles (favouring halos whose virial radii correspond to the scale $\sim 1/k$). Very massive halos contribute at lower $k$ because they are larger, while lower-mass halos contribute at higher $k$.
+
+\paragraph{2-halo term.} This captures correlations between mass in \textit{different halos} and dominates on large scales ($k \lesssim 0.1 \; h \, \mathrm{Mpc}^{-1}$), tracing the linear power spectrum modulated by halo bias. The \textbf{transition scale} at $k \sim 0.2$--$1 \; h \, \mathrm{Mpc}^{-1}$ corresponds roughly to the virial radii of the most abundant massive halos ($M \sim 10^{13}$--$10^{14} \, \Msun$) that dominate the correlation budget.
+
+\paragraph{Large-scale recovery of linear theory.} The mean source density, computed by integrating over all halos (Eq.~13), is $\langle g \rangle = \int \dd M \; (\dd n/\dd M) \int \dd^3 x \; g(\vect{x} | M)$. The \textbf{consistency relations}
+\begin{equation}
+\int \dd M \; \ddn \; \frac{M}{\rhobar} = 1, \qquad \int \dd M \; \ddn \; \frac{M}{\rhobar} \, b_h(M) = 1,
+\end{equation}
+ensure that $P^{\mathrm{2h}}(k) \to \Plin(k)$ on large scales, recovering linear theory. The first relation states that all mass is in halos; the second ensures that the bias-weighted mass integral is consistent, so the 2-halo term automatically reproduces the correct large-scale clustering amplitude.
+
+\textit{Standard review:} Cooray \& Sheth (2002), \textit{Halo Models of Large Scale Structure}, Physics Reports, 372, 1--129 (astro-ph/0206508).
+
+\subsection{Halo model ingredient 1: The halo mass function}
+\label{sec:hmf}
+
+Fornengo \& Regis (2014) and Pinetti et al.\ (2020) adopt the \textbf{Sheth--Mo--Tormen} (SMT, 2001) mass function, based on ellipsoidal collapse dynamics. The multiplicity function is:
+\begin{equation}
+\label{eq:SMT_mf}
+\nu f(\nu) = A \left(1 + (q\nu)^{-p}\right) \sqrt{\frac{q\nu}{2\pi}} \, \exp\!\left(-\frac{q\nu}{2}\right),
+\end{equation}
+with $q = 0.707$, $p = 0.3$, and $A \approx 0.3222$ fixed by the normalisation condition $\int f(\nu) \, \dd\nu = 1$. Here:
+\begin{equation}
+\nu \equiv \frac{\delta_c^2}{\sigma^2(M, z)},
+\end{equation}
+is the \textbf{peak height}, $\delta_c \approx 1.686$ is the spherical collapse threshold, and
+\begin{equation}
+\sigma^2(M, z) = \frac{1}{2\pi^2} \int_0^\infty k^2 \, \Plin(k, z) \, W^2(kR) \, \dd k
+\end{equation}
+is the variance of the linear density field smoothed with a top-hat window $W(x) = 3(\sin x - x \cos x)/x^3$ at scale $R = (3M/4\pi\rhobar)^{1/3}$. The parameter $q < 1$ relative to Press--Schechter ($q = 1$) captures the lower effective collapse barrier arising from triaxial dynamics: an ellipsoidal perturbation can collapse along its shortest axis before the overall density contrast reaches the spherical threshold, producing \textbf{fewer low-mass halos and more high-mass halos} than the Press--Schechter prediction.
+
+\paragraph{Limitations and sensitivity.} The SMT mass function is calibrated against N-body simulations at $z \lesssim 2$ and masses $M \gtrsim 10^{10} \, \Msun$. Extrapolation to the very low masses relevant for DM annihilation ($M \sim 10^{-6} \, \Msun$) is uncertain. More recent calibrations (Tinker et al.\ 2008, 2010; Watson et al.\ 2013; Despali et al.\ 2016; Comparat et al.\ 2017) offer improved fits over wider mass and redshift ranges and can produce $\sim 10$--$20\%$ differences in the predicted cross-correlation, though this is subdominant compared to the concentration-mass relation uncertainty.
+
+\subsection{Halo model ingredient 2: The halo bias}
+\label{sec:bias}
+
+The \textbf{Sheth--Tormen} (ST, 1999) bias is derived from the \textbf{peak-background split}: a long-wavelength perturbation $\epsilon$ modulates the local halo abundance because it effectively shifts the collapse threshold from $\delta_c$ to $\delta_c - \epsilon$. The modulated abundance is $n(M | \epsilon) = n(M, \delta_c - \epsilon)$, so the fractional perturbation in halo number density is
+\begin{equation}
+\frac{\delta n}{n} = -\frac{\partial \ln n}{\partial \delta_c} \, \epsilon \equiv b_L \, \epsilon,
+\end{equation}
+where $b_L$ is the \textbf{Lagrangian bias}. The Eulerian bias, relating the halo overdensity to the matter overdensity, is $b_h = 1 + b_L$. For the SMT mass function, this yields:
+\begin{equation}
+\label{eq:ST_bias}
+b_h(\nu) = 1 + \frac{q\nu - 1}{\delta_c} + \frac{2p}{\delta_c \left(1 + (q\nu)^p\right)}.
+\end{equation}
+The physical content is clear: rare, massive halos (high $\nu$) correspond to high peaks in the density field and are \textbf{more biased} ($b_h \gg 1$), preferentially forming in overdense regions. Low-mass halos ($\nu \ll 1$) can form in average or underdense environments and are \textbf{anti-biased} ($b_h < 1$). The consistency relation $\int b_h(M) \, f(\nu) \, \dd\nu = 1$ is automatically satisfied by construction.
+
+\textit{Textbook reference:} The peak-background split is discussed in Baumann (2022), Section~12.1.4.
+
+\subsection{Halo model ingredient 3: The concentration-mass relation}
+\label{sec:concentration}
+
+\subsubsection{Definition and physical meaning}
+
+The NFW density profile is:
+\begin{equation}
+\label{eq:NFW}
+\rho_{\mathrm{NFW}}(r) = \frac{\rho_s}{(r/r_s)(1 + r/r_s)^2},
+\end{equation}
+where $r_s$ is the scale radius (the radius at which the logarithmic slope is $-2$) and $\rho_s$ is a characteristic density. The \textbf{concentration parameter} is defined as:
+\begin{equation}
+c(M, z) \equiv \frac{r_{\mathrm{vir}}}{r_s},
+\end{equation}
+the ratio of the virial radius to the scale radius. It encodes how centrally concentrated the halo's mass distribution is. The normalisation is fixed by requiring $M = 4\pi \int_0^{r_{\mathrm{vir}}} r^2 \rho_{\mathrm{NFW}}(r) \, \dd r$, which gives $\rho_s = M / [4\pi r_s^3 f(c)]$ with $f(c) = \ln(1 + c) - c/(1 + c)$.
+
+\subsubsection{The Fourier transform of the NFW profile}
+
+The normalised Fourier transform of the NFW profile, truncated at $r_{\mathrm{vir}}$, admits an analytic expression in terms of sine and cosine integrals:
+\begin{multline}
+\label{eq:NFW_FT}
+\utilde(k | M) = \frac{1}{f(c)} \bigg\{ \sin(kr_s) \left[\mathrm{Si}\big((1{+}c) kr_s\big) - \mathrm{Si}(kr_s)\right] \\
++ \cos(kr_s) \left[\mathrm{Ci}\big((1{+}c) kr_s\big) - \mathrm{Ci}(kr_s)\right] - \frac{\sin(c \, kr_s)}{(1{+}c) kr_s} \bigg\},
+\end{multline}
+with $\utilde(k \to 0 | M) = 1$ by construction. This function drops from unity at low $k$, oscillates around zero at intermediate $k$, and decays at high $k$ with an envelope set by $r_s$.
+
+\subsubsection{Why concentration matters enormously for annihilating DM}
+
+The annihilation luminosity of an NFW halo scales as:
+\begin{equation}
+L_{\mathrm{ann}} \propto \int_0^{r_{\mathrm{vir}}} 4\pi r^2 \, \rho_{\mathrm{NFW}}^2(r) \, \dd r \propto \frac{c^3}{f(c)^2}.
+\end{equation}
+Since $f(c) \sim \ln c$ for $c \gg 1$, we have $L_{\mathrm{ann}} \propto c^3/(\ln c)^2$, which is an extremely steep function of $c$. A factor of 2 change in concentration produces roughly an order of magnitude change in annihilation luminosity. This makes the concentration-mass relation the \textbf{single most consequential ingredient} for dark matter annihilation predictions.
+
+\subsubsection{Prescriptions used in the foundational papers}
+
+Fornengo \& Regis (2014) use the \textbf{Mu\~{n}oz-Cuartas et al.\ (2011)} polynomial fit:
+\begin{equation}
+\log_{10} c_{\mathrm{vir}} = a(z) + b(z) \, \log_{10}\!\left(\frac{M_h}{h^{-1}\Msun}\right),
+\end{equation}
+valid for $10^{11}$--$10^{15} \; h^{-1} \Msun$ at $z = 0$--$5$, extrapolated to smaller masses following the power-law behaviour of \textbf{Bullock et al.\ (2001)}:
+\begin{equation}
+c_{\mathrm{vir}}(M, z) \propto (1 + z)^{-1} \left(\frac{M}{M_*}\right)^{-0.13},
+\end{equation}
+where $M_*$ is the non-linear mass scale.
+
+Pinetti et al.\ (2020) use the \textbf{Correa et al.\ (2015)} semi-analytic model, which links concentration to the halo mass accretion history via $c(M, z) \propto (1 + z_f)/(1 + z)$, where $z_f$ is the formation redshift at which the main progenitor assembled a fixed fraction of the final mass. This model predicts a slope change at $\sim 10^{11} \, \Msun$ and extends over a wider dynamic range with better physical motivation.
+
+\paragraph{Uncertainty propagation.} The extrapolation of $c(M)$ over more than 12 orders of magnitude below the resolution limit of current N-body simulations ($\sim 10^6 \, \Msun$) is a major source of systematic uncertainty. Alternative prescriptions include S\'{a}nchez-Conde \& Prada (2014), who find a flattening of $c(M)$ at low masses, and Diemer \& Kravtsov (2015), who use a universal relation tied to the local slope of the linear power spectrum. The resulting spread in predicted cross-correlation signals can reach a factor of several.
+
+
+%=============================================================================
+\section{The Critical Distinction: Density versus Density-Squared Fields}
+\label{sec:part3}
+%=============================================================================
+
+\subsection{Why HI traces density linearly}
+
+Neutral hydrogen in the post-reionisation universe resides in self-shielded regions within dark matter halos, predominantly in the mass range $\sim 10^8$--$10^{12} \, \Msun$. The mean HI brightness temperature is (Pinetti et al., Eq.~3.5):
+\begin{equation}
+\label{eq:Tb_mean}
+\bar{T}_b(z) = 180 \; \Omega_{\mathrm{HI}}(z) \; h \; \frac{(1 + z)^2}{H(z)/H_0} \; \mathrm{mK},
+\end{equation}
+where $\Omega_{\mathrm{HI}}(z) \approx 4$--$6 \times 10^{-4}$ is the HI density parameter. On large scales, the HI overdensity is related to the matter overdensity by a \textbf{linear bias}:
+\begin{equation}
+\delta_{\mathrm{HI}}(\vect{x}, z) = b_{\mathrm{HI}}(z) \, \delta_m(\vect{x}, z).
+\end{equation}
+In the halo model, the HI source field within a halo of mass $M$ is:
+\begin{equation}
+f_{\mathrm{HI}}^h(k, z | M) = \frac{M_{\mathrm{HI}}(M, z)}{\rhobar_{\mathrm{HI}}(z)} \; \utilde(k | M),
+\end{equation}
+where $M_{\mathrm{HI}}(M, z)$ is the HI mass hosted by a halo of total mass $M$, and $\utilde(k | M)$ is the normalised NFW Fourier transform. The critical point is that the HI field involves $\utilde(k | M)$---the Fourier transform of density---\textbf{weighted linearly by mass}. Consequently, HI power spectra involve only the profile $\utilde$, and on large scales the HI auto-spectrum reduces to $P_{\mathrm{HI}}^{\mathrm{2h}}(k) \propto b_{\mathrm{HI}}^2 \, \Plin(k)$.
+
+\subsection{Why dark matter annihilation traces density squared}
+
+The dark matter annihilation emissivity is proportional to the number density of annihilating pairs:
+\begin{equation}
+\varepsilon_{\mathrm{ann}} \propto n_\chi^2 \, \sigv \propto \rho_{\mathrm{DM}}^2.
+\end{equation}
+This quadratic dependence fundamentally changes the halo model structure. The relevant Fourier-space profile becomes:
+\begin{equation}
+\vtilde(k | M) \propto \int \dd^3 x \; \rho_{\mathrm{NFW}}^2(\vect{x} | M) \; \ee^{\ii \vect{k} \cdot \vect{x}}.
+\end{equation}
+Since $\rho_{\mathrm{NFW}}^2 \propto r^{-2}(1 + r/r_s)^{-4}$ is \textbf{much more centrally concentrated} than $\rho_{\mathrm{NFW}} \propto r^{-1}(1 + r/r_s)^{-2}$, the function $\vtilde(k | M)$ falls off significantly more slowly with $k$ than $\utilde(k | M)$. This means that \textbf{density-squared fields carry far more small-scale (high-$k$) power}, reflecting the enhanced contribution from the dense cores of halos.
+
+\subsection{The three power spectrum types}
+
+Fornengo \& Regis derive three distinct power spectrum classes. We present each in turn.
+
+\subsubsection{Auto-correlation $P_{\delta\delta}$: density $\times$ density}
+
+Relevant for gravitational lensing, decaying DM, galaxy clustering (Fornengo \& Regis, Eqs.~14--15):
+\begin{align}
+\label{eq:Pdd_1h}
+P_{\delta\delta}^{\mathrm{1h}}(k) &= \int \dd M \; \ddn \; \left(\frac{M}{\rhobar}\right)^2 [\utilde(k | M)]^2, \\
+\label{eq:Pdd_2h}
+P_{\delta\delta}^{\mathrm{2h}}(k) &= \left[\int \dd M \; \ddn \; b_h(M) \, \frac{M}{\rhobar} \, \utilde(k | M)\right]^2 \Plin(k).
+\end{align}
+Here $\utilde(k|M)$ is the normalised profile transform from \cref{eq:NFW_FT} with $\utilde(0|M) = 1$. Some references (including Fornengo \& Regis) absorb the mass factor into $\utilde$; we keep it explicit for clarity.
+
+\subsubsection{Auto-correlation $P_{\delta^2 \delta^2}$: density$^2$ $\times$ density$^2$}
+
+Relevant for annihilating DM auto-correlation (Fornengo \& Regis, Eqs.~21--22):
+\begin{align}
+\label{eq:Pd2d2_1h}
+P_{\delta^2 \delta^2}^{\mathrm{1h}}(k) &= \int \dd M \; \ddn \; \frac{[\vtilde(k | M)]^2}{\langle \rho^2 \rangle^2}, \\
+\label{eq:Pd2d2_2h}
+P_{\delta^2 \delta^2}^{\mathrm{2h}}(k) &= \left[\int \dd M \; \ddn \; \frac{b_h(M) \, \vtilde(k | M)}{\langle \rho^2 \rangle}\right]^2 \Plin(k).
+\end{align}
+
+\subsubsection{Cross-correlation $P_{\delta \delta^2}$: density $\times$ density$^2$}
+
+Relevant for gravitational tracer $\times$ annihilating DM (Fornengo \& Regis, Eqs.~28--29):
+\begin{equation}
+\label{eq:Pdd2_1h}
+\boxed{
+P_{\delta \delta^2}^{\mathrm{1h}}(k) = \int \dd M \; \ddn \; \frac{M}{\rhobar} \, \utilde(k | M) \; \frac{\vtilde(k | M)}{\langle \rho^2 \rangle}
+}
+\end{equation}
+\begin{equation}
+\label{eq:Pdd2_2h}
+\boxed{
+P_{\delta \delta^2}^{\mathrm{2h}}(k) = \left[\int \dd M \; \ddn \; b_h(M) \, \frac{M}{\rhobar} \, \utilde(k | M)\right] \left[\int \dd M \; \ddn \; \frac{b_h(M) \, \vtilde(k | M)}{\langle \rho^2 \rangle}\right] \Plin(k)
+}
+\end{equation}
+Note that on the density side, the mass factor $M$ appears explicitly because $\utilde$ is the normalised Fourier transform of the NFW profile ($\utilde(0|M) = 1$). On the density-squared side, $\vtilde(k|M) = \int \dd^3 x \; \rho^2(\vect{x}|M) \, \ee^{\ii \vect{k} \cdot \vect{x}}$ is the \textit{unnormalised} Fourier transform (with $\vtilde(0|M) = \int \dd^3 x \; \rho^2$), so no additional factor is needed.
+The cross-spectrum $P_{\delta \delta^2}$ is the key quantity for the HI $\times$ DM annihilation signal: one leg carries $\utilde$ (the linear-density HI side) and the other carries $\vtilde$ (the density-squared annihilation side). Because $\vtilde$ extends to higher $k$ than $\utilde$, \textbf{the 1-halo term of the cross-correlation is dominated by the $\utilde$ cutoff}, giving intermediate small-scale behaviour between $P_{\delta\delta}$ and $P_{\delta^2\delta^2}$.
+
+\subsection{Mapping to the specific HI $\times$ DM and HI $\times$ astrophysical cross-correlations}
+
+Pinetti et al.\ (2020) construct the specific cross-correlation signals by specialising the general framework.
+
+\subsubsection{HI $\times$ DM annihilation (Pinetti et al., Eqs.~5.1--5.2)}
+
+\begin{equation}
+\label{eq:Cl_HI_DM}
+\Cl^{\mathrm{HI} \times \mathrm{DM}}(E) = \int \frac{\dd\chi}{\chi^2} \; W_{\mathrm{HI}}(\chi) \; W_\gamma^{\mathrm{DM}}(E, \chi) \; P_{\mathrm{HI} \times \mathrm{DM}}\!\left(k = \frac{\ell + 1/2}{\chi}, \chi\right),
+\end{equation}
+with the 3D cross-power decomposed as:
+\begin{align}
+P_{\mathrm{HI} \times \mathrm{DM}}^{\mathrm{1h}}(k, z) &= \int \dd M \; \ddn \; f_{\mathrm{HI}}^h(k | M) \; f_{\mathrm{DM}}^h(k | M), \label{eq:P_HI_DM_1h} \\
+P_{\mathrm{HI} \times \mathrm{DM}}^{\mathrm{2h}}(k, z) &= \left[\int \dd M \; \ddn \; b_h(M) \; f_{\mathrm{HI}}^h(k | M)\right] \left[\int \dd M' \; \frac{\dd n}{\dd M'} \; b_h(M') \; f_{\mathrm{DM}}^h(k | M')\right] \Plin(k), \label{eq:P_HI_DM_2h}
+\end{align}
+where:
+\begin{align}
+f_{\mathrm{HI}}^h(k | M) &\propto \frac{M_{\mathrm{HI}}(M)}{\rhobar_{\mathrm{HI}}} \; \utilde(k | M) & &\text{(linear in density profile)}, \\
+f_{\mathrm{DM}}^h(k | M) &\propto \frac{\mathcal{F}[\rho_h^2](k | M)}{\Delta^2(z) \, \rhobar^2} & &\text{(quadratic in density profile)}.
+\end{align}
+
+\subsubsection{HI $\times$ astrophysical sources (Pinetti et al., Eqs.~5.3--5.4)}
+
+For astrophysical gamma-ray sources (blazars, star-forming galaxies, misaligned AGN), the annihilation profile $f_{\mathrm{DM}}^h$ is replaced by the source profile:
+\begin{equation}
+f_s^h(z | L) = \frac{L}{\langle g_s \rangle},
+\end{equation}
+leading to analogous expressions where the gamma-ray side is characterised by luminosity functions rather than density-squared profiles. The total observed cross-correlation signal is the sum:
+\begin{equation}
+\label{eq:Cl_total}
+\Cl^{\mathrm{HI} \times \gamma} = \Cl^{\mathrm{HI} \times \mathrm{DM}} + \sum_s \Cl^{\mathrm{HI} \times s},
+\end{equation}
+where $s$ runs over BL Lacs, FSRQs, misaligned AGN, and star-forming galaxies.
+
+
+%=============================================================================
+\section{The Clumping Factor and Substructure Boost}
+\label{sec:part4}
+%=============================================================================
+
+\subsection{Definition of the clumping factor $\Delta^2(z)$}
+
+The clumping factor quantifies the enhancement of the mean annihilation rate due to the inhomogeneous dark matter distribution (Fornengo \& Regis, Eq.~37; Pinetti et al., Eq.~4.2):
+\begin{equation}
+\label{eq:clumping}
+\boxed{
+\Delta^2(z) \equiv \frac{\langle \rho^2(z) \rangle}{\rhobar^2} = \frac{1}{\rhobar^2} \int \dd M \; \ddn \int \dd^3 x \; \rho^2(\vect{x} | M, z)
+}
+\end{equation}
+
+The integral over the squared NFW profile yields:
+\begin{equation}
+\int_0^{r_{\mathrm{vir}}} 4\pi r^2 \, \rho_{\mathrm{NFW}}^2(r) \, \dd r = \frac{4\pi}{3} \, \rho_s^2 \, r_s^3 \left[1 - \frac{1}{(1 + c)^3}\right],
+\end{equation}
+which scales as $c^3$ at leading order.
+
+\subsection{Physical importance}
+
+For annihilating DM, the signal is proportional to $\langle \rho^2 \rangle$, \textit{not} $\langle \rho \rangle^2$. Since the density field is highly inhomogeneous, we have $\langle \rho^2 \rangle \gg \langle \rho \rangle^2$, so departures from a smooth, uniform density field dramatically enhance the signal. The clumping factor grows with decreasing redshift as structure forms, with typical values spanning $\Delta^2(z = 0) \sim 10^4$--$10^7$---the enormous range reflecting uncertainty in the minimum halo mass and substructure treatment.
+
+An equivalent expression using the non-linear matter power spectrum (Serpico et al.\ 2012) is:
+\begin{equation}
+\Delta^2(z) = 1 + \frac{1}{2\pi^2} \int \dd k \; k^2 \, P_{\mathrm{NL}}(k, z),
+\end{equation}
+which offers a complementary perspective by integrating over all clustering scales without explicitly invoking the halo model.
+
+\subsection{Substructure boost factor $B(M, z)$}
+
+Dark matter halos contain copious substructure from hierarchical accretion. Since annihilation scales as $\rho^2$, the clumpy internal mass distribution boosts the total halo luminosity. The \textbf{boost factor} $B(M, z)$ is defined as the ratio of subhalo annihilation luminosity to smooth-halo luminosity. Including substructure, the squared density profile is replaced by:
+\begin{equation}
+\rho^2(\vect{x} | M) \longrightarrow \big[1 + B(\vect{x}, M, z)\big] \, \rho^2(\vect{x} | M).
+\end{equation}
+
+Fornengo \& Regis employ the parameterisation from Kamionkowski, Koushiappas \& Kuhlen (2010), while the updated treatment by \textbf{Molin\'{e} et al.\ (2017)} provides a more detailed model calibrated on Via Lactea II and ELVIS simulations. The computation involves:
+\begin{equation}
+\label{eq:boost}
+B(M, z) = \frac{1}{L_{\mathrm{smooth}}(M)} \int_{M_{\mathrm{min}}}^{M} \dd m \; \frac{\dd N_{\mathrm{sub}}}{\dd m} \; L_{\mathrm{sub}}(m, x_{\mathrm{sub}}) \; \big[1 + B(m)\big],
+\end{equation}
+where $\dd N_{\mathrm{sub}}/\dd m \propto m^{-\alpha}$ with $\alpha \approx 1.9$ is the subhalo mass function, $L_{\mathrm{sub}} \propto m \, c_{\mathrm{sub}}^3/f(c_{\mathrm{sub}})^2$ is the subhalo annihilation luminosity, and the factor $[1 + B(m)]$ recursively includes sub-substructure. Smaller subhalos are denser and more concentrated (since they formed earlier when the universe was denser), contributing disproportionately to $\rho^2$.
+
+\subsection{Theoretical uncertainty from different prescriptions}
+
+Fornengo \& Regis consider three benchmark scenarios that bracket the uncertainty:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Optimistic:} $M_{\mathrm{min}} = 10^{-6} \, \Msun$ (WIMP free-streaming mass) with \textbf{Via Lactea II} substructure boost---produces the largest signal.
+    \item \textbf{Intermediate:} $M_{\mathrm{min}} = 10^{-6} \, \Msun$ with \textbf{Aquarius/Virgo Consortium} substructure boost.
+    \item \textbf{Conservative:} $M_{\mathrm{min}} = 10^7 \, \Msun$ (dynamical minimum from resolved subhalos) without substructure.
+\end{enumerate}
+
+The boost factor for Milky Way--mass halos ranges from $B \sim 1$--$10$ (conservative/Aquarius-based) to $B \sim 10$--$100$ (optimistic/Via Lactea-based) with $M_{\mathrm{min}} = 10^{-6} \, \Msun$. This \textbf{up to two orders of magnitude spread} constitutes the single largest theoretical uncertainty in the dark matter annihilation signal prediction. The uncertainty is dominated by the extrapolation of the concentration-mass relation over more than 12 orders of magnitude below the resolution limit of current N-body simulations ($\sim 10^6 \, \Msun$), since $L \propto c^3$ makes the annihilation luminosity exquisitely sensitive to concentration.
+
+
+%=============================================================================
+\section{Window Functions and What They Encode}
+\label{sec:part5}
+%=============================================================================
+
+The angular power spectrum $\Cl$ is an integral over redshift of the product of two window functions times the 3D power spectrum (\cref{eq:Cl_limber}). We now examine each window function in detail.
+
+\subsection{The HI window function}
+
+The HI window function for a tomographic redshift bin with selection function $\phi_i(z)$ is (Pinetti et al., Eqs.~3.15--3.16):
+\begin{equation}
+\label{eq:W_HI}
+W_{\mathrm{HI}}(\chi) = \bar{T}_b(z) \; b_{\mathrm{HI}}(z) \; \phi_i(z) \; \frac{H(z)}{c},
+\end{equation}
+where $\bar{T}_b(z)$ is the mean brightness temperature (\cref{eq:Tb_mean}), $b_{\mathrm{HI}}(z)$ is the HI bias (increasing from $\sim 0.85$ at $z = 0$ to $\sim 2$ at $z = 3$), and $\phi_i(z)$ is determined by the frequency channel of the radio telescope.
+
+The excellent frequency resolution of radio telescopes ($\Delta\nu/\nu \sim 10^{-3}$) translates directly into fine redshift resolution via $1 + z = \nu_{21}/\nu_{\mathrm{obs}}$, enabling \textbf{redshift tomography}: dividing the band into $\sim 6$--$20$ bins and computing independent cross-correlations for each bin. This is a powerful advantage for disentangling DM from astrophysical contributions, since their window functions peak at different redshifts.
+
+\subsection{The DM annihilation gamma-ray window function}
+
+The DM window function for an observed energy bin $[E_{\mathrm{min}}, E_{\mathrm{max}}]$ is (Pinetti et al., Eq.~4.1; Fornengo \& Regis, Eqs.~38--39):
+\begin{equation}
+\label{eq:W_DM}
+\boxed{
+W_\gamma^{\mathrm{DM}}(E, \chi) = \frac{(\Omega_{\mathrm{DM}} \rho_c)^2}{4\pi} \; \frac{\sigv}{2\mchi^2} \; \frac{(1 + z)^3}{H(z)} \; \Delta^2(z) \; \int_{E_{\mathrm{min}}}^{E_{\mathrm{max}}} \dd E_0 \; \left.\frac{\dd N_\gamma}{\dd E'}\right|_{E' = E_0(1+z)} \ee^{-\tau(E_0(1+z), z)}
+}
+\end{equation}
+
+Each factor has precise physical origin:
+
+\paragraph{$(\Omega_{\mathrm{DM}} \rho_c)^2$:} The square of the mean comoving dark matter density, reflecting the pair-annihilation process requiring two DM particles.
+
+\paragraph{$(1 + z)^3$:} One power of $(1 + z)^3$ from the cosmological scaling of the physical density $\rho(z) = \rhobar_0 (1 + z)^3$ enters beyond the comoving normalisation. Since $\rho^2 \propto (1 + z)^6$ but the comoving volume element contributes $(1 + z)^{-3}$, a net $(1 + z)^3$ remains.
+
+\paragraph{$\Delta^2(z)$:} The clumping factor (\cref{eq:clumping}) enhancing the mean-field annihilation rate due to halo clustering and substructure.
+
+\paragraph{$\dd N_\gamma / \dd E'$:} The photon yield per annihilation at emitted energy $E' = E_0(1 + z)$, computed from Monte Carlo generators (PYTHIA) or tabulated in PPPC~4~DM~ID for channels such as $b\bar{b}$ (soft, pion-dominated), $\tau^+\tau^-$ (intermediate), and $W^+W^-$ (harder, gauge-boson fragmentation).
+
+\paragraph{$\ee^{-\tau(E', z)}$:} Attenuation by pair production on the extragalactic background light (EBL), significant for $E \gtrsim 30$ GeV at $z \gtrsim 0.5$, computed from EBL models (Franceschini et al.\ 2008; Dom\'{i}nguez et al.\ 2011).
+
+\subsection{The astrophysical source window function}
+
+For unresolved gamma-ray sources of class $s$ (Pinetti et al., Eq.~4.3):
+\begin{equation}
+\label{eq:W_astro}
+W_\gamma^{\mathrm{astro}}(E, z) = \frac{[d_L(z)]^2}{(1 + z)^2} \int_0^{L_{\mathrm{thr}}(z)} \dd L \; \Phi(L, z) \; \frac{\dd F}{\dd E}(E, L, z),
+\end{equation}
+where $\Phi(L, z) = \dd n/\dd L$ is the gamma-ray luminosity function, $\dd F/\dd E$ is the spectral energy distribution (power-law with indices $\Gamma_{\mathrm{BL\,Lac}} = 2.11$, $\Gamma_{\mathrm{FSRQ}} = 2.44$, $\Gamma_{\mathrm{mAGN}} = 2.37$, $\Gamma_{\mathrm{SFG}} = 2.7$), and $L_{\mathrm{thr}}(z) = 4\pi d_L^2(z) \, S_{\mathrm{thr}}$ is the luminosity above which sources are individually resolved by Fermi-LAT and masked.
+
+\subsection{Overlap of window functions and redshift discrimination}
+
+The DM window function is strongly peaked at low redshift because:
+\begin{enumerate}[nosep]
+    \item Closer structures are brighter (smaller distance).
+    \item The $(1 + z)^3 \, \Delta^2(z)$ factor favours low $z$, since $\Delta^2(z)$ grows steeply toward $z = 0$ as structure forms.
+\end{enumerate}
+In contrast, astrophysical source window functions peak at different redshifts depending on the population: BL Lacs at $z \sim 0.3$--$0.5$, FSRQs at $z \sim 1$--$2$, star-forming galaxies broadly distributed.
+
+The HI window function peaks at $z \sim 0.2$--$0.5$ (for MeerKAT/SKA L-band), providing \textbf{excellent overlap} with the DM window. This coincident peaking makes HI intensity mapping a particularly powerful partner for dark matter searches. The distinct redshift dependence between DM and astrophysical sources enables \textbf{tomographic discrimination}: different redshift bins have different DM-to-astrophysical ratios, breaking the degeneracy. This is the physical basis for the key finding in Pinetti et al.\ that low-redshift radio bands (Band~2, near the rest-frame 21-cm line) are most promising for DM searches.
+
+
+%=============================================================================
+\section{The Error Budget and Signal-to-Noise}
+\label{sec:part6}
+%=============================================================================
+
+\subsection{Gaussian variance of the cross-correlation}
+
+Under Gaussian assumptions, the variance on the cross-correlation angular power spectrum is (Pinetti et al., Eq.~2.7):
+\begin{equation}
+\label{eq:variance}
+\boxed{
+\left(\Delta \Cl^{\mathrm{HI}, \gamma}\right)^2 = \frac{1}{(2\ell + 1) \, \Delta\ell \, \fsky} \left[\left(\Cl^{\mathrm{HI}, \gamma}\right)^2 + \left(\Cl^{\mathrm{HI, HI}} + N_\ell^{\mathrm{HI}}\right) \left(\Cl^{\gamma\gamma} + \frac{N_\ell^\gamma}{(B_\ell^\gamma)^2}\right)\right]
+}
+\end{equation}
+
+where $\fsky$ is the observed sky fraction, $\Delta\ell$ is the multipole bin width, $N_\ell^{\mathrm{HI}}$ and $N_\ell^\gamma$ are instrumental noise power spectra, and $B_\ell^\gamma$ is the Fermi-LAT beam function in harmonic space. Each term has a clear physical interpretation:
+
+\paragraph{The $(\Cl^{\mathrm{HI}, \gamma})^2$ term.} This is the cosmic variance of the cross-correlation signal itself. It is typically negligible because the cross-correlation signal is far weaker than either auto-correlation.
+
+\paragraph{The product of auto-correlations plus noise.} This dominant term reflects the fact that even in the absence of a true cross-correlation, random chance alignments of the fluctuations in the two maps produce a spurious cross-correlation whose variance is set by the product of the two auto-spectra (including noise).
+
+\paragraph{Role of the beam function.} The Fermi-LAT beam function is an energy-dependent Gaussian with $\sigma_b(E) \approx 1.2^\circ \times (E/0.5 \; \mathrm{GeV})^{-0.95} + 0.05^\circ$. At high $\ell$, $B_\ell^\gamma$ falls exponentially, so the ratio $N_\ell^\gamma / (B_\ell^\gamma)^2$ grows rapidly, making the effective gamma-ray noise very large. This means the cross-correlation becomes undetectable at multipoles above $\ell_{\mathrm{max}} \sim$ a few hundred (energy-dependent), creating a \textbf{sweet spot} in multipole space where the cross-correlation signal-to-noise is maximised.
+
+In practice, since the cross-correlation signal is small and the gamma-ray auto-correlation is dominated by photon noise, the variance simplifies to:
+\begin{equation}
+\label{eq:variance_approx}
+\left(\Delta \Cl^{\mathrm{HI}, \gamma}\right)^2 \approx \frac{1}{(2\ell + 1) \, \Delta\ell \, \fsky} \; \frac{N_\ell^\gamma}{(B_\ell^\gamma)^2} \; \left(\Cl^{\mathrm{HI, HI}} + N_\ell^{\mathrm{HI}}\right).
+\end{equation}
+
+\subsection{Signal-to-noise ratio}
+
+The cumulative signal-to-noise ratio is obtained by summing over multipoles and energy bins (Pinetti et al., Eq.~5.6):
+\begin{equation}
+\label{eq:SN}
+\left(\frac{S}{N}\right)^2 = \sum_{E\text{-bins}} \sum_\ell \frac{\left[\Cl^{\mathrm{HI} \times \gamma}(E)\right]^2}{\left[\Delta \Cl^{\mathrm{HI} \times \gamma}(E)\right]^2}.
+\end{equation}
+The multipole sum typically runs from $\ell_{\mathrm{min}} \sim 50$ (below which Galactic foreground contamination dominates) to an energy-dependent $\ell_{\mathrm{max}}$ set by the gamma-ray point-spread function. The energy sum spans the Fermi-LAT range in $\sim 12$ logarithmic bins from 0.5 to 1000~GeV.
+
+\subsection{The $\Delta\chi^2$ test for DM detectability}
+
+To constrain dark matter parameters, Pinetti et al.\ employ a $\Delta\chi^2$ test (Eq.~5.7):
+\begin{equation}
+\label{eq:chi2}
+\Delta\chi^2 = \sum_{\ell, E} \frac{\left[\Cl^{\mathrm{HI} \times \gamma, \mathrm{tot}}(E) - \Cl^{\mathrm{HI} \times \gamma, \mathrm{astro}}(E)\right]^2}{\left[\Delta \Cl^{\mathrm{HI} \times \gamma}(E)\right]^2}.
+\end{equation}
+The null hypothesis is ``astrophysical sources only'' and the alternative includes DM. Since the DM contribution is additive,
+\begin{equation}
+\Cl^{\mathrm{tot}} = \Cl^{\mathrm{astro}} + \Cl^{\mathrm{DM}}(\sigv),
+\end{equation}
+and $\Cl^{\mathrm{DM}}$ is \textit{strictly proportional} to $\sigv$ at fixed $\mchi$ and annihilation channel, this reduces to a \textbf{one-parameter test}. The dark matter mass $\mchi$ determines the spectral shape $\dd N_\gamma/\dd E$ and therefore the energy-bin weights, while the annihilation channel (e.g., $b\bar{b}$) is fixed by hypothesis. The $2\sigma$ ($95.45\%$ CL) upper limit on $\sigv$ is obtained from $\Delta\chi^2 = 4$ for one degree of freedom (note: $\Delta\chi^2 = 3.84$ gives the exact $95\%$ CL; the approximation $\Delta\chi^2 = 4$ is standard practice in the particle physics literature). A Fisher matrix approach with nuisance parameters for the astrophysical normalisation amplitudes confirms that the DM bound is robust against marginalisation over astrophysical model uncertainties.
+
+\subsection{Projected sensitivities}
+
+Key projected sensitivities from Pinetti et al.: MeerKAT $\times$ Fermi-LAT achieves $S/N \sim 3.7$ for astrophysical sources; SKA1 $\times$ Fermi-LAT reaches $\sim 5.7$; SKA2 $\times$ Fermi-LAT reaches $\sim 8.2$. For dark matter, SKA2 combined with a hypothetical next-generation gamma-ray telescope can probe the thermal relic cross section $\sigv = 3 \times 10^{-26} \; \mathrm{cm}^3 \, \mathrm{s}^{-1}$ up to $\mchi \sim \mathcal{O}(\mathrm{TeV})$.
+
+
+%=============================================================================
+\section{Connections to Observable Quantities and Practical Considerations}
+\label{sec:part7}
+%=============================================================================
+
+\subsection{Pseudo-$\Cl$ estimation from pixelised sky maps}
+
+Real observations cover only a fraction $\fsky$ of the sky, after masking the Galactic plane and resolved sources. The measured harmonic coefficients $\tilde{a}_{\ell m}$ of the masked field are related to the true coefficients through \textbf{mode-coupling} induced by the mask. The pseudo-$\Cl$ estimator (Hivon et al.\ 2002) gives:
+\begin{equation}
+\label{eq:pseudo_Cl}
+\langle \tilde{C}_\ell \rangle = \sum_{\ell'} M_{\ell\ell'} \, C_{\ell'},
+\end{equation}
+where the mode-coupling matrix is:
+\begin{equation}
+\label{eq:mode_coupling}
+M_{\ell\ell'} = \frac{2\ell' + 1}{4\pi} \sum_{\ell''} (2\ell'' + 1) \, W_{\ell''}
+\begin{pmatrix} \ell & \ell' & \ell'' \\ 0 & 0 & 0 \end{pmatrix}^2,
+\end{equation}
+with $W_\ell$ the angular power spectrum of the mask window, and the parenthesised term is the Wigner 3-$j$ symbol enforcing the triangle inequality $|\ell - \ell'| \leq \ell'' \leq \ell + \ell'$. The true power spectrum is recovered by matrix inversion: $\hat{C}_\ell = \sum_{\ell'} M_{\ell\ell'}^{-1} \, \tilde{C}_{\ell'}$.
+
+A key advantage of the cross-correlation approach is that \textbf{noise bias vanishes} because instrumental noise on the radio and gamma-ray sides is uncorrelated---unlike auto-correlation analyses where noise bias must be carefully subtracted. Software implementations include \texttt{NaMaster} (Alonso et al.\ 2019) and \texttt{PolSpice} (Chon et al.\ 2004).
+
+\subsection{Foreground contamination}
+
+\subsubsection{Radio side}
+
+Galactic synchrotron emission ($\sim 700$~K at 408~MHz, spectral index $\beta \approx -2.5$ to $-2.7$) dominates the HI signal ($\sim$hundreds of $\mu$K) by six orders of magnitude. Free-free emission and extragalactic point sources contribute at lower levels. The saving grace is that these foregrounds are \textbf{spectrally smooth}, while the 21-cm signal fluctuates with frequency. Polynomial fitting, principal component analysis (PCA), or independent component analysis (ICA) along the frequency axis can remove foregrounds to the required level, though at the cost of removing some large-scale line-of-sight modes. This signal loss is quantified by a \textbf{transfer function} $T(k_\parallel)$ that must be calibrated through mock signal injection.
+
+\subsubsection{Gamma-ray side}
+
+Diffuse Galactic emission from cosmic-ray interactions (pion decay, inverse Compton, bremsstrahlung) dominates. Masking the Galactic plane ($|b| < 20^\circ$--$30^\circ$) and applying Galactic diffuse emission templates (from the Fermi Science Tools) mitigate this contamination. Resolved point sources from the 4FGL/5FGL catalogue are masked. Residual cosmic-ray contamination in Fermi-LAT data is addressed through stringent event selection (\texttt{ULTRACLEANVETO} class).
+
+\subsubsection{Cross-correlation advantage}
+
+Since radio and gamma-ray foregrounds arise from independent physical processes and different regions of the electromagnetic spectrum, they are \textbf{uncorrelated} with each other. Their contribution to the cross-correlation is therefore zero in expectation, entering only through increased noise in the auto-spectra within the Gaussian variance. This makes the cross-correlation inherently more robust against systematics than either auto-correlation alone.
+
+\subsection{Non-Gaussian contributions to the covariance}
+
+The Gaussian variance of \cref{eq:variance} is a lower bound on the true uncertainty. The full covariance includes:
+
+\paragraph{Connected non-Gaussian (cNG) term.} This arises from the angular trispectrum $T_{\ell\ell'}^{ABCD}$ projected from the 3D matter trispectrum. In the halo model, the dominant contribution comes from the \textbf{1-halo trispectrum}---four fields correlated within the same massive halo. This term introduces off-diagonal covariance between different multipole bins and is $\ell$-independent in its diagonal component.
+
+\paragraph{Super-sample covariance (SSC).} Density fluctuations on scales larger than the survey volume modulate the local power spectrum, coupling different multipoles. The SSC contribution scales as:
+\begin{equation}
+\mathrm{Cov}_{\ell\ell'}^{\mathrm{SSC}} \propto \frac{\partial \Cl}{\partial \delta_b} \; \frac{\partial C_{\ell'}}{\partial \delta_b} \; \sigma_b^2,
+\end{equation}
+where $\sigma_b^2$ is the variance of the background mode. This effect becomes increasingly important for smaller sky fractions.
+
+For precision analyses, neglecting non-Gaussian contributions can underestimate confidence regions by up to $\sim 70\%$ (as demonstrated for cosmic shear by Barreira et al.\ 2018). For the HI $\times$ UGRB cross-correlation with current Fermi-LAT data, the error budget is dominated by gamma-ray photon noise, and non-Gaussian corrections are subdominant. However, for future experiments with substantially improved gamma-ray sensitivity, proper treatment of the non-Gaussian covariance will become essential.
+
+
+%=============================================================================
+\section{Summary and Recommended Reading}
+\label{sec:summary}
+%=============================================================================
+
+The theoretical formalism for cross-correlating HI 21-cm intensity mapping with the unresolved gamma-ray background is built on a chain of well-understood but interrelated components:
+
+\begin{enumerate}
+    \item The \textbf{Limber-projected angular power spectrum} (\cref{eq:Cl_limber}) converts 3D clustering information into observable 2D correlations via $k = (\ell + 1/2)/\chi$.
+
+    \item The \textbf{halo model} (\cref{eq:P1h_general,eq:P2h_general}) provides a physically transparent decomposition into 1-halo (intra-halo structure) and 2-halo (inter-halo clustering) contributions.
+
+    \item The \textbf{density vs.\ density-squared distinction} (\cref{eq:Pdd2_1h,eq:Pdd2_2h}) naturally encodes the difference between gravitational tracers like HI (involving $\utilde$) and annihilation signals (involving $\vtilde$).
+
+    \item The \textbf{clumping factor and substructure boost} (\cref{eq:clumping,eq:boost}) control the overall normalisation of the DM signal and constitute the largest theoretical uncertainty.
+
+    \item The \textbf{window functions} (\cref{eq:W_HI,eq:W_DM,eq:W_astro}) encode the redshift sensitivity of each tracer, with the fortunate coincidence that both HI and DM annihilation peak at $z \lesssim 0.5$.
+
+    \item The \textbf{error budget} (\cref{eq:variance}) is dominated by gamma-ray photon noise times the HI auto-spectrum, with a sweet spot in $\ell$-space set by the gamma-ray beam.
+
+    \item The \textbf{$\Delta\chi^2$ test} (\cref{eq:chi2}) reduces to a one-parameter test in $\sigv$ at fixed $\mchi$, enabling clean upper limits.
+\end{enumerate}
+
+\subsection{Recommended references}
+
+\begin{description}[style=nextline, labelwidth=4cm]
+    \item[Foundational papers:] ~\\
+    Fornengo \& Regis (2014), \textit{Particle dark matter searches in the anisotropic sky}, Front.\ Physics 2, 6. arXiv:1312.4835. \\
+    Pinetti, Camera, Fornengo \& Regis (2020), \textit{Synergies across the spectrum for particle dark matter indirect detection: how HI intensity mapping meets gamma rays}, JCAP 07, 044. arXiv:1911.04989.
+
+    \item[Cosmological foundations:] ~\\
+    Baumann (2022), \textit{Cosmology}, Cambridge University Press. Chapters 6 (CMB anisotropies), 12 (large-scale structure), and 13 (gravitational lensing) for the Limber approximation, angular power spectra, and projection effects.
+
+    \item[Halo model review:] ~\\
+    Cooray \& Sheth (2002), \textit{Halo Models of Large Scale Structure}, Physics Reports 372, 1--129. astro-ph/0206508.
+
+    \item[Limber approximation corrections:] ~\\
+    LoVerde \& Afshordi (2008), \textit{Extended Limber Approximation}, PRD 78, 123506. arXiv:0809.5112. \\
+    Fang, Krause, Eifler \& MacCrann (2020), \textit{Beyond Limber: Efficient computation of angular power spectra for galaxy clustering and weak lensing}, JCAP 05, 010.
+
+    \item[Halo mass function:] ~\\
+    Sheth, Mo \& Tormen (2001), MNRAS 323, 1. \\
+    Tinker et al.\ (2008), ApJ 688, 709. \\
+    Despali et al.\ (2016), MNRAS 456, 2486.
+
+    \item[Halo bias:] ~\\
+    Sheth \& Tormen (1999), MNRAS 308, 119. \\
+    Mo \& White (1996), MNRAS 282, 347.
+
+    \item[Concentration-mass relation:] ~\\
+    Bullock et al.\ (2001), MNRAS 321, 559. \\
+    Mu\~{n}oz-Cuartas et al.\ (2011), MNRAS 411, 584. \\
+    Correa et al.\ (2015), MNRAS 452, 1217. \\
+    S\'{a}nchez-Conde \& Prada (2014), MNRAS 442, 2271. \\
+    Diemer \& Kravtsov (2015), ApJ 799, 108.
+
+    \item[Substructure boost:] ~\\
+    Molin\'{e} et al.\ (2017), MNRAS 466, 4974. \\
+    S\'{a}nchez-Conde \& Prada (2014), MNRAS 442, 2271. \\
+    Kamionkowski, Koushiappas \& Kuhlen (2010), PRD 81, 043532.
+
+    \item[HI intensity mapping:] ~\\
+    Bull et al.\ (2015), \textit{Late-time cosmology with 21-cm intensity mapping experiments}, ApJ 803, 21. \\
+    Villaescusa-Navarro et al.\ (2018), ApJ 866, 135.
+
+    \item[Pseudo-$\Cl$ estimation:] ~\\
+    Hivon et al.\ (2002), ApJ 567, 2. \\
+    Alonso et al.\ (2019), \texttt{NaMaster}: A unified framework for angular power spectra estimation, MNRAS 484, 4127.
+
+    \item[Non-Gaussian covariance:] ~\\
+    Barreira et al.\ (2018), JCAP 06, 015. \\
+    Lacasa \& Grain (2019), A\&A 624, A61.
+\end{description}
+
+
+\end{document}

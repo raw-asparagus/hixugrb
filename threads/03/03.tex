@@ -1,0 +1,416 @@
+\documentclass[10pt,a4paper]{article}
+
+% ---- Packages ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{physics} % for \expval, \dd, etc.
+\usepackage{hyperref}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+% ---- Custom commands ----
+\newcommand{\sigv}{\langle\sigma v\rangle}
+\newcommand{\mchi}{m_\chi}
+\newcommand{\rhoc}{\rho_{\mathrm{c}}}
+\newcommand{\OmDM}{\Omega_{\mathrm{DM}}}
+\newcommand{\fsky}{f_{\mathrm{sky}}}
+\newcommand{\Fsens}{F_{\mathrm{sens}}}
+\newcommand{\Nph}{N^{\gamma}}
+\newcommand{\Cl}{C_\ell}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\ergs}{\,\mathrm{erg\,s^{-1}}}
+
+\title{Gamma-Ray Framework for HI 21-cm Cross-Correlation Studies:\\
+Fermi-LAT Status and Dark Matter Sensitivity Projections}
+\author{}
+\date{}
+
+\begin{document}
+% \maketitle
+
+% \begin{abstract}
+% The gamma-ray side of HI$\,\times\,\gamma$-ray cross-correlation measurements provides a powerful, multi-spectral probe of both astrophysical source populations and dark matter annihilation in large-scale structure. Following the formalism of Pinetti, Camera, Fornengo \& Regis (2020, JCAP 07, 044; arXiv:1911.04989), the observable cross-power spectrum between neutral hydrogen intensity maps and Fermi-LAT gamma-ray maps decomposes into distinct astrophysical and dark matter contributions, each with characteristic energy spectra, redshift kernels, and angular scale dependences. This framework exploits these differences tomographically and spectrally to separate a potential WIMP annihilation signal from astrophysical backgrounds, projecting sensitivity to the thermal relic cross-section for DM masses up to $\sim130$\,GeV with SKA$\,\times\,$Fermi-LAT. Since the paper's publication, the Fermi-LAT dataset has nearly doubled to $\sim17.7$\,years, the 4FGL catalog has grown to over 7{,}000 sources, and several gamma-ray luminosity functions have been updated---but no measurement has fundamentally altered the framework's assumptions. The most pressing update needs involve the flux sensitivity threshold, EBL absorption models, and the absence of a confirmed ``Fermissimo''-class successor mission.
+% \end{abstract}
+
+% \tableofcontents
+% \newpage
+
+%========================================================================
+\section{The Unresolved Gamma-Ray Background}
+\label{sec:ugrb}
+%========================================================================
+
+The \textbf{Unresolved Gamma-Ray Background} (UGRB)---operationally identical to the Isotropic Diffuse Gamma-Ray Background (IGRB)---is the residual all-sky emission remaining after subtracting resolved point sources and the modeled Galactic diffuse emission. It comprises the cumulative flux from sub-threshold extragalactic sources (blazars, misaligned AGN, star-forming galaxies), truly diffuse processes (intergalactic cosmic-ray interactions, structure-formation shocks), and potentially exotic contributions such as dark matter annihilation or decay. The UGRB is approximately isotropic but contains angular anisotropies: Poisson fluctuations from discrete unresolved sources dominate at small angular scales (high multipoles $\ell$), while clustering of sources tracing large-scale structure contributes a 2-halo term at larger scales. Crucially, the UGRB is observation-time dependent---as Fermi-LAT accumulates data, fainter sources are resolved and removed, reducing the UGRB intensity.
+
+\subsection{The measured IGRB spectrum}
+
+The definitive spectral measurement by \citet{Ackermann2015} used 50 months of Fermi-LAT survey data, covering 100\,MeV to 820\,GeV---nearly four decades in energy. The spectrum is well described by a power law with exponential cutoff:
+\begin{equation}
+    \frac{\mathrm{d}I}{\mathrm{d}E} \propto E^{-\Gamma}\,\exp\!\left(-\frac{E}{E_{\mathrm{break}}}\right),
+\end{equation}
+with spectral index $\Gamma = 2.32 \pm 0.02$ and break energy $E_{\mathrm{break}} = 279 \pm 52$\,GeV. The total integrated intensity above 100\,MeV is
+\begin{equation}
+    I(>100\,\mathrm{MeV}) = (7.2 \pm 0.6)\times 10^{-6}\;\mathrm{cm^{-2}\,s^{-1}\,sr^{-1}},
+\end{equation}
+with additional systematic uncertainty of $+15\%/-30\%$ from Galactic diffuse foreground modelling. The high-energy cutoff has been attributed to EBL absorption of blazar emission. This measurement, based on the 2FGL source catalogue, remains the standard IGRB reference; no updated IGRB spectrum using the 4FGL catalogue has been published as of early 2026.
+
+\subsection{Decomposition into source populations}
+
+The landmark decomposition by \citet{Ajello2015comp} established that known source classes can collectively account for the entire Extragalactic Gamma-ray Background (EGB = IGRB + resolved sources): blazars contribute $\sim50\%$ of the EGB above 100\,MeV, with star-forming galaxies at $\sim10$--$30\%$ and misaligned AGN at $\sim10$--$50\%$ (the latter carrying order-of-magnitude uncertainties). The picture has been refined but not overturned since 2020. \citet{Roth2021} made the provocative claim that star-forming galaxies alone could explain the entire IGRB using a physical cosmic-ray transport model, but this was challenged by Shimono, Totani \& Sudoh (2024), who found substantially lower SFG contributions using an independent model calibrated against six nearby gamma-ray galaxies. The consensus remains that blazars dominate the UGRB anisotropy while SFGs and mAGN contribute the bulk of the intensity. \citet{Korsmeier2022} confirmed, using the UGRB angular power spectrum jointly with 4FGL catalogue data, that two blazar populations (FSRQs at low energies, BL Lacs at higher energies) are required to explain the anisotropy signal.
+
+\subsection{Why the UGRB matters for dark matter}
+
+Given the factor-of-five uncertainty in SFG contributions and order-of-magnitude uncertainty in mAGN contributions, meaningful parameter space remains for a subdominant DM component, particularly below $\sim100$\,GeV. Dark matter annihilation produces gamma-rays with a distinct spectral shape (hard cutoff at the DM mass, channel-dependent spectral features) and a distinct spatial distribution (tracing the DM halo density squared, peaking at low redshift). These signatures differ qualitatively from the power-law spectra and redshift evolution of astrophysical sources, enabling separation through cross-correlation with large-scale structure tracers like HI intensity maps---the central strategy of Pinetti et al.\ (2020).
+
+
+%========================================================================
+\section{Astrophysical Source Populations}
+\label{sec:astro_sources}
+%========================================================================
+
+\subsection{BL Lac objects}
+\label{sec:bllac}
+
+BL Lacs are radio-loud AGN with relativistic jets pointed within $\sim10^\circ$ of our line of sight, characterised by weak emission lines (equivalent width $< 5$\,\AA), strong variability, and high polarisation. Their gamma-ray emission arises from \textbf{synchrotron self-Compton (SSC)} scattering: relativistic jet electrons upscatter their own synchrotron photons to GeV--TeV energies. The average Fermi-LAT photon index is $\Gamma \approx 2.2$, harder than FSRQs; Pinetti et al.\ adopt $\alpha = 2.11$ in their Table~3 (a representative value for the brighter, harder-spectrum BL Lacs that dominate the unresolved contribution). BL Lacs are subdivided by synchrotron peak frequency into low- (LSP), intermediate- (ISP), and high-synchrotron-peaked (HSP) classes.
+
+The gamma-ray luminosity function (GLF) from \citet{Ajello2014BLLac} is based on 211 BL Lacs from the 1LAC catalogue. The best-fit model is a \textbf{Luminosity-Dependent Density Evolution} (LDDE) parameterisation, with the local luminosity function described by a double power law multiplied by a Gaussian photon-index distribution. Redshift evolution is positive for most classes (space density peaking at $z \sim 1.2$), except HSP BL Lacs, which show \textbf{negative evolution}---their number density \emph{increases} toward $z = 0$ for $L_\gamma \leq 10^{46}\ergs$. This negative HSP evolution means BL Lacs have strong overlap with low-redshift HI surveys ($z < 0.5$), making them an important astrophysical foreground for DM searches in HI$\,\times\,\gamma$ cross-correlations. Qu, Zeng \& Yan (2019) updated the BL Lac GLF using an enlarged Fermi-LAT sample and confirmed the LDDE preference, finding BL Lacs contribute $\sim20\%$ of the EGB above 100\,MeV but dominate above $\sim50$\,GeV.
+
+\subsection{Flat-spectrum radio quasars}
+\label{sec:fsrq}
+
+FSRQs are the luminous, high-redshift blazar subclass with strong broad emission lines. Their gamma-ray emission is powered by \textbf{external Compton (EC)} scattering of photons from the broad-line region, dusty torus, or accretion disc, producing softer spectra ($\Gamma \approx 2.4$--$2.5$; Pinetti et al.\ adopt $\alpha = 2.44$ in Table~3) and higher Compton dominance than BL Lacs. The \citet{Ajello2012FSRQ} GLF, based on 186 FSRQs from the first-year catalogue, is strongly LDDE with luminosity-dependent redshift peaks---the most luminous FSRQs peak at $z \sim 2$--$3$, lower-luminosity objects at lower~$z$, consistent with cosmic downsizing. Singal et al.\ (2025) updated the FSRQ GLF using the full 4LAC sample and found broadly consistent LDDE parameters with improved constraints.
+
+\subsection{Misaligned AGN}
+\label{sec:magn}
+
+Misaligned AGN (mAGN) are radio-loud AGN with jets at viewing angles $> 14^\circ$, including FR\,I and FR\,II radio galaxies and steep-spectrum radio quasars. They share jet physics with blazars but are de-beamed, making them intrinsically fainter in gamma-rays yet $\sim500$--$1000\times$ more numerous (geometric factor $\sim 2\Gamma_{\rm jet}^2$). Only $\sim55$ mAGN appear in 4FGL-DR4. Because the detected sample is small, the GLF is derived indirectly from the well-measured radio core luminosity function via an $L_\gamma$--$L_{\mathrm{radio}}$ correlation \citep{DiMauro2014}. The contribution to the IGRB ranges from $10\%$ to nearly $100\%$, representing the largest uncertainty among all source classes. Despite potentially dominating IGRB intensity, mAGN produce negligible anisotropy because they are numerous and faint---their Poisson (shot-noise) term $C_P \propto \int \mathrm{d}L\,\Phi(L)\,S^2(L)$ is small when the flux distribution is bottom-heavy.
+
+\subsection{Star-forming galaxies}
+\label{sec:sfg}
+
+SFGs produce gamma-rays primarily through \textbf{hadronic processes}: cosmic rays accelerated in supernova remnants interact with interstellar gas via $pp$ collisions, producing $\pi^0$ mesons that decay to gamma-ray pairs:
+\begin{equation}
+    p + p \;\longrightarrow\; \pi^0 + X, \qquad \pi^0 \;\longrightarrow\; \gamma + \gamma.
+\end{equation}
+Only $\sim12$ SFGs are individually detected by Fermi-LAT, so their contribution is estimated indirectly using the infrared luminosity function from \citet{Gruppioni2013} combined with an empirical $L_\gamma$--$L_{\mathrm{IR}}$ scaling ($L_\gamma \propto L_{\mathrm{IR}}^{1.17\pm0.07}$). The IR LF shows strong luminosity evolution proportional to $(1+z)^{3.55}$ up to $z \sim 2$, tracking the cosmic star formation rate history.
+
+This source class is particularly interesting for the HI$\,\times\,\gamma$ cross-correlation because star-forming galaxies are gas-rich and should host significant HI. There should therefore be a strong physical correlation between the HI tracer and the SFG gamma-ray emission, as both are associated with the same types of galaxies and halos.
+
+\subsection{Mass--luminosity relations and halo connections}
+
+\citet{Camera2015} developed the tomographic-spectral approach connecting gamma-ray source populations to dark matter halos via halo occupation distributions (HODs) or effective bias prescriptions. Blazars typically reside in massive halos ($M \sim 10^{13}$--$10^{14}\,\Msun$, effective bias $b \sim 1.5$--$3$), while SFGs occupy a broader mass range ($M \sim 10^{11}$--$10^{13}\,\Msun$, $b \sim 1.0$--$1.5$). These mass--luminosity relations determine the 2-halo clustering term of the cross-power spectrum, which is typically where the signal-to-noise ratio is highest.
+
+\subsection{Updates from the 4FGL catalogue era}
+
+The 4FGL catalogue has evolved from 5{,}064 sources (8\,years, DR1) to 7{,}194 sources (14\,years, DR4, Ballet et al.\ 2023), roughly doubling the number of detected sources compared to the 2FGL-era samples underlying the original GLFs. An interim 16-year source list (FL16Y, 7{,}220 sources) was presented at ICRC 2025, with the full 5FGL catalogue awaiting a new Galactic diffuse emission model. Despite these advances, the Ajello et al.\ (2012, 2014) LDDE parameterisations remain broadly valid when extrapolated below the detection threshold.
+
+Regarding the flux sensitivity threshold, Pinetti et al.\ adopt $\Fsens = 10^{-10}\;\mathrm{cm^{-2}\,s^{-1}}$ ($>100$\,MeV), characteristic of the 2FGL/3FGL era. With 14\,years of data, the effective sensitivity has improved to approximately $5$--$8\times 10^{-11}\;\mathrm{cm^{-2}\,s^{-1}}$ for persistent high-latitude sources. For consistency with the \citet{Ackermann2015} IGRB measurement (which used 2FGL masking), the original threshold remains appropriate. However, future analyses using an updated IGRB measurement based on 4FGL catalogues will need to adopt a lower threshold of $\sim2$--$5\times 10^{-11}\;\mathrm{cm^{-2}\,s^{-1}}$.
+
+
+%========================================================================
+\section{Dark Matter Annihilation Gamma-Ray Signal}
+\label{sec:dm_signal}
+%========================================================================
+
+\subsection{Annihilation channels and spectral signatures}
+
+The $b\bar{b}$ (bottom quark--antiquark) channel serves as the standard benchmark for WIMP indirect detection because it is kinematically accessible for $\mchi > 5$\,GeV, dominates in many theoretically motivated models (Higgs-mediated neutralino annihilation), and produces a conservative, soft, broadly peaked photon spectrum peaking at $E_\gamma \sim \mchi / 20$ through the hadronisation chain $b\bar{b} \to \mathrm{jets} \to \pi^0 \to \gamma\gamma$. The spectrum cuts off sharply at $E_\gamma = \mchi$.
+
+The $\tau^+\tau^-$ channel yields a harder spectrum with fewer total photons but at higher energies (prominent peak at higher $x = E_\gamma/\mchi$), serving as a ``leptophilic'' benchmark. The $W^+W^-$ channel (available only for $\mchi > 80.4$\,GeV) produces intermediate spectral hardness. At fixed DM mass, the photon multiplicity ordering is $b\bar{b} > W^+W^- > \tau^+\tau^-$, while spectral hardness is reversed.
+
+\subsection{PPPC4DMID photon yield tables}
+
+The \textbf{Poor Particle Physicist Cookbook for Dark Matter Indirect Detection} (PPPC4DMID; \citealt{Cirelli2011}) provides tabulated energy spectra $\mathrm{d}N/\mathrm{d}\log_{10}x$ of stable particles (photons, positrons, antiprotons, neutrinos) per DM annihilation as a function of $x = E/\mchi$, for 28 primary channels and DM masses from 5\,GeV to 100\,TeV. Spectra were generated using PYTHIA and HERWIG Monte Carlo generators, and critically include electroweak corrections \citep{Ciafaloni2011} that modify spectra significantly when $\mchi \gg m_W$ through EW bremsstrahlung.
+
+The tables are distributed as Mathematica interpolating functions (\texttt{dlNdlxEW.m}) and plain-text numerical files at \url{http://www.marcocirelli.net/PPPC4DMID.html}, with a C++ reader available on GitHub (\texttt{carmeloevoli/PPPC4DMID-C}). Python users typically read the \texttt{.dat} tables and perform bilinear interpolation in $\log_{10}(\mchi)$ and $\log_{10}(x)$. The package has seen six major releases: Release~2.0 (2012) added the Higgs channel for $m_h = 125$\,GeV; Release~5.0 (2015) added secondary radiation (bremsstrahlung, synchrotron, improved IC). Amoroso et al.\ (2019) assessed QCD uncertainties by comparing PYTHIA versus HERWIG predictions, providing alternative tables on Zenodo. The website was last updated in October 2022. For $\mchi < 5$\,GeV, supplementary analytical expressions from other works are required.
+
+\subsection{The DM window function}
+
+The DM gamma-ray window function (Equation~4.1 of Pinetti et al.) encodes all particle physics and cosmological factors:
+\begin{equation}
+\label{eq:WDM}
+    W_{\mathrm{DM}}(E_\gamma, z) = \frac{\sigv}{8\pi}\,\frac{(\OmDM\,\rhoc)^2}{\mchi^2}\,(1+z)^3\,\frac{\mathrm{d}N_\gamma}{\mathrm{d}E'}\bigg|_{E' = E_\gamma(1+z)}\,e^{-\tau(E_\gamma,z)}\,\frac{c}{H(z)}.
+\end{equation}
+Each factor carries specific physical meaning:
+
+The $\sigv$ term is the thermally averaged annihilation cross-section times relative velocity, setting the overall signal amplitude. The $(\OmDM\,\rhoc)^2/\mchi^2$ factor encodes that the annihilation rate density scales as $(n_{\mathrm{DM}})^2 \times \sigv = (\rho_{\mathrm{DM}}/\mchi)^2 \times \sigv$, reflecting the two-body nature of the process. The factor of $1/2$ in the denominator ($8\pi = 2 \times 4\pi$) avoids double-counting particle pairs for self-conjugate Majorana fermions. The $(1+z)^3$ factor accounts for the cosmological evolution of the physical DM density: $\rho_{\mathrm{DM}}(z) = \OmDM\,\rhoc\,(1+z)^3$, so that $\rho^2 \propto (1+z)^6$, but three powers are absorbed into the comoving volume element, leaving $(1+z)^3$. The $\mathrm{d}N_\gamma/\mathrm{d}E'$ term is the differential photon yield from PPPC4DMID, evaluated at the emitted energy $E' = E_\gamma(1+z)$ to account for cosmological redshifting. The $e^{-\tau(E_\gamma,z)}$ factor is the EBL absorption opacity. Finally, $c/H(z)$ is the cosmological line-of-sight element $\mathrm{d}\chi/\mathrm{d}z$.
+
+The total mean DM-induced intensity is then
+\begin{equation}
+    I_{\mathrm{DM}}(E_\gamma) = \int \mathrm{d}z\; W_{\mathrm{DM}}(E_\gamma, z)\;\Delta^2(z),
+\end{equation}
+where $\Delta^2(z)$ is the clumping/intensity multiplier from DM clustering in halos and subhalos.
+
+\subsection{EBL absorption and model comparison}
+
+Gamma-rays undergo pair production on EBL photons ($\gamma_{\mathrm{HE}} + \gamma_{\mathrm{EBL}} \to e^+e^-$), with peak cross-section near the kinematic threshold $2\,E_\gamma\,\varepsilon_{\mathrm{EBL}}\,(1-\cos\theta) \approx (2\,m_e c^2)^2$, which for head-on collisions gives $E_\gamma \cdot \varepsilon_{\mathrm{EBL}} \approx (m_e c^2)^2 \approx 0.26\;\mathrm{MeV^2}$. The optical depth $\tau$ exceeds unity at $E_\gamma \gtrsim 30$\,GeV for $z \gtrsim 0.5$ and at $E_\gamma \gtrsim 100$\,GeV for $z \gtrsim 0.1$, while it is negligible below $\sim10$\,GeV at any relevant redshift. Pinetti et al.\ adopt the Razzaque, Dermer \& Finke (2009) parameterisation.
+
+Several updated models are available. The \citet{Dominguez2011} model, constructed from observed galaxy luminosity functions using $\sim6{,}000$ AEGIS galaxies, provides public opacity tables. \citet{Finke2022} updated the Finke, Razzaque \& Dermer (2010) model with BPASS stellar spectra, metallicity/dust evolution tracking, and three self-consistent dust components fitted to gamma-ray opacity and galaxy survey data. The Python package \texttt{ebltable} provides unified access to all major EBL models.
+
+For the HI$\,\times\,\gamma$ cross-correlation at $z \sim 0$--$0.5$ and $E \sim 0.5$--$500$\,GeV, all standard EBL models agree to within $\sim10$--$20\%$, with differences appearing only in the highest energy bins ($E > 50$\,GeV, $z > 0.3$). Updated EBL models would produce only modest changes to cross-correlation predictions, making this a low-priority update.
+
+\subsection{The thermal relic cross-section}
+
+The canonical value $\sigv \approx 3 \times 10^{-26}\;\mathrm{cm^3\,s^{-1}}$ emerges from requiring that the WIMP relic abundance matches the Planck measurement $\OmDM h^2 \approx 0.12$ through standard freeze-out at $T_F \approx \mchi/20$. Steigman, Dasgupta \& Beacom (2012) computed the precise mass dependence: for self-conjugate WIMPs above 10\,GeV, the thermal value is $\sim2.2 \times 10^{-26}\;\mathrm{cm^3\,s^{-1}}$ (weakly mass-dependent), rising to $\sim5.2 \times 10^{-26}$ at $\mchi \sim 0.3$\,GeV. Current constraints exclude the thermal cross-section for $\mchi \lesssim 100$\,GeV ($b\bar{b}$) from Fermi-LAT dwarf spheroidal galaxy observations, and for $\mchi \lesssim 10$--$30$\,GeV from Planck CMB energy injection limits. The Pinetti et al.\ projections show that SKA$\,\times\,$Fermi-LAT cross-correlation can probe thermal-relic WIMPs up to $\sim130$\,GeV, offering complementary sensitivity to these established methods.
+
+
+%========================================================================
+\section{Gamma-Ray Angular Power Spectra}
+\label{sec:power_spectra}
+%========================================================================
+
+\subsection{Astrophysical sources: shot noise plus clustering}
+
+The auto- and cross-angular power spectra of unresolved astrophysical sources decompose into a 1-halo (Poisson) term and a 2-halo (clustering) term (Equations~4.6--4.7 of Pinetti et al.). The 1-halo term is the shot noise from discrete unresolved sources:
+\begin{equation}
+\label{eq:CP}
+    C_P = \int \mathrm{d}z\;\frac{\mathrm{d}V}{\mathrm{d}z\,\mathrm{d}\Omega}\;\int^{L_{\mathrm{sens}}(z)} \mathrm{d}L\;\Phi(L,z)\;\left[S(L,z)\right]^2,
+\end{equation}
+where $\Phi$ is the GLF and $S$ is the flux from a source of luminosity $L$ at redshift $z$. This term is \textbf{flat in multipole $\ell$} because point sources contribute equally at all angular scales---a distinctive signature. The upper integration limit $L_{\mathrm{sens}}(z)$ corresponds to the luminosity at which a source at redshift $z$ would have flux equal to $\Fsens$.
+
+The 2-halo term traces large-scale clustering through the projected linear matter power spectrum $P_{\mathrm{lin}}$, weighted by the source window function and effective bias:
+\begin{equation}
+\label{eq:C2h}
+    C_\ell^{2h} = \int \mathrm{d}z\;\frac{c/H(z)}{\chi^2(z)}\;\left[W_\star(z)\right]^2\;\left[b_\star(z)\right]^2\;P_{\mathrm{lin}}\!\left(k = \frac{\ell}{\chi(z)},\,z\right).
+\end{equation}
+This term dominates at low $\ell$ (large angular scales, $\ell \lesssim 100$) and typically provides the highest signal-to-noise ratio in cross-correlations.
+
+Source biases vary considerably: blazars reside in massive halos ($b \approx 1.5$--$3$, increasing with $z$), SFGs in less massive systems ($b \approx 1.0$--$1.5$), and mAGN similar to blazars ($b \approx 1.5$--$2.5$). The HI bias is $b_{\mathrm{HI}} \approx 0.8$--$1.5$ at $z \sim 0$--$0.5$, increasing with redshift. The cross-correlation amplitude scales as $b_{\mathrm{HI}} \times b_\star$, making blazars the dominant astrophysical cross-correlation signal despite their subdominant contribution to UGRB intensity.
+
+\subsection{Dark matter: spatially extended emission}
+
+The DM annihilation power spectra (Equations~4.4--4.5) differ qualitatively from astrophysical sources. The 1-halo term involves the Fourier transform of $\rho^2_{\mathrm{DM}}(r)$---the squared NFW profile---rather than a delta function. This means the DM 1-halo term is \textbf{not flat in $\ell$} but decreases at high multipoles, reflecting the extended spatial emission from individual halos. The halo concentration $c(M,z)$ and the substructure boost factor $B(M,z)$ critically affect predictions. The boost factor, parameterising luminosity enhancement from sub-halos, spans from tens of percent at dwarf masses to $\sim10$ at cluster masses \citep{Hiroshima2018}, but extrapolation across $>20$ mass decades makes it highly uncertain---spanning orders of magnitude. The different $\ell$-dependence of DM versus astrophysical signals provides a key handle for separation in the cross-correlation analysis.
+
+\subsection{Validation against the Fermi-LAT auto-correlation}
+
+The Fermi-LAT auto-correlation angular power spectrum from \citet{Ackermann2018APS}, using 8\,years of Pass~8 data in 13 energy bins (0.5--500\,GeV), detected anisotropy above photon noise at $\geq 99.99\%$\,CL for $\ell \geq 155$. The measurement provided $\sim3.7\sigma$ evidence that two source classes are needed: a soft component ($\Gamma_1 = 2.55 \pm 0.23$, consistent with FSRQs) and a hard component ($\Gamma_2 = 1.86 \pm 0.15$, consistent with BL Lacs). The Poisson term $C_P$ was confirmed to be constant for $\ell \geq 155$. No updated Fermi-LAT APS auto-correlation measurement has superseded this result as of early 2026, though cross-correlations with external catalogues (DES weak lensing at $5.3\sigma$ by Ammazzalorso et al.\ 2025; DESI forecasts by Zhou, Bernal, Pinetti et al.\ 2024) provide complementary anisotropy constraints.
+
+
+%========================================================================
+\section{Fermi-LAT Instrumental Specifics}
+\label{sec:fermi_lat}
+%========================================================================
+
+\subsection{Instrument design and performance}
+
+The Fermi Large Area Telescope is a pair-conversion gamma-ray telescope consisting of a $4\times4$ array of identical towers, each containing a silicon strip tracker interleaved with tungsten converter foils (thin ``front'' and thick ``back'' sections), a CsI(Tl) crystal calorimeter, and a segmented plastic scintillator anti-coincidence detector. The instrument covers 20\,MeV to $>300$\,GeV with a peak effective area of $>8{,}000\;\mathrm{cm^2}$ on-axis at $\sim1$\,GeV, a field of view of $\sim2.4$\,sr ($\sim20\%$ of the sky), and angular resolution improving from $\sim5^\circ$ at 100\,MeV to $\sim0.04^\circ$ at 100\,GeV (68\% containment). In sky-scanning survey mode, Fermi-LAT maps the entire gamma-ray sky every $\sim3$\,hours (two orbits at $\sim565$\,km altitude, $25.6^\circ$ inclination).
+
+\subsection{Energy binning and PSF considerations}
+
+Anisotropy analyses employ $\sim12$ logarithmic energy bins from 0.5\,GeV to $\sim1$\,TeV. Logarithmic binning is necessitated by three factors: the PSF width varies by over two orders of magnitude across this range, photon statistics fall steeply ($\sim E^{-2.4}$), and the LAT energy resolution of $\sim10\%$ (0.1 in $\log_{10}E$) makes finer binning unproductive. Equal logarithmic widths ensure comparable dynamic range per bin. The PSF is parameterised as a double King function with an energy-dependent scale factor:
+\begin{equation}
+    S(E) = \sqrt{c_0^2\left(\frac{E}{100\;\mathrm{MeV}}\right)^{-2\beta} + c_1^2},
+\end{equation}
+where the $c_0$ term represents multiple scattering dominance at low energies and $c_1$ is the high-energy tracker resolution floor. Representative 68\% containment angles for P8R3 SOURCE class are: $\sim5^\circ$ at 100\,MeV, $\sim0.8^\circ$ at 1\,GeV, $\sim0.2^\circ$ at 10\,GeV, and $\sim0.04^\circ$ at 100\,GeV.
+
+The beam window function $W_{\mathrm{beam}}(E,\ell)$ suppresses the observed angular power spectrum at high multipoles through the Legendre transform of the PSF:
+\begin{equation}
+\label{eq:beam}
+    W_{\mathrm{beam}}(E,\ell) = 2\pi \int_0^{\pi} \mathrm{PSF}(E,\theta)\;P_\ell(\cos\theta)\;\sin\theta\;\mathrm{d}\theta.
+\end{equation}
+Pass~8 partitions events into four PSF quartiles (PSF0~= worst to PSF3~= best); anisotropy analyses typically select PSF2+PSF3 event types for improved angular resolution at the cost of $\sim50\%$ acceptance.
+
+Pinetti et al.\ parameterise the beam function as a modified Gaussian (their Equations~4.9--4.10):
+\begin{equation}
+    B_\ell^\gamma(E) \approx \exp\!\left[-\frac{\ell(\ell+1)}{2}\,\sigma_{\mathrm{beam}}^2(E)\right],
+\end{equation}
+where $\sigma_{\mathrm{beam}}(E)$ is related to the 68\% containment angle $\sigma_0^{\mathrm{Fermi}}$ listed in their Table~2. The values range from $0.87^\circ$ at 0.5--1\,GeV to $0.06^\circ$ at the highest energies, corresponding to PSF2 event types.
+
+\subsection{Photon noise and its dominance}
+
+For a photon-count map, the Poisson noise angular power spectrum is
+\begin{equation}
+    C_N = \frac{4\pi \fsky}{N_\gamma}\qquad\text{[sr]},
+\end{equation}
+where $N_\gamma$ is the total number of detected photons in the energy bin within the unmasked sky region. When working with intensity maps $I = \mathrm{counts}/(A_{\mathrm{eff}}\,T_{\mathrm{obs}}\,\Delta E\,\Omega_{\mathrm{pix}})$, the noise power spectrum inherits the conversion factor and takes the form $\Nph = C_N \times (\bar{I}/\bar{c})^2$, where $\bar{I}$ and $\bar{c}$ are the mean intensity and mean counts per pixel, respectively. The noise values listed in Pinetti et al.\ Table~2 are in intensity-squared units ($\mathrm{cm^{-4}\,s^{-2}\,sr^{-1}}$), reflecting this conversion. This noise is white (flat in $\ell$) and dominates at high multipoles where the true anisotropy signal is suppressed by the PSF beam function. In the cross-correlation variance (Equation~2.7 of Pinetti et al.), the noise term $\Nph / [B_\ell^\gamma]^2$ grows exponentially at high multipoles due to beam suppression, ultimately limiting the highest usable multipole for the cross-correlation.
+
+This creates a fundamental trade-off: low energies have good statistics but broad PSF; high energies have narrow PSF but overwhelming photon noise. The optimal energy range for the cross-correlation is typically $\sim1$--$50$\,GeV, where this balance is most favourable.
+
+\subsection{Sky masks and sky coverage}
+
+The analysis uses a combination of a Galactic plane mask (to remove the bright Galactic diffuse emission) and a point-source mask (to remove resolved sources from the Fermi-LAT catalogue). Standard practice at high Galactic latitudes uses $|b| > 30^\circ$, with energy-dependent point-source mask radii scaling with PSF size. The remaining sky fraction $\fsky$ varies with energy bin (Table~2 of Pinetti et al.), ranging from 0.134 at low energies to 0.597 at high energies. The smaller $\fsky$ at low energies reflects both the broader spatial extent of Galactic diffuse emission and the larger point-source mask radii required by the broad PSF. Masking affects the cross-correlation measurement through the $\fsky$ factor in the variance and through potential bias in the pseudo-$\Cl$ estimator, which must be corrected via mode-coupling matrices.
+
+\subsection{Data infrastructure and current status}
+
+The \textbf{Fermitools v2.5.0} (released December 2025) provides the standard analysis framework, installed via conda. Data are accessed through the LAT Data Server at \url{https://fermi.gsfc.nasa.gov}. The current recommended IRFs are P8R3\_SOURCE\_V3, with effective area and PSF systematic uncertainties $<5\%$ between 100\,MeV and 10\,GeV. Diffuse emission models include \texttt{gll\_iem\_v07.fits} (Galactic) and \texttt{iso\_P8R3\_SOURCE\_V3\_v1.txt} (isotropic). Standard event selections for anisotropy analyses are: SOURCE class (\texttt{evclass=128}), PSF2+PSF3 types, zenith angle $< 90^\circ$, and \texttt{DATA\_QUAL>0 \&\& LAT\_CONFIG==1}.
+
+Pass~8 R3 remains the current data release---there is no Pass~9. P8R3 (2018) fixed an anisotropic residual cosmic-ray background in P8R2 related to electrons leaking through ACD ribbons and non-interacting heavy ions, with $<1\%$ acceptance loss. The P8R3\_V3 IRFs incorporate in-flight PSF calibration using Vela and Earth limb data.
+
+\subsection{Seventeen years of accumulated statistics}
+
+As of April 2026, Fermi-LAT has accumulated $\sim17.7$\,years of science data, compared to $\sim8$\,years in many published analyses. This yields a factor of $\sim2.2\times$ more photons, reducing photon noise by the same factor and improving signal-to-noise by $\sim\sqrt{2.2} \approx 1.49$. The catalogue has grown from 5{,}064 sources (4FGL-DR1) to 7{,}194 sources (4FGL-DR4, 14\,years), with an interim FL16Y list of 7{,}220 sources presented at ICRC 2025. The full 5FGL catalogue awaits a new Galactic diffuse emission model under development.
+
+
+%========================================================================
+\section{``Fermissimo'' and Next-Generation Gamma-Ray Telescopes}
+\label{sec:fermissimo}
+%========================================================================
+
+Pinetti et al.\ define ``Fermissimo'' as a hypothetical next-generation Fermi-like telescope with $2\times$ exposure, PSF $5\times$ better ($\alpha_\sigma = 0.2$), and $\fsky = 0.8$. No approved mission currently matches these specifications in the core GeV band, creating a significant gap in the experimental landscape for HI$\,\times\,\gamma$ cross-correlation science.
+
+\subsection{COSI}
+
+COSI (NASA SMEX, launching August 2027) is the only confirmed upcoming gamma-ray space mission. It covers 0.2--5\,MeV with germanium Compton detectors---entirely in the soft MeV band, far below the Fermi-LAT energy range. It cannot serve as a Fermi successor for GeV-band cross-correlations but enables novel MeV-band studies.
+
+\subsection{CTAO}
+
+The Cherenkov Telescope Array Observatory (CTAO) is the most advanced project, established as an ERIC in January 2025 with construction underway at both sites (La Palma and Atacama). It will achieve $\sim10\times$ sensitivity improvement over current IACTs across 20\,GeV--300\,TeV. However, CTA is a ground-based pointed instrument with limited instantaneous field of view ($\sim4^\circ$--$8^\circ$), making it unsuitable for the all-sky survey work central to Pinetti et al. Early CTA science is expected by $\sim$2026--2027, with full array operations overlapping SKA Phase~1 ($\sim$2028--2029). Pinetti et al.\ (2025) have already published CTA cross-correlation forecasts.
+
+\subsection{HERD}
+
+HERD (High Energy cosmic-Radiation Detection, China) is an approved payload for China's Space Station launching $\sim$2027 with 10-year lifetime. Its geometrical factor ($>3\;\mathrm{m^2\,sr}$) exceeds Fermi-LAT, but its angular resolution for gamma-rays is not optimised---it will not match the Fermissimo PSF requirement. HERD will be contemporaneous with SKA Phase~1 and could provide supplementary all-sky gamma-ray data.
+
+\subsection{VLAST}
+
+VLAST (Very Large Area gamma-ray Space Telescope, China) is the concept that most closely matches or exceeds Fermissimo specifications: acceptance $\sim10\;\mathrm{m^2\,sr}$ ($\sim4\times$ Fermi-LAT), angular resolution better than $0.2^\circ$ at 10\,GeV, all-sky survey mode, and $\sim10\times$ Fermi sensitivity. However, VLAST remains in early R\&D with no government approval or firm launch date. If approved and launched in the mid-2030s, it would overlap with SKA Phase~2 and would be ideal for the Pinetti et al.\ science case.
+
+\subsection{GAMMA-400}
+
+GAMMA-400 (Russia, $\sim$2030) offers superb angular resolution ($\sim0.01^\circ$ at 100\,GeV) but operates in pointed mode with narrow FoV, making it incompatible with all-sky cross-correlation requirements.
+
+\subsection{Other concepts}
+
+AMEGO-X and e-ASTROGAM were not selected for their respective NASA MIDEX and ESA M5 mission slots and have no current path to flight. APT (Advanced Particle-astrophysics Telescope) is an ambitious probe-class concept exceeding Fermissimo specifications, but it remains at the early concept stage with a balloon demonstrator (ADAPT) planned for 2026--2027.
+
+The most realistic near-term path to Fermissimo-class science is continued Fermi-LAT operations into the early 2030s ($\sim22+$ years of data), achieving $>2\times$ exposure improvement, combined with improved analysis techniques---though this cannot deliver the $5\times$ PSF improvement.
+
+
+%========================================================================
+\section{Systematic Effects on the Gamma-Ray Side}
+\label{sec:systematics}
+%========================================================================
+
+\subsection{Galactic diffuse emission residuals}
+
+The Fermi-LAT Galactic diffuse model (\texttt{gll\_iem\_v07}) is constructed from HI 21-cm and CO spectral line surveys combined with GALPROP cosmic-ray propagation modelling. Galactic gamma-ray emission arises from $\pi^0$ production (CR protons on HI/H$_2$ gas), bremsstrahlung (CR electrons on gas), and inverse Compton scattering (CR electrons on interstellar radiation fields). Because the model is fitted to HI gas templates, any subtraction residuals correlate with HI maps by construction. The systematic uncertainty on the IGRB from Galactic foreground modelling is $\sim15$--$30\%$, quantified through three alternative IEMs (Models A, B, C from \citealt{Ackermann2015}) that yield UGRB intensities varying by $\sim25\%$. Loop~I, the Fermi Bubbles, and the Cygnus cocoon create additional structured residuals requiring dedicated patch templates.
+
+\subsection{Point-source leakage}
+
+At $E < 1$\,GeV, even masked point sources leak photons into the analysis region through the multi-degree PSF wings. Energy-dependent mask radii (scaling with both source flux and PSF size) partially mitigate this, but residual leakage introduces spurious small-scale correlations. The P8R3 PSF systematic uncertainty is $<5\%$ between 100\,MeV and 10\,GeV, rising to $\sim25\%$ at 1\,TeV. Cross-correlation studies limit $\ell_{\max}$ to the multipole corresponding to the PSF containment angle in each energy bin and may restrict analysis to $E > 1$\,GeV where the PSF is $< 1^\circ$.
+
+\subsection{Cosmic ray contamination}
+
+P8R3 largely resolved the CR contamination issue: the ecliptic-plane anisotropy present in P8R2 (factor $\sim2$ enhancement at 1--3\,GeV) was traced to cosmic-ray electrons leaking through ACD ribbons and non-interacting heavy ions. Simple cuts removed these events with $<1\%$ acceptance loss, bringing SOURCE class residual background close to ULTRACLEANVETO levels below $\sim50$\,GeV. The isotropic spectral template explicitly absorbs remaining residual CR events. Post-P8R3, CR contamination is approximately isotropic and should not produce strong spurious cross-correlations with extragalactic tracers.
+
+\subsection{The $z \approx 0$ Galactic foreground--HI correlation}
+\label{sec:gal_HI_corr}
+
+This is the most insidious systematic specific to HI$\,\times\,\gamma$ cross-correlation. Milky Way HI emits at 1420.405\,MHz ($z = 0$) and simultaneously serves as the target material for CR interactions producing Galactic diffuse gamma-rays. This creates a strong intrinsic positive correlation between the 21-cm map and the gamma-ray map at $z \approx 0$ that has nothing to do with extragalactic physics. Galactic HI has a broad velocity distribution spanning $\pm 200\;\mathrm{km\,s^{-1}}$ ($z \approx \pm 0.001$), with high-velocity clouds extending to $z \sim 0.003$ and Magellanic Stream gas to $z \sim 0.003$.
+
+Conservatively, $z_{\min} > 0.03$ is needed at high Galactic latitudes; $z_{\min} > 0.05$--$0.1$ is safer. In practice, Pinetti et al.\ focus on radio telescopes (SKA, MeerKAT) operating at $z > 0.3$, safely avoiding this contamination.
+
+\subsection{Mitigation strategies}
+
+Effective mitigation combines several approaches:
+
+Template fitting marginalises over Galactic emission model normalisations, with cross-checks using alternative IEMs (Models A, B, C). Aggressive Galactic plane masking at $|b| > 30^\circ$ (or $|b| > 40^\circ$--$50^\circ$ as systematic cross-checks) reduces structured residuals, supplemented by masking where the Galactic template exceeds $3$--$4\times$ the isotropic level. Energy-dependent point-source masking from 4FGL-DR4 and 3FHL catalogues suppresses PSF leakage. Multipole range selection ($\ell_{\min} \sim 30$--$100$ to exclude large-scale Galactic residuals; $\ell_{\max}$ set by PSF) focuses on the signal-dominated regime. Jackknife and null tests---varying mask width, randomising map alignments, time-based half-mission splits---verify robustness. The tomographic approach, correlating in narrow redshift bins, separates Galactic from extragalactic contributions. Recent implementations (Ammazzalorso et al.\ 2025; Tr\"{o}ster et al.\ 2025) demonstrate that these combined strategies enable high-significance ($5.3\sigma$) detection of UGRB$\,\times\,$large-scale structure cross-correlations.
+
+Additional systematics include exposure non-uniformity ($\sim1$--$2\%$ azimuthal variations), energy dispersion effects ($5$--$15\%$ corrections below 300\,MeV, $\sim5\%$ at higher energies; Fermitools energy dispersion correction recommended), and isotropic template uncertainty inherited from Galactic model errors. These are generally subdominant to the Galactic foreground--HI correlation for cross-correlation studies.
+
+
+%========================================================================
+\section{Summary: Priority Updates for the Pinetti et al.\ Framework}
+\label{sec:conclusions}
+%========================================================================
+
+The gamma-ray framework of Pinetti et al.\ (2020) remains fundamentally sound. The Fermi-LAT dataset has grown from $\sim8$ to $\sim17.7$\,years, reducing photon noise by a factor of $\sim2.2$ and expanding the source catalogue to $>7{,}000$ objects. Three aspects warrant priority updates. First, the flux sensitivity threshold should be lowered from $10^{-10}$ to $\sim5 \times 10^{-11}\;\mathrm{cm^{-2}\,s^{-1}}$ when paired with a new IGRB measurement using 4FGL-era catalogues---this would change the resolved/unresolved partition and modify both the UGRB intensity and the Poisson noise term. Second, the substructure boost factor remains the single largest theoretical uncertainty in DM predictions, spanning orders of magnitude; recent $N$-body simulations and semi-analytical models should be incorporated. Third, the absence of a confirmed Fermissimo-class mission means that the optimistic next-generation projections depend on either continued Fermi-LAT operations into the 2030s or the approval of VLAST.
+
+Key publicly available tools and data products include: Fermitools v2.5.0 (conda-forge), Fermi-LAT data server (\url{https://fermi.gsfc.nasa.gov}), PPPC4DMID tables (\url{http://www.marcocirelli.net/PPPC4DMID.html}), the \texttt{ebltable} Python package for EBL opacity, 4FGL-DR4 catalogue, P8R3\_SOURCE\_V3 IRFs, and Galactic/isotropic diffuse templates from the FSSC. The Fermi-LAT APS measurement from \citet{Ackermann2018APS} remains the definitive auto-correlation reference, while cross-correlations with DES, DESI, and 2MASS provide increasingly powerful complementary constraints on the composition of the unresolved gamma-ray sky.
+
+
+%========================================================================
+% BIBLIOGRAPHY
+%========================================================================
+% The entries below use a minimal manual bibliography for portability.
+% Replace with your own .bib file as needed.
+
+\begin{thebibliography}{99}
+
+\bibitem[Ackermann et al.(2015)]{Ackermann2015}
+Ackermann, M., et al.\ (Fermi-LAT Collaboration), 2015, ApJ, 799, 86.
+\texttt{arXiv:1410.3696}.
+
+\bibitem[Ajello et al.(2015)]{Ajello2015comp}
+Ajello, M., et al., 2015, ApJ, 800, L27.
+\texttt{arXiv:1501.05301}.
+
+\bibitem[Ajello et al.(2012)]{Ajello2012FSRQ}
+Ajello, M., et al., 2012, ApJ, 751, 108.
+\texttt{arXiv:1110.3787}.
+
+\bibitem[Ajello et al.(2014)]{Ajello2014BLLac}
+Ajello, M., et al., 2014, ApJ, 780, 73.
+\texttt{arXiv:1310.0006}.
+
+\bibitem[Ackermann et al.(2018)]{Ackermann2018APS}
+Ackermann, M., et al.\ (Fermi-LAT Collaboration), 2018, Phys.\ Rev.\ Lett., 121, 241101.
+\texttt{arXiv:1812.02079}.
+
+\bibitem[Camera et al.(2015)]{Camera2015}
+Camera, S., Fornasa, M., Fornengo, N., \& Regis, M., 2015, JCAP, 06, 029.
+\texttt{arXiv:1411.4651}.
+
+\bibitem[Cirelli et al.(2011)]{Cirelli2011}
+Cirelli, M., et al., 2011, JCAP, 03, 051; erratum 2012, JCAP, 10, E01.
+\texttt{arXiv:1012.4515}.
+
+\bibitem[Ciafaloni et al.(2011)]{Ciafaloni2011}
+Ciafaloni, P., et al., 2011, JCAP, 03, 019.
+\texttt{arXiv:1009.0224}.
+
+\bibitem[Di Mauro et al.(2014)]{DiMauro2014}
+Di Mauro, M., Calore, F., Donato, F., Ajello, M., \& Latronico, L., 2014, ApJ, 780, 161.
+\texttt{arXiv:1304.0908}.
+
+\bibitem[Dom\'inguez et al.(2011)]{Dominguez2011}
+Dom\'inguez, A., et al., 2011, MNRAS, 410, 2556.
+\texttt{arXiv:1007.1459}.
+
+\bibitem[Finke et al.(2022)]{Finke2022}
+Finke, J.\,D., Ajello, M., et al., 2022, ApJ, 941, 33.
+\texttt{arXiv:2210.01157}.
+
+\bibitem[Gruppioni et al.(2013)]{Gruppioni2013}
+Gruppioni, C., et al., 2013, MNRAS, 432, 23.
+\texttt{arXiv:1302.5209}.
+
+\bibitem[Hiroshima et al.(2018)]{Hiroshima2018}
+Hiroshima, N., Ando, S., \& Ishiyama, T., 2018, Phys.\ Rev.\ D, 97, 123002.
+\texttt{arXiv:1803.07691}.
+
+\bibitem[Korsmeier et al.(2022)]{Korsmeier2022}
+Korsmeier, M., Pinetti, E., Negro, M., Regis, M., \& Fornengo, N., 2022, Phys.\ Rev.\ D, 106, 023022.
+\texttt{arXiv:2201.02634}.
+
+\bibitem[Pinetti et al.(2020)]{Pinetti2020}
+Pinetti, E., Camera, S., Fornengo, N., \& Regis, M., 2020, JCAP, 07, 044.
+\texttt{arXiv:1911.04989}.
+
+\bibitem[Roth et al.(2021)]{Roth2021}
+Roth, M.\,A., Krumholz, M.\,R., Crocker, R.\,M., \& Celli, S., 2021, Nature, 597, 341.
+\texttt{arXiv:2109.07598}.
+
+\bibitem[Steigman et al.(2012)]{Steigman2012}
+Steigman, G., Dasgupta, B., \& Beacom, J.\,F., 2012, Phys.\ Rev.\ D, 86, 023506.
+\texttt{arXiv:1204.3622}.
+
+% ---- Additional references cited in text but not individually \citet'd ----
+% Shimono, Totani \& Sudoh (2024), MNRAS, 540, 3221.
+% Qu, Zeng \& Yan (2019), MNRAS, 441, 1760 (updated BL Lac GLF).
+% Singal et al.\ (2025), arXiv:2510.05515 (updated FSRQ GLF).
+% Fukazawa et al.\ (2022), ApJ (updated radio galaxy GLF).
+% Ballet et al.\ (2023), arXiv:2307.12546 (4FGL-DR4).
+% Ammazzalorso et al.\ (2025), arXiv:2501.10506 (DES × UGRB).
+% Zhou, Bernal, Pinetti et al.\ (2024), arXiv:2410.00375 (DESI × UGRB).
+% Amoroso et al.\ (2019), Zenodo (PPPC4DMID QCD uncertainties).
+% Razzaque, Dermer \& Finke (2009), ApJ, 697, 483 (EBL model).
+% Pinetti et al.\ (2025), arXiv:2505.20383 (CTAO cross-correlations).
+% Willott et al.\ (2001), MNRAS, 322, 536 (radio LF used in mAGN model).
+
+\end{thebibliography}
+
+\end{document}
