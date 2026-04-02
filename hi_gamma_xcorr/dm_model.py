@@ -119,6 +119,9 @@ def boost_moline(M, z, M_min_sub=1e-6):
 # Clumping factor Delta^2(z) (Eq. 4.2)
 # ---------------------------------------------------------------------------
 
+_clumping_cache = {}  # keyed by (round(z,4), boost_scenario)
+
+
 def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
                     n_M=100):
     """Clumping factor Delta^2(z) = <rho^2> / rho_bar^2.
@@ -131,6 +134,11 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
         'none', 'conservative' (M_min_sub=1e7), 'intermediate' (M_min_sub=1e-6),
         'optimistic' (M_min_sub=1e-6 with enhanced substructure)
     """
+    # Check cache
+    cache_key = (round(float(z), 4), boost_scenario)
+    if cache_key in _clumping_cache:
+        return _clumping_cache[cache_key]
+
     if M_min is None:
         M_min = cfg.M_MIN_DM
     if M_max is None:
@@ -156,7 +164,9 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
         integrand_arr[i] = dn * (1.0 + B) * rho2_int * M  # M from d(lnM)
 
     dlnM = np.log(M_arr[1] / M_arr[0])
-    return np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2
+    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2
+    _clumping_cache[cache_key] = result
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -206,41 +216,29 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     # For now, use a simple power-law fit
     Delta2 = clumping_factor(z, boost_scenario=boost_scenario)
 
-    # DM density in CGS-compatible units
-    # Omega_DM * rho_c needs careful unit handling
-    # rho_DM = Omega_DM * rho_crit [M_sun/h / (Mpc/h)^3]
-    # Convert to GeV/cm^3 for the particle physics formula
-    # 1 M_sun = 1.116e57 GeV
-    # 1 Mpc = 3.086e24 cm
-    M_sun_GeV = 1.116e57
-    Mpc_cm = cfg.MPC_TO_M * 100.0
-    rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT  # M_sun/h / (Mpc/h)^3
-    # Convert: (M_sun/h) / (Mpc/h)^3 = (M_sun_GeV * h^{-1}) / (Mpc_cm * h^{-1})^3
-    # = M_sun_GeV / h * h^3 / Mpc_cm^3 = M_sun_GeV * h^2 / Mpc_cm^3
-    rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / (Mpc_cm / cfg.h)**3
-    # Simplify: rho_DM [M_sun/h/(Mpc/h)^3] * M_sun_GeV/M_sun * (Mpc/h)^3/cm^3 / h
-    # = rho_DM * M_sun_GeV * h^{-1} / (Mpc_cm / h)^3
-    # = rho_DM * M_sun_GeV * h^{-1} * h^3 / Mpc_cm^3
-    # = rho_DM * M_sun_GeV * h^2 / Mpc_cm^3
+    # DM density converted to GeV/cm^3
+    # rho_DM [M_sun/h / (Mpc/h)^3] → [GeV/cm^3]:
+    # 1 [M_sun/h / (Mpc/h)^3] = M_sun_GeV * h^2 / Mpc_cm^3
+    M_sun_GeV = 1.116e57   # 1 M_sun in GeV
+    Mpc_cm = cfg.MPC_TO_M * 100.0   # 1 Mpc in cm
+    rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT  # [M_sun/h / (Mpc/h)^3]
     rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
 
-    # sigma_v in cm^3/s
-    # c/H(z) in cm
-    c_over_H = cfg.C_LIGHT * 100.0 / cosmo.H(z)  # cm/s / (km/s/Mpc) → cm ... need units
-    # c [cm/s] / H [s^{-1}] = c/H [cm]... H in 1/s:
-    H_SI = cosmo.H(z) * 1e3 / cfg.MPC_TO_M  # km/s/Mpc → 1/s
-    c_over_H_cm = (cfg.C_LIGHT * 100.0) / H_SI  # cm
-
-    # The window function
-    # W = (sigma_v / (8*pi)) * (rho_DM / m_chi)^2 * (1+z)^3 * dN/dE * exp(-tau) * Delta^2 * c/H
-    # Factor 1/(4pi) * 1/2 = 1/(8pi) for Majorana fermion
+    # Window function WITHOUT c/H(z) — the Limber integral handles that.
+    # W = (sigma_v / (8 pi)) * (rho_DM / m_chi)^2 * (1+z)^3 * Delta^2
+    #     * dN/dE'|_{E'=(1+z)E} * exp(-tau)
+    # Units: [cm^3/s] * [GeV/cm^3 / GeV]^2 * [GeV^{-1}] = [cm^{-3} s^{-1} GeV^{-1}]
     prefactor = sigma_v / (8.0 * np.pi)
     particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
     cosmological = (1.0 + z)**3
 
-    W = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten * c_over_H_cm
+    W_cgs = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten
+    # W_cgs is in [cm^{-3} s^{-1} GeV^{-1}] (CGS volume emissivity)
 
-    return W
+    # Convert to (Mpc/h)^{-3} to match W_gamma_astro convention:
+    # 1 cm^{-3} = (Mpc_h_cm)^3 (Mpc/h)^{-3}  where Mpc_h_cm = Mpc_cm / h
+    Mpc_h_cm = Mpc_cm / cfg.h  # cm per (Mpc/h)
+    return W_cgs * Mpc_h_cm**3
 
 
 # ---------------------------------------------------------------------------

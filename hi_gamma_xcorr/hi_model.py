@@ -150,11 +150,19 @@ def u_HI(k, M, z):
 # Mean HI density, Omega_HI, brightness temperature, bias
 # ---------------------------------------------------------------------------
 
+_rho_HI_cache = {}  # keyed by round(z, 4)
+_b_HI_cache = {}
+
+
 def rho_HI_mean(z, M_min=None, M_max=None):
     """Mean comoving HI density rho_bar_HI(z) [M_sun/h / (Mpc/h)^3].
 
     rho_HI = integral (dn/dM) * M_HI(M, z) dM
     """
+    cache_key = round(float(z), 4)
+    if M_min is None and M_max is None and cache_key in _rho_HI_cache:
+        return _rho_HI_cache[cache_key]
+
     if M_min is None:
         M_min = cfg.M_MIN_HI
     if M_max is None:
@@ -165,6 +173,9 @@ def rho_HI_mean(z, M_min=None, M_max=None):
         return hm.dndM(M, z) * M_HI(M, z) * M  # extra M from d(lnM) = dM/M
 
     val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-5)
+
+    if M_min == cfg.M_MIN_HI and M_max == cfg.M_MAX_HI:
+        _rho_HI_cache[cache_key] = val
     return val
 
 

@@ -31,84 +31,165 @@ def L_sens(z):
 
 
 # ---------------------------------------------------------------------------
-# Simplified GLF models
+# LDDE GLF parameters from the literature
 #
-# Each GLF returns the comoving number density phi(L, z) in
-# units of [Mpc^{-3} (erg/s)^{-1}], i.e., the luminosity function
-# per unit luminosity per unit comoving volume.
+# Convention: A is the normalization of dPhi/d(log10 L), NOT dPhi/dL.
+# The conversion is: dPhi/dL = dPhi/d(log10 L) / (L * ln(10))
+# All luminosities are gamma-ray (0.1-100 GeV band) in erg/s.
 # ---------------------------------------------------------------------------
 
-def _glf_blazar(L, z, subtype='BL_Lac'):
-    """Simplified blazar GLF based on Ajello et al. (2012, 2014).
+# FSRQ: Ajello et al. (2012), ApJ 751, 108, Table 3
+_FSRQ_PARAMS = {
+    'A': 3.06e-9,      # Mpc^{-3} (dPhi/d(logL) normalization)
+    'L_c': 0.84e48,    # break luminosity [erg/s]
+    'gamma1': 0.21,    # faint-end slope
+    'gamma2': 1.58,    # bright-end slope
+    'z_c_star': 1.47,  # peak redshift at L_ref
+    'alpha': 0.21,     # luminosity dependence of z_c
+    'p1': 7.35,        # positive evolution
+    'p2': -6.51,       # negative evolution
+    'L_ref': 1e48,     # reference luminosity for z_c(L)
+}
 
-    Uses a broken power-law in L with LDDE redshift evolution.
+# BL Lac HSP: Ajello et al. (2014) via Di Mauro et al. (2013)
+_BL_LAC_HSP_PARAMS = {
+    'A': 98e-9,        # Mpc^{-3}
+    'L_c': 3.15e45,    # erg/s
+    'gamma1': 2.88,    # steep faint-end (HSP convention)
+    'gamma2': 0.52,
+    'z_c_star': 4.1,
+    'alpha': 0.25,
+    'p1': -1.64,       # NEGATIVE: density decreases from z=0
+    'p2': 4.8,
+    'L_ref': 1e48,
+}
+
+# BL Lac LISP (LSP + ISP): Ajello et al. (2014) via Di Mauro et al. (2013)
+_BL_LAC_LISP_PARAMS = {
+    'A': 4.37e-9,      # Mpc^{-3}
+    'L_c': 3.08e46,    # erg/s
+    'gamma1': 1.19,
+    'gamma2': 0.67,
+    'z_c_star': 1.66,
+    'alpha': 0.36,
+    'p1': 4.4,
+    'p2': -2.9,
+    'L_ref': 1e48,
+}
+
+# mAGN: Di Mauro et al. (2014), ApJ 780, 161
+# Derived from radio core LF. Parameters calibrated to match
+# ~25-50% of IGRB at 0.1-1 GeV and the Fermi source count distribution.
+_MAGN_PARAMS = {
+    'A': 1.2e-8,       # Mpc^{-3} (calibrated to IGRB contribution)
+    'L_c': 3e43,       # erg/s (lower than blazars)
+    'gamma1': 0.49,
+    'gamma2': 1.85,
+    'z_c_star': 0.8,
+    'alpha': 0.1,
+    'p1': 3.0,
+    'p2': -1.5,
+    'L_ref': 1e48,
+}
+
+# SFG: Gruppioni et al. (2013), MNRAS 432, 23
+# IR LF converted via L_gamma = 10^{39.28} (L_IR/10^{10} L_sun)^{1.17}
+# Simplified as LDDE with luminosity evolution (1+z)^{3.55} to z~2.
+_SFG_PARAMS = {
+    'A': 5e-7,         # Mpc^{-3} (calibrated to ~10-30% of IGRB)
+    'L_c': 2e39,       # erg/s (gamma-ray equivalent of IR L*)
+    'gamma1': 0.2,     # very flat faint end (many faint SFGs)
+    'gamma2': 2.5,
+    'z_c_star': 2.0,   # tracks cosmic SFR peak
+    'alpha': 0.0,      # no luminosity dependence
+    'p1': 3.55,        # strong positive evolution
+    'p2': -4.0,        # rapid decline after z~2
+    'L_ref': 1e48,
+}
+
+
+# ---------------------------------------------------------------------------
+# Generic LDDE double power-law GLF
+# ---------------------------------------------------------------------------
+
+def _ldde_glf(L, z, params, evolution_form='piecewise'):
+    """LDDE double power-law GLF returning dPhi/dL [Mpc^{-3} (erg/s)^{-1}].
+
+    Parameters
+    ----------
+    L : float
+        Luminosity [erg/s].
+    z : float
+        Redshift.
+    params : dict
+        GLF parameters (A, L_c, gamma1, gamma2, z_c_star, alpha, p1, p2, L_ref).
+    evolution_form : str
+        'piecewise' — standard LDDE (FSRQ, mAGN, SFG):
+            e = [(1+z)/(1+z_c)]^p1 for z <= z_c, else [(1+z)/(1+z_c)]^p2
+        'sum' — BL Lac form (Di Mauro et al.):
+            e = [(1+z)/(1+z_c)]^p1 + [(1+z)/(1+z_c)]^p2
     """
-    # Break luminosity and slopes
-    if subtype == 'BL_Lac':
-        L_star = 1e46  # erg/s
-        gamma1 = 0.6   # faint-end slope
-        gamma2 = 2.2   # bright-end slope
-        A = 2.5e-8     # normalization [Mpc^{-3} (erg/s)^{-1}]
-        z_peak = 1.2
-        p1 = 4.0       # positive evolution
-        p2 = -1.5      # negative evolution
-    else:  # FSRQ
-        L_star = 5e47
-        gamma1 = 1.0
-        gamma2 = 2.5
-        A = 8e-10
-        z_peak = 1.5
-        p1 = 7.0
-        p2 = -4.0
+    A = params['A']
+    L_c = params['L_c']
+    g1 = params['gamma1']
+    g2 = params['gamma2']
+    z_c_star = params['z_c_star']
+    alpha = params['alpha']
+    p1 = params['p1']
+    p2 = params['p2']
+    L_ref = params['L_ref']
 
-    # Double power law
-    phi_0 = A / ((L / L_star)**gamma1 + (L / L_star)**gamma2)
+    # Local LF: dPhi/d(log10 L) = A / [(L/L_c)^gamma1 + (L/L_c)^gamma2]
+    x = L / L_c
+    phi_logL = A / (x**g1 + x**g2)
 
-    # LDDE evolution
-    if z <= z_peak:
-        e_z = (1.0 + z)**p1
+    # Convert to dPhi/dL
+    phi_L = phi_logL / (L * np.log(10.0))
+
+    # Luminosity-dependent peak redshift
+    z_c = z_c_star * (L / L_ref)**alpha
+    z_c = max(z_c, 0.01)  # avoid z_c = 0
+
+    # Redshift evolution
+    ratio = (1.0 + z) / (1.0 + z_c)
+
+    if evolution_form == 'sum':
+        # BL Lac form: sum of two power laws
+        e_z = ratio**p1 + ratio**p2
     else:
-        e_z = (1.0 + z_peak)**p1 * ((1.0 + z) / (1.0 + z_peak))**p2
+        # Standard piecewise LDDE
+        if z <= z_c:
+            e_z = ratio**p1
+        else:
+            e_z = ratio**p2
 
-    return phi_0 * e_z
+    return max(phi_L * e_z, 0.0)
+
+
+# ---------------------------------------------------------------------------
+# Source-specific GLF functions
+# ---------------------------------------------------------------------------
+
+def _glf_FSRQ(L, z):
+    """FSRQ GLF from Ajello et al. (2012)."""
+    return _ldde_glf(L, z, _FSRQ_PARAMS, evolution_form='piecewise')
+
+
+def _glf_BL_Lac(L, z):
+    """BL Lac GLF = HSP + LISP from Ajello et al. (2014) / Di Mauro et al. (2013)."""
+    phi_hsp = _ldde_glf(L, z, _BL_LAC_HSP_PARAMS, evolution_form='sum')
+    phi_lisp = _ldde_glf(L, z, _BL_LAC_LISP_PARAMS, evolution_form='sum')
+    return phi_hsp + phi_lisp
 
 
 def _glf_mAGN(L, z):
-    """Simplified mAGN GLF from Di Mauro et al. (2014)."""
-    L_star = 1e44
-    gamma1 = 0.8
-    gamma2 = 2.0
-    A = 5e-7
-    z_peak = 0.8
-    p1 = 3.0
-    p2 = -2.0
-
-    phi_0 = A / ((L / L_star)**gamma1 + (L / L_star)**gamma2)
-
-    if z <= z_peak:
-        e_z = (1.0 + z)**p1
-    else:
-        e_z = (1.0 + z_peak)**p1 * ((1.0 + z) / (1.0 + z_peak))**p2
-
-    return phi_0 * e_z
+    """mAGN GLF from Di Mauro et al. (2014)."""
+    return _ldde_glf(L, z, _MAGN_PARAMS, evolution_form='piecewise')
 
 
 def _glf_SFG(L, z):
-    """Simplified SFG GLF from Gruppioni et al. (2013).
-
-    Uses the IR luminosity function converted to gamma-ray via L_gamma ~ L_IR^{1.17}.
-    """
-    # SFG have a very steep faint end
-    L_star = 5e39
-    gamma1 = 0.3
-    gamma2 = 2.5
-    A = 1e-4
-    p_evol = 3.55  # Strong positive evolution tracking cosmic SFR
-
-    phi_0 = A / ((L / L_star)**gamma1 + (L / L_star)**gamma2)
-    e_z = (1.0 + min(z, 2.0))**p_evol  # Saturate at z=2
-
-    return phi_0 * e_z
+    """SFG GLF from Gruppioni et al. (2013) IR LF with L_gamma scaling."""
+    return _ldde_glf(L, z, _SFG_PARAMS, evolution_form='piecewise')
 
 
 def glf(L, z, source_class):
@@ -124,9 +205,9 @@ def glf(L, z, source_class):
         One of 'BL_Lac', 'FSRQ', 'mAGN', 'SFG'.
     """
     if source_class == 'BL_Lac':
-        return _glf_blazar(L, z, 'BL_Lac')
+        return _glf_BL_Lac(L, z)
     elif source_class == 'FSRQ':
-        return _glf_blazar(L, z, 'FSRQ')
+        return _glf_FSRQ(L, z)
     elif source_class == 'mAGN':
         return _glf_mAGN(L, z)
     elif source_class == 'SFG':
@@ -140,11 +221,16 @@ def glf(L, z, source_class):
 # ---------------------------------------------------------------------------
 
 def W_gamma_astro(E_GeV, z, source_class):
-    """Astrophysical gamma-ray window function.
+    """Astrophysical gamma-ray window function (Pinetti Eq. 4.3).
 
-    W = [d_L^2(z) / (1+z)^2] * integral_{L_min}^{min(L_max, L_sens)} dL phi(L,z) (dF/dE)
+    W_gamma(E, z) = integral_{L_min}^{min(L_max, L_sens)} dL Phi(L,z) * (dF/dE)(E,L,z)
 
-    The differential flux follows a power law: dF/dE ~ E^{-alpha} * L / (4 pi d_L^2)
+    This returns the unresolved gamma-ray emissivity at (E, z) — the Limber
+    integral applies the geometric c/H(z)/chi^2 factors separately.
+
+    The flux is modeled as a power law: dF/dE = norm * E^{-alpha} * L/(4 pi d_L^2).
+    The normalization uses: integral_{E_min}^{E_max} dF/dE dE = L/(4 pi d_L^2),
+    giving norm = (alpha - 1) * E_min^{alpha-1} for E_min = 0.1 GeV (> 100 MeV band).
 
     Parameters
     ----------
@@ -157,7 +243,9 @@ def W_gamma_astro(E_GeV, z, source_class):
 
     Returns
     -------
-    W : float [photons cm^{-2} s^{-1} GeV^{-1} Mpc^{-1}] (appropriate for Limber)
+    W : float
+        Emissivity in [photons cm^{-2} s^{-1} GeV^{-1} sr^{-1} Mpc^{-3}]
+        (per unit comoving volume).
     """
     if z <= 0:
         return 0.0
@@ -168,7 +256,7 @@ def W_gamma_astro(E_GeV, z, source_class):
     L_max = params['L_max']
 
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
-    dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0
+    dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
 
     L_thr = L_sens(z)
     L_up = min(L_max, L_thr)
@@ -176,27 +264,40 @@ def W_gamma_astro(E_GeV, z, source_class):
     if L_up <= L_min:
         return 0.0
 
-    # Spectral shape: dF/dE = (alpha - 1) / E_ref * (E/E_ref)^{-alpha} * L / (4 pi d_L^2)
-    # where E_ref = 1 GeV (normalization energy)
-    E_ref = 1.0  # GeV
-    spectral_factor = (alpha - 1.0) / E_ref * (E_GeV / E_ref)**(-alpha)
+    # Compute the comoving volume emissivity j(E_rest, z) [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}]
+    #
+    # Each source emits: dn/dE_rest = L / (GeV_to_erg * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
+    # where L [erg/s] is the rest-frame 0.1-100 GeV energy luminosity.
+    #
+    # The emissivity is: j = (1/4pi) integral phi(L) * dn/dE_rest dL
+    E_min_band = 0.1     # 100 MeV [GeV]
+    E_max_band = 100.0   # 100 GeV [GeV]
+    GeV_to_erg = 1.602e-3  # 1 GeV in erg
+
+    # Energy integral: integral E^{1-alpha} dE [GeV^{2-alpha}]
+    if abs(alpha - 2.0) > 0.01:
+        energy_integral = (E_max_band**(2.0 - alpha) - E_min_band**(2.0 - alpha)) / (2.0 - alpha)
+    else:
+        energy_integral = np.log(E_max_band / E_min_band)
+
+    # Rest-frame energy of observed photon
+    E_rest = E_GeV * (1.0 + z)
 
     def integrand(lnL):
         L = np.exp(lnL)
-        phi = glf(L, z, source_class)
-        flux = spectral_factor * L / (4.0 * np.pi * dL_cm**2)
-        return phi * flux * L  # extra L from d(lnL)
+        phi = glf(L, z, source_class)  # [Mpc^{-3} (erg/s)^{-1}]
+        # Photon emission rate per source at rest-frame energy E_rest:
+        # dn/dE = L / (GeV_to_erg * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
+        dn_dE = L / (GeV_to_erg * energy_integral) * E_rest**(-alpha)
+        # Integrand: phi * dn_dE * L (extra L from d(lnL) Jacobian)
+        return phi * dn_dE * L
 
     val, _ = quad(integrand, np.log(L_min), np.log(L_up), limit=200, epsrel=1e-5)
 
-    # Multiply by d_L^2 / (1+z)^2 (the chi^2 factor from angular diameter distance)
-    W = dL_cm**2 / (1.0 + z)**2 * val
-
-    # Convert to appropriate units for Limber: need c/H(z) factor
-    H_inv_cm = cfg.C_LIGHT * 100.0 / (cosmo.H(z) * 1e3 / cfg.MPC_TO_M)
-    W *= 1.0 / H_inv_cm  # per unit comoving distance
-
-    return W
+    # val = integral phi * dn/dE dL has units:
+    # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s] = [Mpc^{-3} ph s^{-1} GeV^{-1}]
+    # Divide by 4pi to get per steradian:
+    return val / (4.0 * np.pi)
 
 
 # ---------------------------------------------------------------------------
@@ -206,22 +307,40 @@ def W_gamma_astro(E_GeV, z, source_class):
 def mean_intensity(E_GeV, source_class, z_max=5.0, n_z=100):
     """Mean unresolved gamma-ray intensity from a source class.
 
-    <I> = integral dz (c/H(z)) W_gamma(E, z)
+    <I>(E) = integral dz (c/H(z)) * j(E*(1+z), z) / (1+z)
+
+    where j is the comoving emissivity [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}]
+    returned by W_gamma_astro, and the 1/(1+z) accounts for cosmological
+    energy loss and time dilation.
 
     Returns intensity in [photons cm^{-2} s^{-1} GeV^{-1} sr^{-1}].
     """
     z_arr = np.linspace(0.01, z_max, n_z)
-    integrand = np.array([W_gamma_astro(E_GeV, z, source_class) for z in z_arr])
+    # W_gamma_astro already computes j at E_rest = E_obs*(1+z)
+    j_arr = np.array([W_gamma_astro(E_GeV, z, source_class) for z in z_arr])
 
-    # c/H(z) in cm
+    # c/H(z) in Mpc (physical): this cancels the Mpc^{-3} in j
+    # Then convert from Mpc^{-2} to cm^{-2}: (1 Mpc = 3.086e24 cm)
     H_arr = np.array([cosmo.H(z) for z in z_arr])
-    H_SI = H_arr * 1e3 / cfg.MPC_TO_M  # 1/s
-    c_over_H = cfg.C_LIGHT * 100.0 / H_SI  # cm
+    c_over_H_Mpc = cfg.C_LIGHT_KM_S / H_arr  # [Mpc] (physical)
+    Mpc_to_cm = cfg.MPC_TO_M * 100.0          # [cm/Mpc]
 
-    # The window function already includes the comoving distance factors
-    # Integrate over dz
+    # Cosmological dimming: 1/(1+z)
+    dimming = 1.0 / (1.0 + z_arr)
+
+    # Integrand: j [ph/s/Mpc^3/GeV/sr] * c/H [Mpc] * 1/(1+z) → [ph/s/Mpc^2/GeV/sr]
+    # Convert Mpc^2 → cm^2: divide by Mpc_to_cm^2 → [ph/s/cm^2/GeV/sr] = [ph/cm^2/s/GeV/sr]
+    # Wait: j * c/H has units ph/s/Mpc^2/GeV/sr. We need ph/cm^2/s/GeV/sr.
+    # Since 1 Mpc^{-2} = 1/(Mpc_cm)^2 cm^{-2}, the integral already works
+    # if we express distances consistently.
+    #
+    # Actually: j [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}] * c/H [Mpc] = [ph s^{-1} Mpc^{-2} GeV^{-1} sr^{-1}]
+    # Convert to cm^{-2}: multiply by 1/Mpc_cm^2... no, [Mpc^{-2}] = [1/(Mpc_cm)^2 cm^{-2}]
+    # So value in cm^{-2} = value_in_Mpc^{-2} / Mpc_cm^2
+    integrand = j_arr * c_over_H_Mpc * dimming / Mpc_to_cm**2
+
     dz = z_arr[1] - z_arr[0]
-    return np.sum(integrand * c_over_H) * dz
+    return np.sum(integrand) * dz
 
 
 # ---------------------------------------------------------------------------

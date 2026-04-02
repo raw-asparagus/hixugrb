@@ -1,0 +1,26 @@
+{
+  "MeerKAT_UHF": {
+    "snr": 1.512154044274766,
+    "target": 3.7
+  },
+  "MeerKAT_L": {
+    "snr": 4.904619897185286,
+    "target": 2.0
+  },
+  "SKA1_Band1": {
+    "snr": 1.6045310812280793,
+    "target": null
+  },
+  "SKA1_Band2": {
+    "snr": 6.6035463306452975,
+    "target": 5.7
+  },
+  "SKA2_Band1": {
+    "snr": 7.993898235401601,
+    "target": 8.2
+  },
+  "SKA2_Band2": {
+    "snr": 7.446924819058768,
+    "target": null
+  }
+}

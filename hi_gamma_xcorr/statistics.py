@@ -20,18 +20,22 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
     (Delta C_l)^2 = [N^gamma / (B_l^gamma)^2] * [C_l^{HI} + N^HI / (B_l^HI)^2]
                     / ((2l+1) * f_sky)
 
+    N^gamma from Pinetti Table 2 is in cm-based units [cm^{-4} s^{-2} sr^{-1}].
+    The Limber integral computes C_l with gamma in (Mpc/h)-based units.
+    We convert N^gamma to (Mpc/h)-based units for consistency.
+
     Parameters
     ----------
     ell : array
         Multipoles.
     C_HI_auto : array
-        HI auto-power spectrum C_l^{HI,HI}.
+        HI auto-power spectrum C_l^{HI,HI} [mK^2].
     N_HI : array
         Radio noise power N^HI [mK^2 sr].
     B_HI : array
         Radio beam function.
     N_gamma : float
-        Fermi-LAT noise for this energy bin.
+        Fermi-LAT noise [cm^{-4} s^{-2} sr^{-1}] from Pinetti Table 2.
     B_gamma : array
         Fermi-LAT beam function.
     f_sky : float
@@ -44,7 +48,13 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
     """
     ell = np.asarray(ell, dtype=float)
 
-    noise_gamma_eff = N_gamma / B_gamma**2
+    # Convert N_gamma from cm-based to (Mpc/h)-based units:
+    # N_gamma [cm^{-4} s^{-2} sr^{-1}] → [(Mpc/h)^{-4} s^{-2} sr^{-1}]
+    # 1 cm^{-4} = (Mpc_h_cm)^4 (Mpc/h)^{-4}
+    Mpc_h_cm = cfg.MPC_TO_M * 100.0 / cfg.h  # cm per (Mpc/h)
+    N_gamma_Mpc = N_gamma * Mpc_h_cm**4
+
+    noise_gamma_eff = N_gamma_Mpc / B_gamma**2
     noise_HI_eff = C_HI_auto + N_HI / B_HI**2
 
     var = noise_gamma_eff * noise_HI_eff / ((2.0 * ell + 1.0) * f_sky)

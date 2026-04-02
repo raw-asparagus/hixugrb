@@ -68,12 +68,6 @@ def f_nu(nu_val):
 def dndM(M, z):
     """Halo mass function dn/dM [h^4 / (Mpc^3 M_sun)] at mass M [M_sun/h], redshift z.
 
-    dn/dM = (rho_bar / M) * f(nu) * |d ln sigma / d ln M|
-    where f(nu) = nu*f(nu) / nu.
-    """
-def dndM(M, z):
-    """Halo mass function dn/dM [h^4 / (Mpc^3 M_sun)] at mass M [M_sun/h], redshift z.
-
     Uses the standard form:
         dn/dM = (rho_bar / M^2) * f(sigma) * |d ln sigma / d ln M|
 

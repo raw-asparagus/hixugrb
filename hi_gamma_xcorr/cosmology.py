@@ -43,9 +43,13 @@ def init(force=False):
 
     # Request matter power at the redshifts we need (CAMB wants descending order)
     z_arr = np.sort(cfg.Z_GRID)[::-1]
+    # Cap kmax at 500 h/Mpc (= 500*h 1/Mpc for CAMB) for reasonable init time.
+    # This is sufficient for sigma(M) down to M ~ 10^6 M_sun/h and
+    # for the Limber integral at l <= 2000.
+    kmax_camb = min(cfg.K_MAX, 500.0) * cfg.h * 1.1
     pars.set_matter_power(
         redshifts=list(z_arr),
-        kmax=cfg.K_MAX * 1.1,     # slight headroom
+        kmax=kmax_camb,
         nonlinear=False,
     )
     pars.NonLinear = camb.model.NonLinear_none
@@ -197,62 +201,70 @@ def _tophat_W(kR):
 
 
 def sigma_R(R, z):
-    """RMS density fluctuation sigma(R, z) smoothed with top-hat of radius R [Mpc/h]."""
+    """RMS density fluctuation sigma(R, z) smoothed with top-hat of radius R [Mpc/h].
+
+    Uses trapezoidal integration on the k-grid for speed (no quad).
+    """
     _ensure_init()
+    k = _k_grid
+    Pk = P_lin(k, z)
+    W = _tophat_W(k * R)
+    integrand = k**3 * Pk * W**2 / (2.0 * np.pi**2)
+    # Trapezoidal in log-k space
+    lnk = np.log(k)
+    from scipy.integrate import trapezoid
+    val = trapezoid(integrand, lnk)
+    return np.sqrt(max(val, 0.0))
 
-    def integrand(lnk):
-        k = np.exp(lnk)
-        W = _tophat_W(k * R)
-        return k**3 * P_lin(k, z) * W**2 / (2.0 * np.pi**2)
 
-    lnk_min = np.log(cfg.K_MIN)
-    lnk_max = np.log(cfg.K_MAX)
-    val, _ = quad(integrand, lnk_min, lnk_max, limit=200, epsrel=1e-6)
-    return np.sqrt(val)
+# ---------------------------------------------------------------------------
+# Tabulated sigma(M, z) with interpolation for fast access
+# ---------------------------------------------------------------------------
+
+_sigma_interp = {}  # keyed by round(z, 4): interpolator log_sigma(log_M)
+_sigma_fine_M = np.logspace(np.log10(cfg.M_MIN), np.log10(cfg.M_MAX), 300)
+
+
+def _build_sigma_interp(z):
+    """Build a 1D interpolator for log sigma(log M) at redshift z."""
+    from scipy.interpolate import interp1d
+    z_key = round(float(z), 4)
+    if z_key in _sigma_interp:
+        return _sigma_interp[z_key]
+
+    R_arr = (3.0 * _sigma_fine_M / (4.0 * np.pi * cfg.RHO_BAR))**(1.0 / 3.0)
+    sig_arr = np.array([sigma_R(R, z) for R in R_arr])
+    log_sig = np.log(np.maximum(sig_arr, 1e-30))
+    log_M = np.log(_sigma_fine_M)
+    interp = interp1d(log_M, log_sig, kind='cubic', fill_value='extrapolate')
+    _sigma_interp[z_key] = interp
+    return interp
 
 
 def sigma_M(M, z):
-    """RMS density fluctuation sigma(M, z) for top-hat enclosing mass M [M_sun/h].
-
-    R = (3M / (4 pi rho_bar))^{1/3}  [Mpc/h].
-    """
-    R = (3.0 * M / (4.0 * np.pi * cfg.RHO_BAR))**(1.0 / 3.0)
-    return sigma_R(R, z)
+    """RMS density fluctuation sigma(M, z) using precomputed interpolation table."""
+    _ensure_init()
+    interp = _build_sigma_interp(z)
+    return np.exp(interp(np.log(M)))
 
 
 def dlnsigma_dlnM(M, z, dlog=0.01):
-    """Numerical derivative d ln sigma / d ln M via central finite differences."""
-    M_lo = M * 10**(-dlog)
-    M_hi = M * 10**(+dlog)
-    s_lo = sigma_M(M_lo, z)
-    s_hi = sigma_M(M_hi, z)
-    return (np.log(s_hi) - np.log(s_lo)) / (np.log(M_hi) - np.log(M_lo))
-
-
-# ---------------------------------------------------------------------------
-# Tabulated sigma(M) for fast access
-# ---------------------------------------------------------------------------
-
-_sigma_M_table = {}  # keyed by z
+    """Numerical derivative d ln sigma / d ln M from interpolation table."""
+    _ensure_init()
+    interp = _build_sigma_interp(z)
+    lnM = np.log(M)
+    dlnM = dlog * np.log(10)
+    log_sig_lo = interp(lnM - dlnM)
+    log_sig_hi = interp(lnM + dlnM)
+    return (log_sig_hi - log_sig_lo) / (2.0 * dlnM)
 
 
 def sigma_M_table(z, M_grid=None):
-    """Return (or compute and cache) sigma(M) on the mass grid at redshift z.
-
-    Returns
-    -------
-    M_grid : array [M_sun/h]
-    sigma_arr : array (same length)
-    """
+    """Return sigma(M) on a mass grid at redshift z (uses interpolation)."""
     _ensure_init()
     if M_grid is None:
         M_grid = cfg.M_GRID
-
-    z_key = round(float(z), 6)
-    if z_key not in _sigma_M_table:
-        sig = np.array([sigma_M(m, z) for m in M_grid])
-        _sigma_M_table[z_key] = (M_grid, sig)
-    return _sigma_M_table[z_key]
+    return M_grid, np.array([sigma_M(m, z) for m in M_grid])
 
 
 # ---------------------------------------------------------------------------

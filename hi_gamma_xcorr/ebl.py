@@ -1,58 +1,92 @@
 """EBL (Extragalactic Background Light) opacity models.
 
-Implements gamma-ray absorption optical depth tau(E, z) from pair production
-on EBL photons.  Primary model: analytic approximation based on
-Razzaque, Dermer & Finke (2009) and Dominguez et al. (2011).
+Uses the `ebltable` package for tabulated opacity models when available,
+with an analytic fallback.  Primary model: Dominguez et al. (2011).
 """
 
 import numpy as np
-from scipy.interpolate import RectBivariateSpline
+
+# ---------------------------------------------------------------------------
+# ebltable-based implementation
+# ---------------------------------------------------------------------------
+
+_od_cache = {}  # cache OptDepth objects by model name
 
 
-def tau_rdf09(E_GeV, z):
-    """EBL optical depth from Razzaque, Dermer & Finke (2009) approximation.
+def _get_optdepth(model='dominguez'):
+    """Get (or create) an ebltable OptDepth object."""
+    if model not in _od_cache:
+        from ebltable.tau_from_model import OptDepth
+        _od_cache[model] = OptDepth.readmodel(model=model)
+    return _od_cache[model]
 
-    Uses a simple analytic parameterization that captures the main features:
-    tau ~ 0 for E < 10 GeV at any z < 1, and increases steeply above.
 
-    This is a fit to the Finke, Razzaque & Dermer (2010) model.
+def _has_ebltable():
+    """Check if ebltable is importable."""
+    try:
+        import ebltable  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def tau(E_GeV, z, model='dominguez'):
+    """EBL optical depth tau(E, z).
+
+    Parameters
+    ----------
+    E_GeV : float or array
+        Photon energy [GeV].
+    z : float
+        Redshift.
+    model : str
+        EBL model name. Options: 'dominguez', 'finke', 'franceschini',
+        'saldana-lopez21', or 'analytic' for the built-in approximation.
+
+    Returns
+    -------
+    tau : array matching E_GeV shape
     """
-    E_GeV = np.asarray(E_GeV, dtype=float)
+    E_GeV = np.atleast_1d(np.asarray(E_GeV, dtype=float))
     z = float(z)
 
     if z <= 0:
         return np.zeros_like(E_GeV)
 
-    # Parameterization following Dominguez-like scaling:
-    # tau(E, z) ~ (E / E_0)^{gamma} * (z / z_0)^{delta}
-    # where E_0 ~ 25 GeV, gamma ~ 1.5, z_0 ~ 0.2, delta ~ 1.5
-    # Calibrated to match published opacity tables at key points:
-    # tau(100 GeV, z=0.5) ~ 0.5, tau(100 GeV, z=1) ~ 2-3, tau(30 GeV, z=1) ~ 0.3
+    if model == 'analytic' or not _has_ebltable():
+        return _tau_analytic(E_GeV, z)
 
-    # Calibrated piecewise model matching Dominguez et al. (2011):
-    # tau(100 GeV, z=0.5) ~ 0.5, tau(100 GeV, z=1) ~ 2-3
-    # tau(30 GeV, z=1) ~ 0.3, tau(300 GeV, z=1) ~ 10
+    od = _get_optdepth(model)
+    E_TeV = E_GeV / 1000.0  # ebltable uses TeV
+    # ebltable.opt_depth(z, E_TeV) — handles arrays
+    result = np.array([od.opt_depth(z, e) for e in E_TeV], dtype=float).ravel()
+    return np.maximum(result, 0.0)
+
+
+def attenuation(E_GeV, z, model='dominguez'):
+    """EBL attenuation factor exp(-tau(E, z))."""
+    return np.exp(-tau(E_GeV, z, model=model))
+
+
+# ---------------------------------------------------------------------------
+# Analytic fallback
+# ---------------------------------------------------------------------------
+
+def _tau_analytic(E_GeV, z):
+    """Simple analytic EBL approximation (fallback when ebltable unavailable).
+
+    Calibrated to Dominguez et al. (2011) anchor points.
+    """
+    E_GeV = np.asarray(E_GeV, dtype=float)
     result = np.zeros_like(E_GeV)
-
     mask = E_GeV > 1.0
     E = E_GeV[mask]
-
-    # Core: tau scales roughly as E^{0.8-1} * z^{1.2-1.5}
-    # Calibration anchor: tau(100 GeV, z=1) = 2.5
-    tau = 2.5 * (E / 100.0)**1.0 * (z / 1.0)**1.3
-
-    # Suppress below pair-production threshold (~20 GeV)
+    tau_val = 2.5 * (E / 100.0)**1.0 * (z / 1.0)**1.3
     threshold = 1.0 / (1.0 + (20.0 / E)**4)
-    tau *= threshold
-
-    result[mask] = tau
+    tau_val *= threshold
+    result[mask] = tau_val
     return np.clip(result, 0.0, 50.0)
-
-
-def attenuation(E_GeV, z):
-    """EBL attenuation factor exp(-tau(E, z))."""
-    return np.exp(-tau_rdf09(E_GeV, z))
-
-
-# Default model
-tau = tau_rdf09
