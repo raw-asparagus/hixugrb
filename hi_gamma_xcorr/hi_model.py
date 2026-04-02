@@ -297,12 +297,17 @@ def P_HI(k, z, **kwargs):
 # ---------------------------------------------------------------------------
 
 def W_HI(z, z_min, z_max):
-    """HI window function W_HI(z) [mK].
+    """HI window function W_HI(chi) per comoving distance (Pinetti Eq. 3.15-3.16).
 
-    W_HI = T_bar_b(z) * top_hat(z; z_min, z_max)
+    W_HI(chi) = T_bar_b(z) * b_HI(z) * phi(z) * H(z) / (c * h)
 
-    The top-hat selection function is 1/(z_max - z_min) in the band.
+    where phi(z) = 1/(z_max - z_min) is the top-hat selection function and
+    H/(c*h) converts from per-z to per-(Mpc/h) convention.
+
+    Used with Limber weight (dchi/dz)/chi^2 * dz where dchi/dz = c*h/H.
+    The H factors cancel in the product: weight * W_HI = T_bar_b * b_HI * phi / chi^2.
     """
     if z < z_min or z > z_max:
         return 0.0
-    return T_bar_b(z) / (z_max - z_min)
+    H_over_ch = cosmo.H(z) / (cfg.C_LIGHT_KM_S * cfg.h)  # 1/(Mpc/h)
+    return T_bar_b(z) * b_HI(z) / (z_max - z_min) * H_over_ch

@@ -220,17 +220,10 @@ def glf(L, z, source_class):
 # Astrophysical window function (Eq. 4.3)
 # ---------------------------------------------------------------------------
 
-def W_gamma_astro(E_GeV, z, source_class):
-    """Astrophysical gamma-ray window function (Pinetti Eq. 4.3).
+def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True):
+    """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
-    W_gamma(E, z) = integral_{L_min}^{min(L_max, L_sens)} dL Phi(L,z) * (dF/dE)(E,L,z)
-
-    This returns the unresolved gamma-ray emissivity at (E, z) — the Limber
-    integral applies the geometric c/H(z)/chi^2 factors separately.
-
-    The flux is modeled as a power law: dF/dE = norm * E^{-alpha} * L/(4 pi d_L^2).
-    The normalization uses: integral_{E_min}^{E_max} dF/dE dE = L/(4 pi d_L^2),
-    giving norm = (alpha - 1) * E_min^{alpha-1} for E_min = 0.1 GeV (> 100 MeV band).
+    Per-chi convention: W(chi) = [d_L^2/(1+z)^2] * integral Phi * dF/dE dL
 
     Parameters
     ----------
@@ -240,12 +233,10 @@ def W_gamma_astro(E_GeV, z, source_class):
         Redshift.
     source_class : str
         Source class name.
-
-    Returns
-    -------
-    W : float
-        Emissivity in [photons cm^{-2} s^{-1} GeV^{-1} sr^{-1} Mpc^{-3}]
-        (per unit comoving volume).
+    unresolved_only : bool
+        If True (default), integrate only up to L_sens (unresolved sources).
+        If False, integrate over the full [L_min, L_max] range (total emission,
+        survey-independent).
     """
     if z <= 0:
         return 0.0
@@ -258,8 +249,11 @@ def W_gamma_astro(E_GeV, z, source_class):
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
 
-    L_thr = L_sens(z)
-    L_up = min(L_max, L_thr)
+    if unresolved_only:
+        L_thr = L_sens(z)
+        L_up = min(L_max, L_thr)
+    else:
+        L_up = L_max
 
     if L_up <= L_min:
         return 0.0
@@ -296,8 +290,12 @@ def W_gamma_astro(E_GeV, z, source_class):
 
     # val = integral phi * dn/dE dL has units:
     # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s] = [Mpc^{-3} ph s^{-1} GeV^{-1}]
-    # Divide by 4pi to get per steradian:
-    return val / (4.0 * np.pi)
+    #
+    # Pinetti Eq. 4.3 prescribes: W = [d_L^2/(1+z)^2] * integral Phi * dF/dE dL
+    # Since dF/dE contains L/(4 pi d_L^2), the d_L^2 cancels, leaving:
+    #   W = (1/(4pi)) * (1/(1+z)^2) * integral Phi * L * spectral dL
+    # The (1+z)^{-2} factor suppresses high-z contributions (cosmological dimming).
+    return val / (4.0 * np.pi * (1.0 + z)**2)
 
 
 # ---------------------------------------------------------------------------

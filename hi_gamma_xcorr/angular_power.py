@@ -190,11 +190,10 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
         # For each multipole, k = (l + 0.5) / chi
         k_arr = (ell + 0.5) / chi_z  # h/Mpc
 
-        # Limber weight for cross-correlation (1 per-z HI window + 1 per-chi gamma window):
-        # C_l = integral dz * W_HI_per_z * W_gamma_per_chi * P / chi^2
-        # The (dchi/dz) from the standard formula cancels with the 1/(dchi/dz)
-        # needed to convert W_HI from per-z to per-chi.
-        weight_cross = dz / chi_z**2
+        # Limber weight: C_l = integral (dchi/chi^2) W_i(chi) W_j(chi) P
+        # = integral dz * (dchi/dz)/chi^2 * W_i * W_j * P
+        # All windows are in per-chi convention (Pinetti Eqs. 3.15, 4.1, 4.3).
+        weight = dchi_dz / chi_z**2 * dz
 
         # Astrophysical source contributions (2-halo term)
         for src in source_classes:
@@ -202,14 +201,14 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
             if W_gamma <= 0:
                 continue
             P_cross = P_HI_astro_2h(k_arr, z, src, n_M=n_k_M)
-            result[src] += W_hi * W_gamma * P_cross * weight_cross
+            result[src] += W_hi * W_gamma * P_cross * weight
 
         # DM contribution
         if include_DM:
             W_dm = dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
             if W_dm > 0:
                 P_dm = P_HI_DM_2h(k_arr, z, n_M=n_k_M)
-                result['DM'] += W_hi * W_dm * P_dm * weight_cross
+                result['DM'] += W_hi * W_dm * P_dm * weight
 
     # Total
     result['total'] = sum(result[key] for key in result)
@@ -244,12 +243,12 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=30, n_M=40):
 
         k_arr = (ell + 0.5) / chi_z
 
-        # Limber weight for auto-correlation (2 per-z HI windows):
-        # C_l = integral dz * W_HI^2 * P / (chi^2 * dchi/dz)
-        weight_auto = dz / (chi_z**2 * dchi_dz)
+        # Same Limber weight as cross (all windows are per-chi):
+        # C_l = integral dz * (dchi/dz)/chi^2 * W_HI^2 * P
+        weight = dchi_dz / chi_z**2 * dz
 
         # P_HI (2-halo only for speed)
         P_hi = hi.P_HI_2h(k_arr, z, n_M=n_M)
-        result += W_hi**2 * P_hi * weight_auto
+        result += W_hi**2 * P_hi * weight
 
     return result

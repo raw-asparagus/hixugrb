@@ -224,19 +224,23 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT  # [M_sun/h / (Mpc/h)^3]
     rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
 
-    # Window function WITHOUT c/H(z) — the Limber integral handles that.
-    # W = (sigma_v / (8 pi)) * (rho_DM / m_chi)^2 * (1+z)^3 * Delta^2
-    #     * dN/dE'|_{E'=(1+z)E} * exp(-tau)
-    # Units: [cm^3/s] * [GeV/cm^3 / GeV]^2 * [GeV^{-1}] = [cm^{-3} s^{-1} GeV^{-1}]
+    # Per-chi window function (Pinetti Eq. 4.1):
+    # W_DM(chi) = (sigma_v / (8 pi)) * (rho_DM / m_chi)^2 * (1+z)^3 / H(z)
+    #             * Delta^2 * dN/dE * exp(-tau)
+    # The 1/H(z) is physical (converts annihilation rate to per-comoving-distance).
+    # Used with Limber weight (dchi/dz)/chi^2 = (c*h/H)/chi^2.
     prefactor = sigma_v / (8.0 * np.pi)
     particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
     cosmological = (1.0 + z)**3
 
-    W_cgs = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten
-    # W_cgs is in [cm^{-3} s^{-1} GeV^{-1}] (CGS volume emissivity)
+    # 1/H(z) in CGS seconds (the physics factor from Eq. 4.1)
+    H_SI = cosmo.H(z) * 1e3 / cfg.MPC_TO_M  # km/s/Mpc → 1/s
+    inv_H = 1.0 / H_SI  # seconds
 
-    # Convert to (Mpc/h)^{-3} to match W_gamma_astro convention:
-    # 1 cm^{-3} = (Mpc_h_cm)^3 (Mpc/h)^{-3}  where Mpc_h_cm = Mpc_cm / h
+    W_cgs = prefactor * particle * cosmological * inv_H * Delta2 * float(dNdE) * atten
+    # W_cgs is in [cm^{-3} GeV^{-1}] (per-chi, CGS — the s^{-1} canceled with inv_H [s])
+
+    # Convert to (Mpc/h)-based units:
     Mpc_h_cm = Mpc_cm / cfg.h  # cm per (Mpc/h)
     return W_cgs * Mpc_h_cm**3
 
