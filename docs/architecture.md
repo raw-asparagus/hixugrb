@@ -4,7 +4,7 @@
 
 ```
                         ┌─────────────┐
-                        │  config.py  │  Planck 2018 params, instrument specs,
+                        │  config.py  │  [Planck 2018](literature/planck2018.md) params, instrument specs,
                         │             │  Fermi bins, mass/k/z grids
                         └──────┬──────┘
                                │
@@ -74,7 +74,7 @@
 
 | Module | Role |
 |--------|------|
-| `config.py` | All physical constants, Planck 2018 cosmology, instrument specs (MeerKAT/SKA/Fermi), computational grids |
+| `config.py` | All physical constants, [Planck 2018](literature/planck2018.md) cosmology, instrument specs (MeerKAT/SKA/Fermi), computational grids |
 | `cosmology.py` | CAMB wrapper for P_lin(k,z); Hubble rate H(z), comoving distance χ(z), growth factor D(z) |
 | `hmf_interface.py` | Thin wrapper around the `hmf` package; cached MassFunction instances, σ(M), dn/dM |
 | `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M), NFW Fourier transform ũ(k\|M) |
@@ -86,7 +86,7 @@
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions, Fermi-LAT noise N^γ and PSF, Fermissimo specs |
 | `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
-| `validation.py` | Automated checks against Pinetti et al. (2020): σ₈, mass function, Ω_HI, EBL, PPPC4DMID, SNR forecasts (13 checks) |
+| `validation.py` | Automated checks against [Pinetti et al. (2020)](literature/pinetti2020.md): σ₈, mass function, Ω_HI, EBL, PPPC4DMID, SNR forecasts (13 checks) |
 | `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 8 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows, SNR table, exclusion curves |
 
 ## Window Function Pipeline
@@ -103,7 +103,7 @@ cosmology.py: H(z), E(z)
 halo_model.py: dndM(M,z), bias(M,z), R_vir(M,z), v_circ(M,z)
     │
 hi_model.py:
-    ├─ M_HI(M,z)      ← Padmanabhan+ (2017) Eq. 3.7
+    ├─ M_HI(M,z)      ← [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Eq. 3.7
     ├─ rho_HI_mean(z)  ← ∫ dndM × M_HI dM
     ├─ Omega_HI(z)     ← rho_HI / rho_crit
     ├─ T_bar_b(z)      ← Pinetti Eq. 3.4
@@ -124,10 +124,10 @@ cosmology.py: d_L(z)
 astro_sources.py:
     ├─ L_sens(z)           ← 4π d_L² F_sens
     ├─ glf(L, z, source)   ← LDDE double power-law (Eq. 5.2)
-    │   ├─ _FSRQ_PARAMS    ← Ajello+ (2012) Table 3
-    │   ├─ _BL_LAC_PARAMS    ← Ajello+ (2014), single-component piecewise LDDE
-    │   ├─ _MAGN_PARAMS    ← Di Mauro+ (2014), calibrated
-    │   └─ _SFG_PARAMS     ← Gruppioni+ (2013), calibrated
+    │   ├─ _FSRQ_PARAMS    ← [Ajello+ (2012)](literature/ajello2012.md) Table 3
+    │   ├─ _BL_LAC_PARAMS    ← [Ajello+ (2014)](literature/ajello2014.md), single-component piecewise LDDE
+    │   ├─ _MAGN_PARAMS    ← [Di Mauro+ (2014)](literature/dimauro2014.md), calibrated
+    │   └─ _SFG_PARAMS     ← [Gruppioni+ (2013)](literature/gruppioni2013.md), calibrated
     │
     └─ W_gamma_astro(E, z) ← 1/(4π(1+z)²) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
                                [Pinetti Eq. 4.3 after d_L² cancellation]
@@ -140,14 +140,14 @@ astro_sources.py:
 ```
 config.py (Ω_DM, σ_v, m_χ)
     │
-    ├─ pppc4dmid.py: dN/dE(E_rest, m_χ, channel)  ← Cirelli+ (2011) tables
+    ├─ pppc4dmid.py: dN/dE(E_rest, m_χ, channel)  ← [Cirelli+ (2011)](literature/cirelli2011.md) tables
     ├─ ebl.py: exp(-τ(E,z))                         ← Dominguez+ (2011)
     │
 halo_model.py: dndM, bias, R_vir, concentration
     │
 dm_model.py:
     ├─ rho2_integral(M,z)    ← analytic ∫ ρ_NFW² d³x
-    ├─ boost_moline(M,z)     ← Moliné+ (2017)
+    ├─ boost_moline(M,z)     ← [Moliné+ (2017)](literature/moline2017.md)
     ├─ clumping_factor(z)    ← Δ²(z) = ∫ dndM × (1+B) × ∫ρ² d³x dM / ρ̄²
     │                           [Pinetti Eq. 4.2]
     └─ W_gamma_DM(E, z)     ← (σv/8π)(ρ_DM/m_χ)²(1+z)³/H × Δ² × dN/dE × e^{-τ}
@@ -175,7 +175,7 @@ angular_power.py: C_ℓ^{HI×γ}
 | Directory | Contents | Source |
 |-----------|----------|--------|
 | `data/pppc4dmid/` | `AtProduction_gammas.dat` (3.9 MB) | PPPC4DMID via GitHub mirror |
-| `data/ebl/` | Loaded at runtime via `ebltable` | Dominguez et al. (2011) |
+| `data/ebl/` | Loaded at runtime via `ebltable` | [Dominguez et al. (2011)](literature/dominguez2011.md) |
 
 ## Key Dependencies
 
