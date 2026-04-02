@@ -1,5 +1,9 @@
 """Halo model machinery: mass function, bias, NFW profile Fourier transforms.
 
+Uses the `hmf` package as backend for mass functions and sigma(M).
+Retains manual implementations for virial radius, circular velocity,
+concentration-mass relations, and NFW Fourier transforms.
+
 All masses in M_sun/h, distances in Mpc/h, wavenumbers in h/Mpc.
 """
 
@@ -10,6 +14,7 @@ from scipy.interpolate import interp1d
 
 from . import config as cfg
 from . import cosmology as cosmo
+from . import hmf_interface as hmfi
 
 # ---------------------------------------------------------------------------
 # Virial radius and circular velocity
@@ -45,41 +50,25 @@ def v_circ(M, z=0.0):
 
 
 # ---------------------------------------------------------------------------
-# Sheth-Mo-Tormen mass function
+# Mass function and related quantities (delegated to hmf via hmf_interface)
 # ---------------------------------------------------------------------------
 
 def nu(M, z):
-    """Peak height nu = delta_c^2 / sigma^2(M, z)."""
-    sig = cosmo.sigma_M(M, z)
-    return cfg.DELTA_C**2 / sig**2
-
-
-def f_nu(nu_val):
-    """SMT multiplicity function: nu * f(nu).
-
-    Returns nu*f(nu) = A (1 + (q nu)^{-p}) sqrt(q nu / 2pi) exp(-q nu / 2).
-    """
-    nu_val = np.asarray(nu_val, dtype=float)
-    q, p, A = cfg.SMT_Q, cfg.SMT_P, cfg.SMT_A
-    qnu = q * nu_val
-    return A * (1.0 + qnu**(-p)) * np.sqrt(qnu / (2.0 * np.pi)) * np.exp(-qnu / 2.0)
+    """Peak height nu = delta_c^2 / sigma^2(M, z).  Uses hmf backend."""
+    return hmfi.nu(M, z)
 
 
 def dndM(M, z):
-    """Halo mass function dn/dM [h^4 / (Mpc^3 M_sun)] at mass M [M_sun/h], redshift z.
+    """Halo mass function dn/dM [h^4 / (Mpc^3 M_sun)] at mass M [M_sun/h].
 
-    Uses the standard form:
-        dn/dM = (rho_bar / M^2) * f(sigma) * |d ln sigma / d ln M|
-
-    where f(sigma) = 2 * nu*f(nu) is the multiplicity function normalized so that
-    integral f(sigma) d ln(sigma^{-1}) = 1.  The factor of 2 arises from the
-    Jacobian between nu = delta_c^2/sigma^2 and ln(sigma^{-1}).
+    Delegates to hmf package (Sheth-Mo-Tormen fitting function).
     """
-    nu_val = nu(M, z)
-    nuf = f_nu(nu_val)
-    dlns_dlnM = abs(cosmo.dlnsigma_dlnM(M, z))
-    f_sigma = 2.0 * nuf  # f(sigma) = 2 * nu*f(nu)
-    return (cfg.RHO_BAR / M**2) * f_sigma * dlns_dlnM
+    return hmfi.dndm(M, z)
+
+
+def dndM_array(z):
+    """Return full (M, dndM) arrays from hmf at redshift z."""
+    return hmfi.dndm_array(z)
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +76,10 @@ def dndM(M, z):
 # ---------------------------------------------------------------------------
 
 def bias(M, z):
-    """Linear halo bias b(M, z) from the Sheth-Tormen (1999) prescription."""
+    """Linear halo bias b(M, z) from the Sheth-Tormen (1999) prescription.
+
+    Uses hmf's sigma(M, z) for the peak height.
+    """
     nu_val = nu(M, z)
     q, p = cfg.SMT_Q, cfg.SMT_P
     return 1.0 + (q * nu_val - 1.0) / cfg.DELTA_C + \
@@ -249,18 +241,25 @@ def bias_table(z, M_grid=None):
 # ---------------------------------------------------------------------------
 
 def check_mass_normalization(z=0.0, M_min=1e6, M_max=1e16):
-    """Check integral (dn/dM) * (M/rho_bar) dM ≈ 1."""
-    def integrand(lnM):
-        M = np.exp(lnM)
-        return dndM(M, z) * M * (M / cfg.RHO_BAR)
-    val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-4)
-    return val
+    """Check integral (dn/dM) * (M/rho_bar) dM ≈ 1.  Uses hmf grid."""
+    from scipy.integrate import trapezoid
+    m_arr, dndm_arr = dndM_array(z)
+    mask = (m_arr >= M_min) & (m_arr <= M_max)
+    m = m_arr[mask]
+    dn = dndm_arr[mask]
+    rho_bar = hmfi.mean_density()
+    integrand = dn * m**2 / rho_bar
+    return trapezoid(integrand, np.log(m))
 
 
 def check_bias_normalization(z=0.0, M_min=1e6, M_max=1e16):
-    """Check integral (dn/dM) * (M/rho_bar) * b(M) dM ≈ 1."""
-    def integrand(lnM):
-        M = np.exp(lnM)
-        return dndM(M, z) * M * (M / cfg.RHO_BAR) * bias(M, z)
-    val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-4)
-    return val
+    """Check integral (dn/dM) * (M/rho_bar) * b(M) dM ≈ 1.  Uses hmf grid."""
+    from scipy.integrate import trapezoid
+    m_arr, dndm_arr = dndM_array(z)
+    mask = (m_arr >= M_min) & (m_arr <= M_max)
+    m = m_arr[mask]
+    dn = dndm_arr[mask]
+    b_arr = np.array([bias(mi, z) for mi in m])
+    rho_bar = hmfi.mean_density()
+    integrand = dn * m**2 / rho_bar * b_arr
+    return trapezoid(integrand, np.log(m))
