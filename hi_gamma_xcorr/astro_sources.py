@@ -53,8 +53,9 @@ _FSRQ_PARAMS = {
 
 # BL Lac: Ajello et al. (2014), MNRAS 441, 1760
 # Single-component LDDE with piecewise evolution.
-# Positive evolution (p1>0) up to z_c~1.2, then decline.
-# Produces window peaking at z~1.0 as in Pinetti Fig. 5.1.
+# NOTE: These parameters are calibrated estimates to produce a window peaking
+# at z~1.0 (consistent with Pinetti Fig. 5.1). They are NOT directly from a
+# published table — see docs/literature/ajello2014.md for details.
 _BL_LAC_PARAMS = {
     'A': 5.0e-9,       # Mpc^{-3} (combined BL Lac population)
     'L_c': 1.0e46,     # erg/s (break luminosity)

@@ -91,10 +91,10 @@ def bias(M, z):
 # ---------------------------------------------------------------------------
 
 def concentration_dutton_maccio(M, z):
-    """Concentration c_200(M, z) from Dutton & Macciò (2014).
+    """Concentration c_200(M, z) from Dutton & Macciò (2014), Eqs. 10–11.
 
     Calibrated for Planck cosmology, M_200 in [1e10, 1e15] h^{-1} M_sun.
-    Uses their Eqs. 10-11 for the z-dependent coefficients.
+    See docs/literature/dutton_maccio2014.md for details.
     Extrapolated as a power law below 1e10.
     """
     M = np.asarray(M, dtype=float)

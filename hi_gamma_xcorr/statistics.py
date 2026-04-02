@@ -15,13 +15,14 @@ from . import noise_model as nm
 # ---------------------------------------------------------------------------
 
 def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
-    """Gaussian variance of C_l^{HI x gamma}.
+    """Gaussian variance of C_l^{HI x gamma} (Pinetti Eq. 5.5).
 
-    (Delta C_l)^2 = [N^gamma / (B_l^gamma)^2] * [C_l^{HI} + N^HI / (B_l^HI)^2]
-                    / ((2l+1) * f_sky)
+    (Delta C_l)^2 = (1/((2l+1)*f_sky))
+                    * [N^gamma / (B_l^gamma)^2]
+                    * [C_l^{HI,HI} + N^HI / (B_l^HI)^2]
 
     N^gamma from Pinetti Table 2 is in cm-based units [cm^{-4} s^{-2} sr^{-1}].
-    The Limber integral computes C_l with gamma in (Mpc/h)-based units.
+    Converted to (Mpc/h)-based units internally for consistency with C_l.
     We convert N^gamma to (Mpc/h)-based units for consistency.
 
     Parameters

@@ -13,10 +13,11 @@ from . import cosmology as cosmo
 # ---------------------------------------------------------------------------
 
 def T_sys(nu_MHz):
-    """System temperature [K] at observing frequency nu [MHz].
+    """System temperature [K] at observing frequency nu [MHz] (Eq. 8.1).
 
-    T_sys = T_inst + T_sky, where T_sky = 60 * (300/nu)^{2.55}.
-    T_inst is absorbed into the constant (the formula already includes it).
+    T_sys = 30 + 60 * (300 MHz / nu)^{2.55} K
+
+    The 30 K constant approximates T_inst; the 60 K term is Galactic sky temperature.
     """
     nu_MHz = np.asarray(nu_MHz, dtype=float)
     return 30.0 + cfg.T_SKY_COEFF * (cfg.T_SKY_NU_REF / nu_MHz)**cfg.T_SKY_INDEX

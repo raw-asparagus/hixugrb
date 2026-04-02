@@ -175,10 +175,10 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
 
 def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
                boost_scenario='intermediate'):
-    """DM annihilation gamma-ray window function W_gamma^DM(E, z).
+    """DM annihilation gamma-ray window function per comoving distance (Pinetti Eq. 4.1).
 
-    W = (1/4pi) * (sigma_v / 2) * Delta^2(z) * (Omega_DM * rho_c / m_chi)^2
-        * (1+z)^3 * dN/dE'(E'=(1+z)*E) * exp(-tau(E*(1+z), z)) * c/H(z)
+    W_DM(chi) = (sigma_v / 8pi) * (rho_DM / m_chi)^2 * (1+z)^3 / H(z)
+                * Delta^2(z) * dN/dE'|_{E'=(1+z)E} * exp(-tau)
 
     Parameters
     ----------

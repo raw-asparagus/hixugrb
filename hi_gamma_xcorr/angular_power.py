@@ -132,9 +132,11 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
                    m_chi_GeV=100.0, sigma_v=None, channel='bb',
                    source_classes=None, include_DM=True,
                    n_z=200, n_k_M=100):
-    """Compute C_l^{HI × gamma} via Limber integration.
+    """Compute C_l^{HI × gamma} via Limber integration (Pinetti Eq. 2.1).
 
-    C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+0.5)/chi, z)
+    C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+1/2)/chi, z)
+
+    Uses half-integer convention k = (ℓ+1/2)/χ for improved low-ℓ accuracy.
 
     Parameters
     ----------

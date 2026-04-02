@@ -19,7 +19,7 @@ _log10_masses = None     # unique log10(mDM) values
 _log10_x = None          # unique log10(x) values
 _interpolators = {}      # RectBivariateSpline per channel name
 
-# Channel name mapping: our names → table column names
+# Channel name mapping: our names → PPPC4DMID table column names (Cirelli et al. 2011)
 _CHANNEL_MAP = {
     'bb': 'b',
     'tautau': '\\[Tau]',

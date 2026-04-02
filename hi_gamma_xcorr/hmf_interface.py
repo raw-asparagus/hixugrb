@@ -23,7 +23,8 @@ _bias_cache = {}    # keyed by round(z, 4): interp1d for b(M)
 _hmf_imported = False
 _MassFunction = None
 
-# hmf configuration matching our Planck 2018 cosmology
+# hmf configuration: Sheth-Mo-Tormen (2001) mass function (q=0.707, p=0.3, A=0.3222)
+# with Planck 2018 cosmology. See docs/literature/sheth_mo_tormen2001.md.
 _HMF_KWARGS = dict(
     Mmin=np.log10(cfg.M_MIN) if cfg.M_MIN > 0 else 4.0,
     Mmax=np.log10(cfg.M_MAX) if cfg.M_MAX < 1e20 else 18.0,

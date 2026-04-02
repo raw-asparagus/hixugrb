@@ -25,7 +25,7 @@ def test_hi_bias_increases_with_z():
 def test_brightness_temperature_positive():
     Tb = hi.T_bar_b(0.0)
     assert Tb > 0, "T_bar_b must be positive"
-    assert Tb < 1.0, "T_bar_b should be < 1 mK at z=0"
+    assert Tb < 0.15, f"T_bar_b(z=0) = {Tb} mK, should be < 0.15 mK"
 
 
 def test_mhi_cutoff():
