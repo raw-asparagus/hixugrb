@@ -42,6 +42,8 @@ $$W_\gamma^\text{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\text{thr}} \Phi(L,z) 
 **Brightness temperature (Eq. 3.4):**
 $$\bar{T}_b(z) = 188 \, h \, \Omega_\text{HI}(z) \frac{(1+z)^2}{E(z)} \text{ mK}$$
 
+*Note: The formalism document (line 233) writes the coefficient as "180" while the HI guide and standard references use "188 h". The difference is <5% and arises from rounding conventions. Our implementation uses 188h.*
+
 **Clumping factor (Eq. 4.2):**
 $$\Delta^2(z) = \frac{1}{\bar\rho^2} \int \frac{dn}{dM} \int \rho^2 d^3x \, dM$$
 

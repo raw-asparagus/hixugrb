@@ -42,3 +42,5 @@ We adopt a single-component LDDE with piecewise evolution, capturing the overall
 ## Implementation
 
 **Module:** `astro_sources.py` — `_BL_LAC_PARAMS`, `_glf_BL_Lac()`, piecewise evolution form.
+
+**Important caveat:** The parameters listed above (A=5e-9, L_c=1e46, etc.) are calibrated estimates designed to produce a window function peaking at z~1.0, consistent with Pinetti Figure 5.1. They are NOT directly extracted from a published table in Ajello+(2014). The original paper provides separate HSP and LISP fits with different evolution forms.

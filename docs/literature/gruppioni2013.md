@@ -47,6 +47,10 @@ This combined with Gruppioni's (1+z)^{3.55} gives effective gamma-ray evolution 
 | p_2 | −4.0 | rapid decline after z~2 |
 | Spectral index | 2.7 | from Pinetti Table 3 |
 
+## Erratum
+
+**MNRAS 436(3), 2875–2876 (December 2013)** — Correction to Figure 8 scaling. Does not affect luminosity function parameters or the (1+z)^3.55 evolution index used in our pipeline.
+
 ## Implementation
 
 **Module:** `astro_sources.py` — `_SFG_PARAMS`, `_glf_SFG()`, piecewise LDDE. The p_1=3.55 evolution index is the primary quantitative result adopted from this paper.

@@ -43,3 +43,7 @@ $$\tau(E,z) \approx 2.5 \left(\frac{E}{100\text{ GeV}}\right)^{1.0} \left(\frac{
 ## Implementation
 
 **Module:** `ebl.py` — `tau(E_GeV, z, model='dominguez')`, `attenuation(E_GeV, z)`. Uses `ebltable.tau_from_model.OptDepth` when available. Also supports models: `franceschini`, `finke`, `saldana-lopez21`.
+
+## Superseding Work
+
+**Saldana-Lopez et al. (2021, MNRAS 507, 5144)** provides an updated EBL determination using ~150,000 galaxies from HST/CANDELS (vs ~6,000 from AEGIS). Available in our pipeline via `ebl.tau(E, z, model='saldana-lopez21')`. The Dominguez model remains the default for consistency with Pinetti+(2020).

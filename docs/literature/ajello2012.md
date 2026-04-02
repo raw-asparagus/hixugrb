@@ -44,6 +44,10 @@ $$e(z,L) = \begin{cases} [(1+z)/(1+z_c)]^{p_1} & z \le z_c(L) \\ [(1+z)/(1+z_c)]
 | p_2 | −6.51 ± 1.97 | — |
 | mu (photon index) | 2.44 ± 0.01 | — |
 
+## Superseding Work
+
+**Rajguru et al. (2025, arXiv:2510.05515)** updated the FSRQ GLF using 519 sources from the 4LAC catalog (vs 186 from the first-year catalog). The LDDE form is confirmed; parameters are refined but broadly consistent with Ajello+(2012). Our pipeline retains the Ajello+(2012) values for consistency with Pinetti+(2020).
+
 ## Implementation
 
 **Module:** `astro_sources.py` — `_FSRQ_PARAMS`, `_glf_FSRQ()`, piecewise evolution form. Parameters taken directly from Table 3.
