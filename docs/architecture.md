@@ -89,6 +89,87 @@
 | `validation.py` | Automated checks against Pinetti et al. (2020): σ₈, mass function, Ω_HI, EBL, PPPC4DMID, SNR forecasts (13 checks) |
 | `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 8 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows, SNR table, exclusion curves |
 
+## Window Function Pipeline
+
+Six window functions feed into the Limber integral. All are returned in the **per-comoving-distance** convention (per χ), used with Limber weight `(dχ/dz)/χ² × dz`.
+
+### W_HI — HI 21-cm brightness temperature
+
+```
+config.py (Planck params, HI params)
+    │
+cosmology.py: H(z), E(z)
+    │
+halo_model.py: dndM(M,z), bias(M,z), R_vir(M,z), v_circ(M,z)
+    │
+hi_model.py:
+    ├─ M_HI(M,z)      ← Padmanabhan+ (2017) Eq. 3.7
+    ├─ rho_HI_mean(z)  ← ∫ dndM × M_HI dM
+    ├─ Omega_HI(z)     ← rho_HI / rho_crit
+    ├─ T_bar_b(z)      ← Pinetti Eq. 3.4
+    ├─ b_HI(z)         ← mass-weighted bias, Eq. 3.6
+    └─ W_HI(z)         ← T_bar_b × b_HI × φ(z) × H/(ch)  [Eq. 3.15]
+                           └─ φ(z) = 1/Δz (top-hat from radio band)
+```
+
+**Survey-dependent:** φ(z) set by telescope band (MeerKAT UHF: z=0.4–1.45, L: z=0–0.58, etc.)
+
+### W_γ^BL_Lac, W_γ^FSRQ, W_γ^mAGN, W_γ^SFG — Astrophysical gamma-ray sources
+
+```
+config.py (spectral indices α, L_min, L_max, F_sens)
+    │
+cosmology.py: d_L(z)
+    │
+astro_sources.py:
+    ├─ L_sens(z)           ← 4π d_L² F_sens
+    ├─ glf(L, z, source)   ← LDDE double power-law (Eq. 5.2)
+    │   ├─ _FSRQ_PARAMS    ← Ajello+ (2012) Table 3
+    │   ├─ _BL_LAC_HSP/LISP_PARAMS ← Ajello+ (2014) / Di Mauro+ (2013)
+    │   ├─ _MAGN_PARAMS    ← Di Mauro+ (2014), calibrated
+    │   └─ _SFG_PARAMS     ← Gruppioni+ (2013), calibrated
+    │
+    └─ W_gamma_astro(E, z) ← 1/(4π(1+z)²) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
+                               [Pinetti Eq. 4.3 after d_L² cancellation]
+```
+
+**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Set `unresolved_only=False` for survey-independent (total emission).
+
+### W_γ^DM — Dark matter annihilation
+
+```
+config.py (Ω_DM, σ_v, m_χ)
+    │
+    ├─ pppc4dmid.py: dN/dE(E_rest, m_χ, channel)  ← Cirelli+ (2011) tables
+    ├─ ebl.py: exp(-τ(E,z))                         ← Dominguez+ (2011)
+    │
+halo_model.py: dndM, bias, R_vir, concentration
+    │
+dm_model.py:
+    ├─ rho2_integral(M,z)    ← analytic ∫ ρ_NFW² d³x
+    ├─ boost_moline(M,z)     ← Moliné+ (2017)
+    ├─ clumping_factor(z)    ← Δ²(z) = ∫ dndM × (1+B) × ∫ρ² d³x dM / ρ̄²
+    │                           [Pinetti Eq. 4.2]
+    └─ W_gamma_DM(E, z)     ← (σv/8π)(ρ_DM/m_χ)²(1+z)³/H × Δ² × dN/dE × e^{-τ}
+                                [Pinetti Eq. 4.1]
+```
+
+**Survey-independent:** No instrument parameters. Depends only on DM physics (m_χ, σv, channel) and cosmology.
+
+### How windows combine in the Limber integral
+
+```
+angular_power.py: C_ℓ^{HI×γ}
+    │
+    ├─ weight = (dχ/dz) / χ² × dz     ← standard Limber
+    ├─ W_HI(χ) × W_γ(χ)               ← window product
+    ├─ P_cross(k=(ℓ+½)/χ, z)          ← halo model 3D power spectrum
+    │   ├─ P_HI_DM_2h (for DM)        ← Eqs. 5.1–5.2
+    │   └─ P_HI_astro_2h (for astro)  ← Eqs. 5.3–5.4
+    │
+    └─ C_ℓ = Σ_z weight × W_HI × W_γ × P_cross
+```
+
 ## External Data
 
 | Directory | Contents | Source |
