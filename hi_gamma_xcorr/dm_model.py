@@ -123,7 +123,7 @@ _clumping_cache = {}  # keyed by (round(z,4), boost_scenario)
 
 
 def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
-                    n_M=100):
+                    n_M=200):
     """Clumping factor Delta^2(z) = <rho^2> / rho_bar^2.
 
     Delta^2 = (1/rho_bar^2) integral (dn/dM) * [1 + B(M)] * integral rho^2 d^3x dM
@@ -249,7 +249,7 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
 # DM power spectra (Eqs. 4.4–4.5)
 # ---------------------------------------------------------------------------
 
-def P_DM_1h(k, z, M_min=None, M_max=None, n_M=60):
+def P_DM_1h(k, z, M_min=None, M_max=None, n_M=120):
     """One-halo DM annihilation power spectrum.
 
     P_DM^{1h} = integral (dn/dM) * [v_tilde / Delta^2]^2 dM
@@ -279,7 +279,7 @@ def P_DM_1h(k, z, M_min=None, M_max=None, n_M=60):
     return result * dlnM
 
 
-def P_DM_2h(k, z, M_min=None, M_max=None, n_M=60):
+def P_DM_2h(k, z, M_min=None, M_max=None, n_M=120):
     """Two-halo DM annihilation power spectrum.
 
     P_DM^{2h} = [integral (dn/dM) * b(M) * v_tilde / Delta^2 dM]^2 * P_lin

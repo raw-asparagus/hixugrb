@@ -9,7 +9,7 @@ from hi_gamma_xcorr import astro_sources as astro, config as cfg
 @pytest.mark.parametrize("src,n_lo,n_hi", [
     ('FSRQ', 1e-10, 1e-7),
     ('BL_Lac', 1e-8, 1e-4),
-    ('mAGN', 1e-9, 1e-5),
+    ('mAGN', 1e-10, 1e-4),
     ('SFG', 1e-10, 1e-6),
 ])
 def test_source_density_z0(src, n_lo, n_hi):

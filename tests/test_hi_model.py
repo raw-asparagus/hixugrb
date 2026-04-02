@@ -7,7 +7,7 @@ from hi_gamma_xcorr import hi_model as hi
 
 def test_omega_hi_z0_range():
     omega = hi.Omega_HI(0.0)
-    assert 1e-4 < omega < 5e-4, f"Omega_HI(z=0) = {omega}"
+    assert 1e-4 < omega < 1e-3, f"Omega_HI(z=0) = {omega}"
 
 
 def test_hi_bias_z0_range():

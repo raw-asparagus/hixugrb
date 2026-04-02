@@ -27,7 +27,7 @@ _MassFunction = None
 _HMF_KWARGS = dict(
     Mmin=np.log10(cfg.M_MIN) if cfg.M_MIN > 0 else 4.0,
     Mmax=np.log10(cfg.M_MAX) if cfg.M_MAX < 1e20 else 18.0,
-    dlog10m=0.04,
+    dlog10m=0.02,
     hmf_model='SMT',
     cosmo_params={
         'H0': cfg.H0,

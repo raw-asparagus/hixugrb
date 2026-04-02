@@ -225,7 +225,7 @@ def b_HI(z, M_min=None, M_max=None):
 # HI power spectra (Eqs. 3.12–3.13)
 # ---------------------------------------------------------------------------
 
-def P_HI_1h(k, z, M_min=None, M_max=None, n_M=80):
+def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
     """One-halo HI power spectrum P_HI^{1h}(k, z) [(Mpc/h)^3].
 
     P_HI^{1h} = (1/rho_HI^2) * integral (dn/dM) * M_HI^2 * u_HI^2 dM
@@ -256,7 +256,7 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=80):
     return result * dlnM / rho**2
 
 
-def P_HI_2h(k, z, M_min=None, M_max=None, n_M=80):
+def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
     """Two-halo HI power spectrum P_HI^{2h}(k, z) [(Mpc/h)^3].
 
     P_HI^{2h} = [(1/rho_HI) * integral (dn/dM) * b(M) * M_HI * u_HI dM]^2 * P_lin(k,z)

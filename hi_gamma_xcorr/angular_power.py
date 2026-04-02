@@ -18,7 +18,7 @@ from . import noise_model as nm
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
 # ---------------------------------------------------------------------------
 
-def P_HI_DM_1h(k, z, n_M=60):
+def P_HI_DM_1h(k, z, n_M=120):
     """One-halo HI × DM cross-power spectrum.
 
     P^{1h} = integral (dn/dM) [v_tilde/Delta^2] [u_HI * M_HI/rho_HI] dM
@@ -48,7 +48,7 @@ def P_HI_DM_1h(k, z, n_M=60):
     return result * dlnM
 
 
-def P_HI_DM_2h(k, z, n_M=60):
+def P_HI_DM_2h(k, z, n_M=120):
     """Two-halo HI × DM cross-power spectrum.
 
     P^{2h} = [integral dn * b * v_tilde/Delta^2 dM]
@@ -87,7 +87,7 @@ def P_HI_DM_2h(k, z, n_M=60):
 # HI × Astrophysical source 3D cross-power spectra (Eqs. 5.3–5.4)
 # ---------------------------------------------------------------------------
 
-def P_HI_astro_2h(k, z, source_class, n_M=60):
+def P_HI_astro_2h(k, z, source_class, n_M=120):
     """Two-halo HI × astrophysical source cross-power spectrum.
 
     P^{2h} = b_HI_integral × b_astro × P_lin
@@ -131,7 +131,7 @@ def P_HI_astro_2h(k, z, source_class, n_M=60):
 def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
                    m_chi_GeV=100.0, sigma_v=None, channel='bb',
                    source_classes=None, include_DM=True,
-                   n_z=50, n_k_M=40):
+                   n_z=200, n_k_M=100):
     """Compute C_l^{HI × gamma} via Limber integration.
 
     C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+0.5)/chi, z)
@@ -219,7 +219,7 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
 # HI auto-power C_l^{HI,HI} (needed for noise/variance computation)
 # ---------------------------------------------------------------------------
 
-def C_ell_HI_auto(ell, z_min, z_max, n_z=30, n_M=40):
+def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
     """HI auto-correlation angular power spectrum C_l^{HI,HI}.
 
     Uses only the 2-halo term for efficiency.

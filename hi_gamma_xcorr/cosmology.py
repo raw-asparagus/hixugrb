@@ -222,7 +222,7 @@ def sigma_R(R, z):
 # ---------------------------------------------------------------------------
 
 _sigma_interp = {}  # keyed by round(z, 4): interpolator log_sigma(log_M)
-_sigma_fine_M = np.logspace(np.log10(cfg.M_MIN), np.log10(cfg.M_MAX), 300)
+_sigma_fine_M = np.logspace(np.log10(cfg.M_MIN), np.log10(cfg.M_MAX), 500)
 
 
 def _build_sigma_interp(z):

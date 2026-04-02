@@ -67,7 +67,7 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
 
 def compute_SNR(telescope, band_name, fermissimo=False,
                 ell_min=10, ell_max=1000, n_ell=100,
-                source_classes=None, n_z=30, n_M=30):
+                source_classes=None, n_z=100, n_M=60):
     """Compute the total signal-to-noise ratio for detecting the cross-correlation.
 
     SNR^2 = sum over (l, E-bins) of [C_l^{HI x gamma_astro} / Delta C_l]^2
@@ -148,8 +148,8 @@ def compute_SNR(telescope, band_name, fermissimo=False,
 
 def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
                channel='bb', fermissimo=False,
-               ell_min=10, ell_max=1000, n_ell=50,
-               n_z=20, n_M=20):
+               ell_min=10, ell_max=1000, n_ell=100,
+               n_z=100, n_M=60):
     """Compute Delta chi^2 for a given DM mass and cross-section.
 
     Delta chi^2 = sum_l,E [(C_l^{astro+DM} / sigma)^2 - (C_l^{astro} / sigma)^2]
@@ -213,7 +213,7 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
 
 def exclusion_curve(telescope, band_name, channel='bb',
                     fermissimo=False, CL='95',
-                    m_chi_arr=None, n_ell=30, n_z=15, n_M=15):
+                    m_chi_arr=None, n_ell=50, n_z=50, n_M=30):
     """Compute the DM exclusion curve: sigma_v vs m_chi.
 
     For each m_chi, find sigma_v where Delta chi^2 = threshold.
