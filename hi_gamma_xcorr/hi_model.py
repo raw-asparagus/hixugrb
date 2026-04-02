@@ -191,11 +191,12 @@ def Omega_HI(z, **kwargs):
 def T_bar_b(z, **kwargs):
     """Mean 21-cm brightness temperature T_bar_b(z) [mK].
 
-    T_bar_b = 44 μK * (Omega_HI * h / 2.45e-4) * (1+z)^2 / E(z)
-            = 0.044 mK * (Omega_HI * h / 2.45e-4) * (1+z)^2 / E(z)
+    T_bar_b = 188 * h * Omega_HI(z) * (1+z)^2 / E(z)  [mK]
+
+    From Pinetti Eq. 3.4 / standard 21-cm cosmology.
     """
     OHI = Omega_HI(z, **kwargs)
-    return 0.044 * (OHI * cfg.h / 2.45e-4) * (1.0 + z)**2 / cosmo.E(z)
+    return 188.0 * cfg.h * OHI * (1.0 + z)**2 / cosmo.E(z)
 
 
 def b_HI(z, M_min=None, M_max=None):

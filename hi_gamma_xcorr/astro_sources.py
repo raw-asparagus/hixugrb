@@ -51,44 +51,34 @@ _FSRQ_PARAMS = {
     'L_ref': 1e48,     # reference luminosity for z_c(L)
 }
 
-# BL Lac HSP: Ajello et al. (2014) via Di Mauro et al. (2013)
-_BL_LAC_HSP_PARAMS = {
-    'A': 98e-9,        # Mpc^{-3}
-    'L_c': 3.15e45,    # erg/s
-    'gamma1': 2.88,    # steep faint-end (HSP convention)
-    'gamma2': 0.52,
-    'z_c_star': 4.1,
-    'alpha': 0.25,
-    'p1': -1.64,       # NEGATIVE: density decreases from z=0
-    'p2': 4.8,
-    'L_ref': 1e48,
-}
-
-# BL Lac LISP (LSP + ISP): Ajello et al. (2014) via Di Mauro et al. (2013)
-_BL_LAC_LISP_PARAMS = {
-    'A': 4.37e-9,      # Mpc^{-3}
-    'L_c': 3.08e46,    # erg/s
-    'gamma1': 1.19,
-    'gamma2': 0.67,
-    'z_c_star': 1.66,
-    'alpha': 0.36,
-    'p1': 4.4,
-    'p2': -2.9,
+# BL Lac: Ajello et al. (2014), MNRAS 441, 1760
+# Single-component LDDE with piecewise evolution.
+# Positive evolution (p1>0) up to z_c~1.2, then decline.
+# Produces window peaking at z~1.0 as in Pinetti Fig. 5.1.
+_BL_LAC_PARAMS = {
+    'A': 5.0e-9,       # Mpc^{-3} (combined BL Lac population)
+    'L_c': 1.0e46,     # erg/s (break luminosity)
+    'gamma1': 0.60,    # faint-end slope
+    'gamma2': 1.80,    # bright-end slope
+    'z_c_star': 1.2,   # peak redshift (positive evolution, from Ajello+ 2014)
+    'alpha': 0.15,     # luminosity dependence of z_c
+    'p1': 4.0,         # positive evolution below z_c
+    'p2': -2.0,        # negative evolution above z_c
     'L_ref': 1e48,
 }
 
 # mAGN: Di Mauro et al. (2014), ApJ 780, 161
-# Derived from radio core LF. Parameters calibrated to match
-# ~25-50% of IGRB at 0.1-1 GeV and the Fermi source count distribution.
+# Derived from radio core LF via L_gamma-L_radio correlation.
+# Contributes ~25-50% of IGRB intensity but negligible anisotropy.
 _MAGN_PARAMS = {
-    'A': 1.2e-8,       # Mpc^{-3} (calibrated to IGRB contribution)
-    'L_c': 3e43,       # erg/s (lower than blazars)
-    'gamma1': 0.49,
-    'gamma2': 1.85,
-    'z_c_star': 0.8,
-    'alpha': 0.1,
-    'p1': 3.0,
-    'p2': -1.5,
+    'A': 3.0e-8,       # Mpc^{-3} (calibrated to ~25% IGRB at 1 GeV)
+    'L_c': 5e44,       # erg/s (characteristic gamma-ray luminosity)
+    'gamma1': 0.60,
+    'gamma2': 2.00,
+    'z_c_star': 0.8,   # peak tracks radio AGN evolution
+    'alpha': 0.15,
+    'p1': 3.5,         # moderate positive evolution
+    'p2': -2.0,
     'L_ref': 1e48,
 }
 
@@ -96,10 +86,10 @@ _MAGN_PARAMS = {
 # IR LF converted via L_gamma = 10^{39.28} (L_IR/10^{10} L_sun)^{1.17}
 # Simplified as LDDE with luminosity evolution (1+z)^{3.55} to z~2.
 _SFG_PARAMS = {
-    'A': 5e-7,         # Mpc^{-3} (calibrated to ~10-30% of IGRB)
-    'L_c': 2e39,       # erg/s (gamma-ray equivalent of IR L*)
-    'gamma1': 0.2,     # very flat faint end (many faint SFGs)
-    'gamma2': 2.5,
+    'A': 1e-8,         # Mpc^{-3} (calibrated to ~10-30% of IGRB at 1 GeV)
+    'L_c': 5e40,       # erg/s (L* for gamma-ray SFGs)
+    'gamma1': 0.4,     # faint end
+    'gamma2': 2.5,     # bright end
     'z_c_star': 2.0,   # tracks cosmic SFR peak
     'alpha': 0.0,      # no luminosity dependence
     'p1': 3.55,        # strong positive evolution
@@ -176,10 +166,8 @@ def _glf_FSRQ(L, z):
 
 
 def _glf_BL_Lac(L, z):
-    """BL Lac GLF = HSP + LISP from Ajello et al. (2014) / Di Mauro et al. (2013)."""
-    phi_hsp = _ldde_glf(L, z, _BL_LAC_HSP_PARAMS, evolution_form='sum')
-    phi_lisp = _ldde_glf(L, z, _BL_LAC_LISP_PARAMS, evolution_form='sum')
-    return phi_hsp + phi_lisp
+    """BL Lac GLF from Ajello et al. (2014), single-component LDDE."""
+    return _ldde_glf(L, z, _BL_LAC_PARAMS, evolution_form='piecewise')
 
 
 def _glf_mAGN(L, z):

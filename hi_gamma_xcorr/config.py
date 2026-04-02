@@ -68,9 +68,9 @@ DELTA_VIR = 200.0              # Virial overdensity (M_200 definition)
 # HI model parameters (Padmanabhan, Refregier & Amara 2017)
 # Adopted values from Pinetti et al. (2020)
 # ---------------------------------------------------------------------------
-HI_ALPHA = 0.176               # Normalization
-HI_BETA = -0.69                # Mass slope
-HI_VC0 = 101.61                # Minimum circular velocity cutoff [km/s]
+HI_ALPHA = 0.09                # Normalization (Padmanabhan+ 2017, exponential profile)
+HI_BETA = -0.58                # Mass slope (Padmanabhan+ 2017, exponential profile)
+HI_VC0 = 36.3                  # Minimum circular velocity cutoff [km/s] (original fit)
 HI_C0 = 139.0                  # HI concentration normalization
 Y_P = 0.24                     # Primordial helium mass fraction
 F_HC = (1.0 - Y_P) * OMEGA_B / OMEGA_M  # Cosmic hydrogen fraction in halos

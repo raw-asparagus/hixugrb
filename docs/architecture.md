@@ -125,7 +125,7 @@ astro_sources.py:
     ├─ L_sens(z)           ← 4π d_L² F_sens
     ├─ glf(L, z, source)   ← LDDE double power-law (Eq. 5.2)
     │   ├─ _FSRQ_PARAMS    ← Ajello+ (2012) Table 3
-    │   ├─ _BL_LAC_HSP/LISP_PARAMS ← Ajello+ (2014) / Di Mauro+ (2013)
+    │   ├─ _BL_LAC_PARAMS    ← Ajello+ (2014), single-component piecewise LDDE
     │   ├─ _MAGN_PARAMS    ← Di Mauro+ (2014), calibrated
     │   └─ _SFG_PARAMS     ← Gruppioni+ (2013), calibrated
     │

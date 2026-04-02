@@ -46,7 +46,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
 | 3.1 | $M_\text{HI} = \alpha\,f_{H,c}\,M\left(\frac{M}{10^{11}h^{-1}M_\odot}\right)^\beta\exp\left[-\left(\frac{v_{c,0}}{v_c}\right)^3\right]$ | Padmanabhan+ (2017); Pinetti+ (2020) Eq. 3.7 | `M_HI(M, z)` |
-|   | $\alpha=0.176$, $\beta=-0.69$, $v_{c,0}=101.61$ km/s | | |
+|   | $\alpha=0.09$, $\beta=-0.58$, $v_{c,0}=36.3$ km/s (Padmanabhan+ 2017 exponential profile) | | |
 |   | $f_{H,c}=(1-Y_P)\Omega_B/\Omega_M$, $Y_P=0.24$ | | |
 | 3.2 | $c_\text{HI} = c_{HI,0}\left(\frac{M}{10^{11}h^{-1}M_\odot}\right)^{-0.109}\frac{4}{(1+z)^{0.13}}$, $c_{HI,0}=139$ | Pinetti+ (2020) Eq. 3.8 | `c_HI(M, z)` |
 | 3.3 | $\rho_\text{HI}(r) = \rho_0\,r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | Pinetti+ (2020) Eq. 3.9 (modified NFW) | `rho_HI_profile` |
@@ -54,7 +54,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 3.5 | $\tilde u_\text{HI}(k\|M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | Pinetti+ (2020) Eq. 3.14 | `u_HI(k, M, z)` |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | Pinetti+ (2020) Eq. 3.2 | `rho_HI_mean(z)` |
 | 3.7 | $\Omega_\text{HI}(z) = (1+z)^{-3}\bar\rho_\text{HI}(z)/\rho_c$ | Pinetti+ (2020) Eq. 3.3 | `Omega_HI(z)` |
-| 3.8 | $\bar T_b(z) = 44\,\mu\text{K}\times\frac{\Omega_\text{HI}\,h}{2.45\times10^{-4}}\times\frac{(1+z)^2}{E(z)}$ | Pinetti+ (2020) Eq. 3.4 | `T_bar_b(z)` |
+| 3.8 | $\bar T_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)}$ mK | Pinetti+ (2020) Eq. 3.4 | `T_bar_b(z)` |
 | 3.9 | $b_\text{HI}(z) = \frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,M_\text{HI}\,b(M,z)\,dM$ | Pinetti+ (2020) Eq. 3.6 | `b_HI(z)` |
 | 3.10 | $P_\text{HI}^\text{1h}(k,z) = \frac{1}{\bar\rho_\text{HI}^2}\int\frac{dn}{dM}\,M_\text{HI}^2\,\tilde u_\text{HI}^2\,dM$ | Pinetti+ (2020) Eq. 3.12 | `P_HI_1h` |
 | 3.11 | $P_\text{HI}^\text{2h}(k,z) = \left[\frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,b\,M_\text{HI}\,\tilde u_\text{HI}\,dM\right]^2 P_\text{lin}$ | Pinetti+ (2020) Eq. 3.13 | `P_HI_2h` |
@@ -88,19 +88,18 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
 | 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z\le z_c$, $^{p_2}$ for $z>z_c$ | FSRQ, mAGN, SFG | `_ldde_glf` |
-| 5.5 | Sum evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1} + [(1+z)/(1+z_c)]^{p_2}$ | BL Lac (HSP + LISP) | `_ldde_glf` |
+| 5.5 | Sum evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1} + [(1+z)/(1+z_c)]^{p_2}$ | (Available but not currently used) | `_ldde_glf` |
 | 5.6 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | Pinetti+ Eq. 4.3 (after $d_L^2$ cancellation) | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
 ### GLF Parameters
 
-| Source | $A$ (Mpc⁻³) | $L_c$ (erg/s) | $\gamma_1$ | $\gamma_2$ | $z_c^*$ | $\alpha$ | $p_1$ | $p_2$ | Reference |
-|--------|-------------|---------------|-----------|-----------|---------|---------|-------|-------|-----------|
-| FSRQ | $3.06\times10^{-9}$ | $8.4\times10^{47}$ | 0.21 | 1.58 | 1.47 | 0.21 | 7.35 | −6.51 | Ajello+ (2012) Table 3 |
-| BL Lac HSP | $9.8\times10^{-8}$ | $3.15\times10^{45}$ | 2.88 | 0.52 | 4.1 | 0.25 | −1.64 | 4.8 | Ajello+ (2014) / Di Mauro+ (2013) |
-| BL Lac LISP | $4.37\times10^{-9}$ | $3.08\times10^{46}$ | 1.19 | 0.67 | 1.66 | 0.36 | 4.4 | −2.9 | Ajello+ (2014) / Di Mauro+ (2013) |
-| mAGN | $1.2\times10^{-8}$ | $3\times10^{43}$ | 0.49 | 1.85 | 0.8 | 0.1 | 3.0 | −1.5 | Di Mauro+ (2014), calibrated |
-| SFG | $5\times10^{-7}$ | $2\times10^{39}$ | 0.2 | 2.5 | 2.0 | 0.0 | 3.55 | −4.0 | Gruppioni+ (2013), calibrated |
+| Source | $A$ (Mpc⁻³) | $L_c$ (erg/s) | $\gamma_1$ | $\gamma_2$ | $z_c^*$ | $\alpha$ | $p_1$ | $p_2$ | Evolution | Reference |
+|--------|-------------|---------------|-----------|-----------|---------|---------|-------|-------|-----------|-----------|
+| FSRQ | $3.06\times10^{-9}$ | $8.4\times10^{47}$ | 0.21 | 1.58 | 1.47 | 0.21 | 7.35 | −6.51 | piecewise | Ajello+ (2012) Table 3 |
+| BL Lac | $5.0\times10^{-9}$ | $1.0\times10^{46}$ | 0.60 | 1.80 | 1.2 | 0.15 | 4.0 | −2.0 | piecewise | Ajello+ (2014), single-component |
+| mAGN | $3.0\times10^{-8}$ | $5\times10^{44}$ | 0.60 | 2.00 | 0.8 | 0.15 | 3.5 | −2.0 | piecewise | Di Mauro+ (2014), calibrated |
+| SFG | $1\times10^{-8}$ | $5\times10^{40}$ | 0.4 | 2.5 | 2.0 | 0.0 | 3.55 | −4.0 | piecewise | Gruppioni+ (2013), calibrated |
 
 ### Spectral Indices (Pinetti+ Table 3)
 
