@@ -65,13 +65,14 @@ SMT_A = 0.3222                 # SMT normalization A
 DELTA_VIR = 200.0              # Virial overdensity (M_200 definition)
 
 # ---------------------------------------------------------------------------
-# HI model parameters (Padmanabhan, Refregier & Amara 2017)
-# Adopted values from Pinetti et al. (2020)
+# HI model parameters (Padmanabhan, Refregier & Amara 2017, Table A1)
+# Modified NFW profile fit — all parameters from the same MCMC fit.
 # ---------------------------------------------------------------------------
-HI_ALPHA = 0.09                # Normalization (Padmanabhan+ 2017, exponential profile)
-HI_BETA = -0.58                # Mass slope (Padmanabhan+ 2017, exponential profile)
-HI_VC0 = 36.3                  # Minimum circular velocity cutoff [km/s] (exponential profile, Padmanabhan+2017)
-HI_C0 = 139.0                  # HI concentration normalization
+HI_ALPHA = 0.176               # Normalization (Table A1, modified NFW)
+HI_BETA = -0.69                # Mass slope (Table A1)
+HI_VC0 = 10**1.61              # Minimum circular velocity cutoff [km/s] ≈ 40.7 (Table A1)
+HI_C0 = 139.0                  # HI concentration normalization (Table A1)
+HI_GAMMA_CONC = 0.13           # Concentration redshift evolution exponent (Table A1)
 Y_P = 0.24                     # Primordial helium mass fraction
 F_HC = (1.0 - Y_P) * OMEGA_B / OMEGA_M  # Cosmic hydrogen fraction in halos
 

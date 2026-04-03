@@ -6,7 +6,7 @@ Systematic comparison of our pipeline's normalized window functions against [Pin
 **Status:** Formulas verified correct; input physics models partially fixed.
 
 ### Fixes Applied
-- **HI:** v_{c,0} restored to 36.3 km/s (Padmanabhan+ 2017 original); α=0.09, β=−0.58; T̄_b coefficient corrected to 188h mK
+- **HI:** Corrected parameter mismatch — now uses consistent [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 parameters (α=0.176, β=−0.69, v_c,0=40.7) matching the modified NFW profile. Ω_HI(z) trend remains a known model limitation.
 - **BL Lac:** Implemented [Ajello+ (2014)](literature/ajello2014.md) Table C.1 parameters with LDDE inverse-sum evolution (Eq. C.4)
 - **mAGN:** Implemented full radio→gamma chain from [Di Mauro+ (2014)](literature/dimauro2014.md) via [Willott (2001)](literature/willott2001.md) RLF
 - **SFG:** Implemented [Gruppioni+ (2013)](literature/gruppioni2013.md) 3-component IR LF with [Ackermann+ (2012)](literature/ackermann2012_sfg.md) L_γ–L_IR scaling
@@ -24,20 +24,21 @@ Claim-by-claim evidence matrix comparing: (A) Pinetti thesis Figure 5.1 expected
 
 ---
 
-## 1. HI Window — Ω_HI(z) trend inverted (CRITICAL)
+## 1. HI Window — Parameter mismatch corrected; Ω_HI(z) trend is model limitation (PARTIAL)
 
 **Expected:** Smooth curve peaking at z~0.7–1.0 within MeerKAT UHF band.
-**Ours:** Peaks at z~0.4 (band edge), monotonically declines.
 
 | # | Claim | Reference | Our Code | Match |
 |---|-------|-----------|----------|-------|
 | H1 | W_HI = T̄_b · b_HI · φ · H/(ch) | [Pinetti](literature/pinetti2020.md) Eq. 3.15 | Same | YES |
-| H2 | T̄_b = 188 h Ω_HI (1+z)²/E(z) mK | [Pinetti](literature/pinetti2020.md) Eq. 3.4 | ~180 h mK (4% low) | YES |
-| H3 | b_HI increases with z | Literature | 0.93→1.6 over z=0→2 | YES |
-| H4 | **Ω_HI increases** ~4e-4 → ~1e-3 over z=0→2 | ALFALFA, DLAs; "Ω_HI ∝ (1+z)^0.6" | **DECREASES** 2e-4→1.2e-5 | **MISMATCH** |
-| H5 | v_{c,0} range 36–102 km/s | [Padmanabhan+ (2017)](literature/padmanabhan2017.md) | 101.61 (upper extreme) | PARTIAL |
+| H2 | T̄_b = 188 h Ω_HI (1+z)²/E(z) mK | [Pinetti](literature/pinetti2020.md) Eq. 3.4 | Same | YES |
+| H3 | b_HI increases with z | Literature | YES | YES |
+| H4 | Ω_HI increases ~4e-4 → ~1e-3 over z=0→2 | ALFALFA, DLAs | **Still decreases** — model limitation | **KNOWN** |
+| H5 | Modified NFW profile with Table A1 parameters | [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 | α=0.176, β=−0.69, v_c,0=40.7 km/s, c_HI,0=139, γ=0.13 | YES |
 
-**Root cause:** The Padmanabhan model with v_{c,0}=101.61 km/s cuts off HI at M~5×10¹¹ M☉, leaving only massive halos. Combined with the SMT mass function (~63% normalization), this produces Ω_HI that decreases with z — opposite to observations. Since T̄_b ∝ Ω_HI, the HI window inherits this wrong trend.
+**Fix applied:** Parameters are now self-consistent — all five from [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 (modified NFW fit). Previously mixed exponential-fit parameters (Table 3) with the modified NFW profile form; the Pinetti thesis propagated this mismatch.
+
+**Remaining limitation:** Ω_HI(z) still decreases with z. This is inherent to the Padmanabhan model with passive (non-evolving) HIHM parameters — the paper documents this in Section 6 conclusion (viii): "the effective cutoff halo mass evolves roughly as M_cutoff ∝ (1+z)^{-3/2}." Redshift evolution of α, β, or v_c,0 was tested but not statistically favored by their data. Fixing this would require a different HIHM model (e.g., Villaescusa-Navarro+ 2018) or explicit parameter evolution.
 
 ---
 

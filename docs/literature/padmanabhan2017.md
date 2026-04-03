@@ -6,47 +6,59 @@
 
 ## Abstract
 
-Develops a comprehensive halo model for neutral hydrogen (HI) in the post-reionization universe (z ~ 0–5). Using MCMC methods, simultaneously fits HI abundance (ALFALFA mass function, DLA column densities, Omega_HI), clustering (ALFALFA small-scale, GBT intensity mapping), and DLA properties. The resulting M_HI(M,z) relation and HI density profile enable predictions for HI power spectra and cross-correlations.
+Develops a comprehensive halo model for neutral hydrogen (HI) in the post-reionization universe (z ~ 0–5). Using MCMC methods, simultaneously fits HI abundance (ALFALFA mass function, DLA column densities, Ω_HI), clustering (ALFALFA small-scale, GBT intensity mapping), and DLA properties. Two profile variants are tested: an exponential profile (main text) and a modified NFW profile (Appendix A).
 
-## Methodology
+## Two Profile Fits
 
-- Multi-dataset MCMC fitting via CosmoHammer
-- Six-parameter model: alpha, beta, v_c0, c_HI0, plus evolution
-- Two profile variants tested: altered NFW (thermal core) and exponential
-- Calibration data: ALFALFA (z~0), DLAs (z~2–5), GBT×WiggleZ (z~0.8)
+The paper provides **two independent MCMC fits** to the same data, each with its own best-fit parameters. Parameters from one fit must NOT be mixed with the other.
 
-## Key Results
+### Exponential profile (main text, Table 3)
 
-| Profile | alpha | beta | v_c0 (km/s) | c_HI0 |
-|---------|-------|------|-------------|-------|
-| Altered NFW | 0.17 | −0.55 | 37.2 | 139 |
-| Exponential | 0.09 | −0.58 | 36.3 | — |
+Profile: $\rho_\text{HI}(r) = \rho_0 \exp(-r/r_s)$
 
-Predicted Omega_HI: ~4e-4 at z=0, rising to ~1e-3 at z~2–3. b_HI: ~0.7 at z=0, rising to ~2.2 at z~3.
+| Parameter | Best-fit (1σ) |
+|-----------|---------------|
+| c_HI,0 | 28.65 ± 1.76 |
+| α | 0.09 ± 0.01 |
+| log v_c,0 | 1.56 ± 0.04 (v_c,0 = 36.3 km/s) |
+| β | −0.58 ± 0.06 |
+| γ | 1.45 ± 0.04 |
+
+### Modified NFW profile (Appendix A, Table A1) — **adopted by this pipeline**
+
+Profile: $\rho_\text{HI}(r) = \rho_0 r_s^3 / [(r + 0.75 r_s)(r + r_s)^2]$
+
+| Parameter | Best-fit (1σ) |
+|-----------|---------------|
+| c_HI,0 | 139 ± 13 |
+| α | 0.176 ± 0.007 |
+| log v_c,0 | 1.61 ± 0.02 (v_c,0 = 40.7 km/s) |
+| β | −0.69 ± 0.03 |
+| γ | 0.13 ± 0.20 |
+
+**Why modified NFW:** The pipeline uses the modified NFW profile form (Eq. A1), which is a better fit to multiphase halo gas in simulations (Maller & Bullock 2004). Therefore all five parameters must come from the Table A1 fit.
+
+**Note:** The Pinetti thesis (Eq. 3.7–3.8) pairs the exponential-fit parameters (α=0.09, β=−0.58, v_c,0=36.3) with the modified NFW profile form — this is a parameter mismatch. This pipeline corrects it by using Table A1 parameters consistently.
 
 ## Equations Used in This Pipeline
 
-**M_HI–halo mass relation (Eq. 3.7):**
+**M_HI–halo mass relation (Eq. 1 / Pinetti Eq. 3.7):**
 $$M_\text{HI}(M,z) = \alpha \, f_{H,c} \, M \left(\frac{M}{10^{11} h^{-1} M_\odot}\right)^\beta \exp\left[-\left(\frac{v_{c,0}}{v_c(M,z)}\right)^3\right]$$
 
 where $f_{H,c} = (1 - Y_P) \Omega_B / \Omega_M$, $Y_P = 0.24$.
 
-**Altered NFW HI profile (Eq. 3.9):**
+**Altered NFW HI profile (Eq. A1):**
 $$\rho_\text{HI}(r) = \rho_0 \frac{r_s^3}{(r + 0.75 r_s)(r + r_s)^2}$$
 
-**HI concentration (Eq. 3.8):**
-$$c_\text{HI}(M,z) = c_{HI,0} \left(\frac{M}{10^{11} h^{-1} M_\odot}\right)^{-0.109} \frac{4}{(1+z)^{0.13}}$$
+**HI concentration (Eq. 3 / Pinetti Eq. 3.8):**
+$$c_\text{HI}(M,z) = c_{HI,0} \left(\frac{M}{10^{11} M_\odot}\right)^{-0.109} \frac{4}{(1+z)^\gamma}$$
 
-**Mean HI density (Eq. 3.2):** $\bar\rho_\text{HI}(z) = \int (dn/dM) \, M_\text{HI} \, dM$
+**Mean HI density:** $\bar\rho_\text{HI}(z) = \int (dn/dM) \, M_\text{HI} \, dM$
 
-**HI bias (Eq. 3.6):** $b_\text{HI}(z) = (1/\bar\rho_\text{HI}) \int (dn/dM) \, M_\text{HI} \, b(M) \, dM$
-
-**HI power spectra (Eqs. 3.12–3.13):** 1-halo and 2-halo terms using u_HI Fourier transform.
+**HI bias:** $b_\text{HI}(z) = (1/\bar\rho_\text{HI}) \int (dn/dM) \, M_\text{HI} \, b(M) \, dM$
 
 ## Implementation
 
 **Module:** `hi_model.py` — `M_HI()`, `c_HI()`, `rho_HI_profile()`, `u_HI()`, `rho_HI_mean()`, `Omega_HI()`, `T_bar_b()`, `b_HI()`, `P_HI_1h/2h()`, `W_HI()`
 
-**Parameters adopted:** Exponential profile values (alpha=0.09, beta=−0.58, v_c0=36.3) for correct Omega_HI(z) trend. Note: Pinetti et al. adopted different values (alpha=0.176, beta=−0.69, v_c0=101.61) which produce Omega_HI that decreases with z.
-
-**Known limitation:** The halo model with SMT mass function produces Omega_HI that decreases with z even with v_c0=36.3, while observations show it increasing. This is a fundamental limitation of the analytic halo model approach at high z.
+**Parameters adopted:** Modified NFW profile (Table A1): α=0.176, β=−0.69, v_c,0=40.7 km/s, c_HI,0=139, γ=0.13.

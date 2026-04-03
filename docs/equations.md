@@ -46,9 +46,9 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
 | 3.1 | $M_\text{HI} = \alpha\,f_{H,c}\,M\left(\frac{M}{10^{11}h^{-1}M_\odot}\right)^\beta\exp\left[-\left(\frac{v_{c,0}}{v_c}\right)^3\right]$ | [Padmanabhan+ (2017)](literature/padmanabhan2017.md); [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.7 | `M_HI(M, z)` |
-|   | $\alpha=0.09$, $\beta=-0.58$, $v_{c,0}=36.3$ km/s (Padmanabhan+ 2017 exponential profile) | | |
+|   | $\alpha=0.176$, $\beta=-0.69$, $v_{c,0}=40.7$ km/s ([Padmanabhan+ 2017](literature/padmanabhan2017.md) Table A1, modified NFW) | | |
 |   | $f_{H,c}=(1-Y_P)\Omega_B/\Omega_M$, $Y_P=0.24$ | | |
-| 3.2 | $c_\text{HI} = c_{HI,0}\left(\frac{M}{10^{11}h^{-1}M_\odot}\right)^{-0.109}\frac{4}{(1+z)^{0.13}}$, $c_{HI,0}=139$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.8 | `c_HI(M, z)` |
+| 3.2 | $c_\text{HI} = c_{HI,0}\left(\frac{M}{10^{11}M_\odot}\right)^{-0.109}\frac{4}{(1+z)^\gamma}$, $c_{HI,0}=139$, $\gamma=0.13$ | [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 | `c_HI(M, z)` |
 | 3.3 | $\rho_\text{HI}(r) = \rho_0\,r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.9 (modified NFW) | `rho_HI_profile` |
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{HI}\,dr = M_\text{HI}$ | Mass normalization | `rho0_HI` |
 | 3.5 | $\tilde u_\text{HI}(k\|M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |

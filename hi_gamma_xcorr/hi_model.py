@@ -38,13 +38,12 @@ def M_HI(M, z):
 def c_HI(M, z):
     """HI concentration parameter c_HI(M, z).
 
-    c_HI = c_{HI,0} * (M h^{-1} / 10^{11} M_sun)^{-0.109} * 4 / (1+z)^{0.13}
+    c_HI = c_{HI,0} * (M / 10^{11} M_sun)^{-0.109} * 4 / (1+z)^gamma
 
-    M is in M_sun/h (= h^{-1} M_sun), so M h^{-1} = M / h^2? No:
-    M_sun/h IS h^{-1} M_sun. So M [M_sun/h] = M [h^{-1} M_sun].
+    Padmanabhan+ (2017) Table A1: c_HI,0=139, gamma=0.13.
     """
     M = np.asarray(M, dtype=float)
-    return cfg.HI_C0 * (M / 1e11)**(-0.109) * 4.0 / (1.0 + z)**0.13
+    return cfg.HI_C0 * (M / 1e11)**(-0.109) * 4.0 / (1.0 + z)**cfg.HI_GAMMA_CONC
 
 
 # ---------------------------------------------------------------------------
