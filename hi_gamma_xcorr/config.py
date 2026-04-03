@@ -112,6 +112,14 @@ F_SENS = 1e-10
 # Thermal relic cross-section [cm^3/s]
 SIGMA_V_THERMAL = 3e-26
 
+# ---------------------------------------------------------------------------
+# Moliné et al. (2017) boost factor polynomial coefficients
+# Eq. 18, Table 3: alpha=2, with tidal stripping, c_200 concentration
+# log10 B(M, z=0) = sum_i b_i [log10(M/M_sun)]^i
+# Valid for 10^{-6} < M [M_sun] < 10^{15}
+# ---------------------------------------------------------------------------
+MOLINE_BOOST_COEFFS = [-0.186, 0.144, -8.8e-3, 1.13e-3, -3.7e-5, -2e-7]
+
 # Solar luminosity [erg/s]
 L_SUN = 3.828e33
 

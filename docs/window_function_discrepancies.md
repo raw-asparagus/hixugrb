@@ -70,18 +70,17 @@ Claim-by-claim evidence matrix comparing: (A) Pinetti thesis Figure 5.1 expected
 
 ---
 
-## 4. DM Window — Not steep enough (MEDIUM)
+## 4. DM Window — Boost factor updated with z-scaling (IMPROVED)
 
 **Expected:** Very steeply peaked near z=0, drops to ~0 by z~1.5.
-**Ours:** Peaked near z=0 but extends to z~2+.
 
 | # | Claim | Reference | Our Code | Match |
 |---|-------|-----------|----------|-------|
 | D1 | W = (σv/8π)(ρ/m)²(1+z)³/H × Δ² × dN/dE × e^{-τ} | [Pinetti](literature/pinetti2020.md) Eq. 4.1 | Same structure | YES |
-| D2 | Δ²(z) decreases steeply | Structure formation | Δ²(0)~4e5 | YES |
-| D3 | Shape steeply peaked | Figure 5.1 | Extends too far | PARTIAL |
+| D2 | Δ²(z) decreases steeply | Structure formation | Full Moliné polynomial + 1/(1+z) scaling | YES |
+| D3 | B(M,z) = B(M,0)/(1+z) | [Moliné+ (2017)](literature/moline2017.md) Eq. 18 + Thesis Eq. 3.48 | Full polynomial (Table 3, α=2) with z-scaling | **IMPLEMENTED** |
 
-**Root cause:** The Δ²(z) evolution may not be steep enough, and the per-z conversion (multiplying by c·h/H) partially counteracts the 1/H suppression. Additionally, the concentration-mass relation affects Δ² through the ρ² integral.
+**Fix applied:** Replaced simplified `B = 1.6e-3 [log(M/M_min)]^2.5` (no z-dependence) with full Moliné 5th-order polynomial (Eq. 18, Table 3) and `1/(1+z)` z-evolution (Thesis Eq. 3.48). The z-scaling makes the boost decrease at high z, steepening the DM window drop-off.
 
 ---
 

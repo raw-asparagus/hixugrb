@@ -70,8 +70,9 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 4.1 | $\rho_s = M / [4\pi r_s^3 f(c)]$ | NFW scale density | `_rho_s(M, z)` |
 | 4.2 | $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{NFW}^2\,dr = \frac{4\pi}{3}\rho_s^2 r_s^3[1-(1+c)^{-3}]$ | Analytic $\rho^2$ integral | `rho2_integral_analytic` |
 | 4.3 | $\tilde v(k\|M) = \frac{4\pi}{\bar\rho_m^2}\int_0^{R_\text{vir}}r^2\rho_\text{NFW}^2\frac{\sin kr}{kr}dr$ | Fourier transform of $\rho^2$ | `v_tilde(k, M, z)` |
-| 4.4 | $B(M) = 1.6\times10^{-3}[\log_{10}(M/M_\text{min,sub})]^{2.5}$ | [Moliné et al. (2017)](literature/moline2017.md), simplified | `boost_moline` |
-| 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
+| 4.4a | $\log_{10}B(M,z{=}0) = \sum_{i=0}^{5}b_i[\log_{10}(M/M_\odot)]^i$ | [Moliné et al. (2017)](literature/moline2017.md) Eq. 18, Table 3 ($\alpha{=}2$) | `boost_moline` |
+| 4.4b | $B(M,z) = B(M,z{=}0)/(1+z)$ | Thesis Eq. 3.48 | `boost_moline` |
+| 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
 | 4.6 | $W_\gamma^\text{DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_\text{DM}}{m_\chi}\right)^2(1+z)^3\frac{1}{H(z)}\Delta^2\frac{dN}{dE'}e^{-\tau}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.1 | `W_gamma_DM` |
 |   | $E'=(1+z)E_\gamma$; $\langle\sigma v\rangle_\text{thermal}=3\times10^{-26}$ cm³/s | | |
 | 4.7 | $P_\text{DM}^\text{1h} = \int\frac{dn}{dM}[\tilde v/\Delta^2]^2\,dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.4 | `P_DM_1h` |

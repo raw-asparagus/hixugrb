@@ -98,20 +98,44 @@ def v_tilde(k, M, z, c_func=None):
 def boost_moline(M, z, M_min_sub=1e-6):
     """Substructure boost factor B(M, z) from Moliné et al. (2017).
 
-    B(M) is a multiplicative enhancement to the rho^2 integral:
-    rho^2_eff = (1 + B) * rho^2_smooth.
+    Full 5th-order polynomial (Eq. 18, Table 3, alpha=2) with z-scaling
+    (Thesis Eq. 3.48):
+        log10 B(M, z=0) = sum_i b_i [log10(M/M_sun)]^i
+        B(M, z) = B(M, z=0) / (1 + z)
 
-    Uses a simplified parameterization.
+    B is a multiplicative enhancement: rho^2_eff = (1 + B) * rho^2_smooth.
+    M is in M_sun/h (pipeline convention); converted to M_sun for polynomial.
     """
     M = np.asarray(M, dtype=float)
-    # Simplified Moliné et al. fit: B ~ (M / M_min)^alpha with alpha ~ 0.12
-    # B ~ 10-20 for M = 10^12 and M_min = 10^{-6}
-    if M_min_sub <= 0 or M_min_sub >= 1e7:
+
+    if M_min_sub <= 0:
         return np.zeros_like(M)
 
-    log_ratio = np.log10(M / M_min_sub)
-    # Moliné et al. parameterization (approximate)
-    B = 1.6e-3 * log_ratio**2.5
+    # Convert M_sun/h → M_sun for the Moliné polynomial
+    M_solar = M * cfg.h
+
+    # For conservative scenario (M_min_sub = 1e7), zero out below threshold
+    if M_min_sub >= 1e7:
+        mask = M_solar > M_min_sub
+        if not np.any(mask):
+            return np.zeros_like(M)
+    else:
+        mask = np.ones_like(M, dtype=bool)
+
+    # Full polynomial at z=0 (Moliné Eq. 18 / Thesis Eq. 3.47)
+    log_M = np.log10(np.clip(M_solar, 1e-6, 1e15))
+    log_B = np.zeros_like(log_M)
+    for i, b_i in enumerate(cfg.MOLINE_BOOST_COEFFS):
+        log_B += b_i * log_M**i
+
+    B_z0 = 10.0**log_B
+
+    # z-scaling (Thesis Eq. 3.48)
+    B = B_z0 / (1.0 + z)
+
+    # Zero out below M_min_sub for conservative scenario
+    B = np.where(mask, B, 0.0)
+
     return np.clip(B, 0.0, 1000.0)
 
 
