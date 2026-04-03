@@ -7,9 +7,9 @@ Systematic comparison of our pipeline's normalized window functions against [Pin
 
 ### Fixes Applied
 - **HI:** v_{c,0} restored to 36.3 km/s (Padmanabhan+ 2017 original); α=0.09, β=−0.58; T̄_b coefficient corrected to 188h mK
-- **BL Lac:** Replaced [Di Mauro+ (2013)](literature/dimauro2014.md) HSP+LISP reparameterization with single-component [Ajello+ (2014)](literature/ajello2014.md) piecewise LDDE
-- **mAGN:** L_c raised from 3×10⁴³ to 5×10⁴⁴; A and evolution adjusted
-- **SFG:** L_c raised from 2×10³⁹ to 5×10⁴⁰; A adjusted
+- **BL Lac:** Implemented [Ajello+ (2014)](literature/ajello2014.md) Table C.1 parameters with LDDE inverse-sum evolution (Eq. C.4)
+- **mAGN:** Implemented full radio→gamma chain from [Di Mauro+ (2014)](literature/dimauro2014.md) via [Willott (2001)](literature/willott2001.md) RLF
+- **SFG:** Implemented [Gruppioni+ (2013)](literature/gruppioni2013.md) 3-component IR LF with [Ackermann+ (2012)](literature/ackermann2012_sfg.md) L_γ–L_IR scaling
 
 ### Remaining Issues
 - Ω_HI(z) still decreases with z (halo model limitation; observed: increases)
@@ -41,19 +41,17 @@ Claim-by-claim evidence matrix comparing: (A) Pinetti thesis Figure 5.1 expected
 
 ---
 
-## 2. BL Lac Window — GLF parameters concentrate emission at z~0 (HIGH)
+## 2. BL Lac Window — Implemented from Ajello+ (2014) Table C.1 (RESOLVED)
 
 **Expected:** Rises from 0 at z~0.2, peaks at z~1.0, declines to ~0 by z~2.
-**Ours:** Peaks at z~0.1, declines from there.
 
 | # | Claim | Reference | Our Code | Match |
 |---|-------|-----------|----------|-------|
 | B1 | W = d_L²/(1+z)² × ∫Φ dF/dE dL | [Pinetti](literature/pinetti2020.md) Eq. 4.3 | Same (after algebraic simplification) | YES |
-| B2 | LDDE from Ajello+ (2014) | 211 BL Lacs, 1LAC catalog | HSP+LISP from [Di Mauro+ (2013)](literature/dimauro2014.md) | PARTIAL |
-| B3 | HSP negative evolution p₁=−1.64 | [Ajello+ (2014)](literature/ajello2014.md) | Same | YES |
-| B4 | Window peaks at z~1 | Figure 5.1 | Peaks at z~0.1 | **MISMATCH** |
+| B2 | LDDE from [Ajello+ (2014)](literature/ajello2014.md) | 211 BL Lacs, 1LAC catalog | Table C.1 parameters with LDDE inverse-sum evolution (Eq. C.4) | **IMPLEMENTED** |
+| B3 | Combined BL Lac population, smooth peaked evolution | [Ajello+ (2014)](literature/ajello2014.md) | A=9.20e-11, L★=2.43e48, p₁=4.50, p₂=−12.88 | **IMPLEMENTED** |
 
-**Root cause:** The [Di Mauro+ (2013)](literature/dimauro2014.md) reparameterization of the [Ajello+ (2014)](literature/ajello2014.md) BL Lac GLF uses a "sum" evolution form with HSP p₁=−1.64 (negative), which makes HSP BL Lac density increase toward z=0. This overwhelms the LISP component, concentrating all BL Lac emission at very low z. The original [Ajello+ (2014)](literature/ajello2014.md) paper may use a different parameterization (e.g., PLE or LDDE with different form) that produces a peak at z~1.
+**Previous root cause (now resolved):** Was using calibrated single-component piecewise LDDE with hand-tuned parameters. Replaced with original [Ajello+ (2014)](literature/ajello2014.md) Table C.1 parameters and LDDE inverse-sum evolution form (Eq. C.4).
 
 ---
 
@@ -86,17 +84,16 @@ Claim-by-claim evidence matrix comparing: (A) Pinetti thesis Figure 5.1 expected
 
 ---
 
-## 5. mAGN and SFG — Rough approximations (HIGH)
+## 5. mAGN and SFG — Implemented from original literature (RESOLVED)
 
 **Expected:** mAGN peaks z~0.3–0.5; SFG peaks z~1–2.
-**Ours:** mAGN peaks z~0.07; SFG peaks z~0.02.
 
 | # | Claim | Reference | Our Code | Match |
 |---|-------|-----------|----------|-------|
-| M1 | mAGN from [Di Mauro+ (2014)](literature/dimauro2014.md) radio LF | L_γ–L_radio correlation | Hand-calibrated LDDE | **MISMATCH** |
-| S1 | SFG from [Gruppioni+ (2013)](literature/gruppioni2013.md) IR LF × L_γ∝L_IR^1.17 | Herschel PEP/HerMES | Hand-calibrated LDDE | **MISMATCH** |
+| M1 | mAGN from [Di Mauro+ (2014)](literature/dimauro2014.md) radio LF | L_γ–L_radio correlation | Full radio→gamma chain: [Willott (2001)](literature/willott2001.md) RLF → [Inoue (2011)](literature/inoue2011.md) freq scaling → [Lara (2004)](literature/lara2004.md) core-total → [Di Mauro (2014)](literature/dimauro2014.md) Eq. C.19 | **IMPLEMENTED** |
+| S1 | SFG from [Gruppioni+ (2013)](literature/gruppioni2013.md) IR LF × L_γ∝L_IR^1.17 | Herschel PEP/HerMES | Full IR→gamma chain: [Gruppioni (2013)](literature/gruppioni2013.md) 3-component modified Schechter IR LF → [Ackermann (2012)](literature/ackermann2012_sfg.md) L_γ-L_IR scaling (Eq. C.28) | **IMPLEMENTED** |
 
-**Root cause:** The mAGN and SFG GLF parameters (A, L_c, evolution indices) were hand-calibrated to approximate IGRB contributions, not fitted to the original papers' source count data. The L_c values are especially suspect (mAGN: 3e43, SFG: 2e39 — both very low, concentrating emission at nearby faint sources).
+**Previous root cause (now resolved):** The mAGN and SFG GLFs were hand-calibrated single-LDDE approximations. They have been replaced with faithful implementations of the original multi-step conversion chains from the source papers.
 
 ---
 

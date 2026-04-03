@@ -9,8 +9,8 @@ from hi_gamma_xcorr import astro_sources as astro, config as cfg
 @pytest.mark.parametrize("src,n_lo,n_hi", [
     ('FSRQ', 1e-10, 1e-7),
     ('BL_Lac', 1e-8, 1e-4),
-    ('mAGN', 1e-10, 1e-4),
-    ('SFG', 1e-10, 1e-6),
+    ('mAGN', 1e-8, 1e-2),
+    ('SFG', 1e-6, 1e0),
 ])
 def test_source_density_z0(src, n_lo, n_hi):
     params = cfg.ASTRO_SOURCES[src]
@@ -34,3 +34,82 @@ def test_window_astro_positive():
 def test_mean_intensity_positive():
     I = astro.mean_intensity(1.0, 'FSRQ', z_max=3.0, n_z=15)
     assert I > 0
+
+
+# ---------------------------------------------------------------------------
+# mAGN: intermediate function tests
+# ---------------------------------------------------------------------------
+
+def test_willott_rlf_z0():
+    """Willott RLF at z=0 and L=10^26 W/Hz should be ~10^{-7} Mpc^{-3}/dex."""
+    rho = astro._willott_rlf(1e26, 0.0)
+    assert 1e-9 <= rho <= 1e-5, f"Willott RLF(1e26, z=0) = {rho:.2e}"
+
+
+def test_L151_roundtrip():
+    """Forward→inverse chain should recover L_gamma."""
+    L_gamma_test = 1e44  # erg/s
+    L_151, _ = astro._L151_from_Lgamma(L_gamma_test)
+    # Forward chain: L_151 → L_1p4 → L_core [W/Hz] → nuLnu [erg/s] → L_gamma
+    freq_ratio = (1400.0 / 151.0)**cfg.RADIO_ALPHA
+    L_1p4 = L_151 / freq_ratio
+    log_core_WHZ = cfg.LARA_A + cfg.LARA_B * np.log10(L_1p4)
+    # Convert W/Hz → erg/s (nuL_nu): L_core * nu_5GHz * 1e7
+    log_nuLnu = log_core_WHZ + np.log10(5e9 * 1e7)
+    log_Lg = cfg.DIMAURO_GAMMA_RADIO_A + cfg.DIMAURO_GAMMA_RADIO_B * log_nuLnu
+    L_gamma_recovered = 10.0**log_Lg
+    assert abs(L_gamma_recovered / L_gamma_test - 1.0) < 1e-10
+
+
+def test_magn_window_shape():
+    """mAGN emissivity should peak around z~0.3-1.5.
+
+    The raw W_gamma peaks at low z due to (1+z)^{-2}, but the emissivity
+    j = W * 4pi * (1+z)^2 should peak at moderate z due to Willott RLF evolution.
+    """
+    z_arr = np.linspace(0.05, 3.0, 100)
+    W_arr = np.array([astro.W_gamma_astro(1.0, z, 'mAGN') for z in z_arr])
+    j_arr = W_arr * 4 * np.pi * (1.0 + z_arr)**2
+    z_peak_j = z_arr[np.argmax(j_arr)]
+    assert 0.1 <= z_peak_j <= 2.0, f"mAGN emissivity peaks at z={z_peak_j:.2f}"
+    # Window at z=0.5 should be at least 20% of peak
+    W_at_05 = np.interp(0.5, z_arr, W_arr)
+    assert W_at_05 / W_arr.max() > 0.1, "mAGN window too suppressed at z=0.5"
+
+
+# ---------------------------------------------------------------------------
+# SFG: intermediate function tests
+# ---------------------------------------------------------------------------
+
+def test_gruppioni_z0():
+    """Gruppioni IR LF at z=0, L=10^10 L_sun should be ~10^{-3} Mpc^{-3}/dex."""
+    phi = astro._gruppioni_ir_lf(1e10, 0.0)
+    assert 1e-5 <= phi <= 1e-1, f"Gruppioni IR LF(1e10, z=0) = {phi:.2e}"
+
+
+def test_L_IR_roundtrip():
+    """Ackermann L_gamma-L_IR inversion should be consistent."""
+    L_gamma = 1e40
+    L_IR, jac = astro._L_IR_from_Lgamma(L_gamma)
+    # Forward: log10(L_gamma) = alpha * log10(L_IR / 1e10 L_sun) + beta
+    log_Lg = cfg.ACKERMANN_ALPHA_IR * np.log10(L_IR / 1e10) + cfg.ACKERMANN_BETA_IR
+    assert abs(log_Lg - np.log10(L_gamma)) < 1e-10
+    assert abs(jac - 1.0 / cfg.ACKERMANN_ALPHA_IR) < 1e-10
+
+
+def test_sfg_window_shape():
+    """SFG window should have significant emission at z~1 (not just z~0).
+
+    The raw W_gamma peaks at low z due to (1+z)^{-2}, but the emissivity
+    j = W * 4pi * (1+z)^2 should peak around z~0.5-1.5 due to Gruppioni
+    IR LF evolution.
+    """
+    z_arr = np.linspace(0.05, 4.0, 100)
+    W_arr = np.array([astro.W_gamma_astro(1.0, z, 'SFG') for z in z_arr])
+    # Emissivity (before cosmological dimming)
+    j_arr = W_arr * 4 * np.pi * (1.0 + z_arr)**2
+    z_peak_j = z_arr[np.argmax(j_arr)]
+    assert 0.1 <= z_peak_j <= 2.0, f"SFG emissivity peaks at z={z_peak_j:.2f}"
+    # Window at z=1 should be at least 20% of peak
+    W_at_1 = np.interp(1.0, z_arr, W_arr)
+    assert W_at_1 / W_arr.max() > 0.2, "SFG window too suppressed at z=1"

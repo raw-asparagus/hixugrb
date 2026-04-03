@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hi-gamma-xcorr"
+version = "0.1.0"
+description = "HI 21-cm × Gamma-Ray Cross-Correlation Pipeline"
+readme = "hi_ugrb_formalism_corrected.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "camb>=1.4",
+    "hmf>=3.4",
+    "ebltable>=0.5",
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+notebooks = [
+    "matplotlib>=3.5",
+    "jupyter",
+]
+dev = [
+    "pytest>=7.0",
+    "matplotlib>=3.5",
+    "jupyter",
+]
+
+[tool.pytest.ini_options]
+markers = ["slow: marks tests as slow (>10s, deselect with '-m \"not slow\"')"]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+include = ["hi_gamma_xcorr*"]

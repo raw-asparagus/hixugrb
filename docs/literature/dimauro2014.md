@@ -1,42 +1,63 @@
-# Di Mauro et al. (2014) — mAGN Gamma-Ray Emission
+# Di Mauro, Calore, Donato, Ajello & Latronico (2014) — mAGN Gamma-Ray Emission
 
 **Authors:** M. Di Mauro, F. Calore, F. Donato, M. Ajello, L. Latronico
 **Journal:** ApJ 780(2), 161
-**arXiv:** [1305.4200](https://arxiv.org/abs/1305.4200)
+**arXiv:** [1304.0908](https://arxiv.org/abs/1304.0908)
 
 ## Abstract
 
-Calculates diffuse gamma-ray emission from unresolved misaligned AGN (radio galaxies). Establishes a physical L_gamma–L_radio correlation validated by statistical tests and Fermi-LAT source counts.
+Calculates diffuse gamma-ray emission from unresolved misaligned AGN (radio galaxies). Establishes a physical L_γ–L_radio correlation validated by statistical tests and Fermi-LAT source counts. mAGN contribute 10–83% of the IGRB, are ~500–1000× more numerous than blazars, and produce negligible anisotropy.
 
 ## Methodology
 
-- L_gamma–L_radio correlation from radio-loud AGN sample
-- Gamma-ray luminosity function derived from radio galaxy population
-- Constrained by Fermi-LAT source-count distribution
-- Mean photon index: Gamma = 2.37 +/- 0.32
+The gamma-ray luminosity function is derived indirectly from the radio luminosity function via a multi-step conversion chain:
 
-## Key Results
+1. Start with the [Willott+ (2001)](willott2001.md) two-component radio LF at 151 MHz
+2. Scale to 1.4 GHz using a power-law spectrum with α_r = 0.80 ([Inoue 2011](inoue2011.md))
+3. Convert total 1.4 GHz to core 5 GHz using the [Lara+ (2004)](lara2004.md) relation
+4. Convert core radio to gamma-ray luminosity using the empirical correlation
 
-- IGRB contribution: 10–83% (wide range from theoretical uncertainties)
-- Radio-to-gamma correlation is physical and robust
-- ~500–1000× more numerous than blazars (geometric factor)
-- Significant intensity contribution but negligible anisotropy (many faint sources)
+## Key Equations
 
-## Parameters Used in This Pipeline (calibrated)
+### Gamma-ray to radio-core correlation
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| A | 3.0 × 10⁻⁸ | Mpc⁻³ (calibrated to ~25% IGRB) |
-| L_c | 5 × 10⁴⁴ | erg/s |
-| gamma_1 | 0.60 | faint-end |
-| gamma_2 | 2.00 | bright-end |
-| z_c* | 0.8 | tracks radio AGN evolution |
-| p_1 | 3.5 | moderate positive evolution |
-| p_2 | −2.0 | negative at high z |
-| Spectral index | 2.37 | from Pinetti Table 3 |
+$$\log_{10} L_\gamma = 2.0 + 1.008\,\log_{10} L_{r,\text{core}}^{5\,\text{GHz}}$$
 
-**Note:** These are calibrated approximations, not directly from the paper's tables. The original work derives the GLF indirectly from radio LF via L_gamma–L_radio correlation.
+where $L_\gamma$ is in erg/s and $L_{r,\text{core}}$ is in W/Hz.
+
+### Full gamma-ray luminosity function (Eq. C.19)
+
+$$\phi_\gamma(L, z) = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{1}{\ln(10)\,L_{151}}\,\left|\frac{dL_{151}}{dL_\gamma}\right|\,\rho_r\!\left(L_{151}(L_\gamma),\, z\right)$$
+
+where:
+- $k = 3.05$ — beaming/duty-cycle correction factor
+- $\Gamma = 2.37$ — mean photon spectral index
+- $(1+z)^{2-\Gamma}$ — K-correction for the observed-to-rest-frame energy shift
+- $\eta(z)$ — comoving volume correction from [Willott](willott2001.md) (H₀=50) to Planck cosmology
+- $\rho_r$ — [Willott+ (2001)](willott2001.md) radio LF (dΦ/d log₁₀L at 151 MHz)
+- $L_{151}(L_\gamma)$ — inverted conversion chain (see below)
+
+### Conversion chain (inverted: L_γ → L_151)
+
+$$\log_{10} L_{r,\text{core}}^{5\,\text{GHz}} = \frac{\log_{10} L_\gamma - 2.0}{1.008}$$
+
+$$\log_{10} L_{r,\text{tot}}^{1.4\,\text{GHz}} = \frac{\log_{10} L_{r,\text{core}}^{5\,\text{GHz}} - 4.2}{0.77}$$
+
+$$L_{r,\text{tot}}^{151\,\text{MHz}} = L_{r,\text{tot}}^{1.4\,\text{GHz}} \times \left(\frac{1400}{151}\right)^{0.80}$$
+
+Composite Jacobian: $dL_{151}/dL_\gamma = (L_{151}/L_\gamma) / (1.008 \times 0.77)$
+
+### Mass-to-luminosity for halo bias (Eqs. C.20–C.21)
+
+$$M_\star = 10^9\,M_\odot\left(\frac{L_\gamma}{10^{48}\,\text{erg/s}}\right)^{0.36}$$
+
+$$M_\text{halo} = 10^{13}\,M_\odot\left(\frac{M_\star}{10^{8.8}\,(1+z)^{1.4}}\right)^{0.645}$$
 
 ## Implementation
 
-**Module:** `astro_sources.py` — `_MAGN_PARAMS`, `_glf_mAGN()`, piecewise LDDE.
+**Module:** `astro_sources.py` — `_willott_rlf()`, `_willott_volume_correction()`, `_L151_from_Lgamma()`, `_glf_mAGN()`
+
+**Upstream references:**
+- [Willott+ (2001)](willott2001.md) — Radio LF
+- [Lara+ (2004)](lara2004.md) — Core-total radio relation
+- [Inoue (2011)](inoue2011.md) — Radio frequency scaling

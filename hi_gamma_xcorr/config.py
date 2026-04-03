@@ -100,7 +100,7 @@ ASTRO_SOURCES = {
     'SFG': {
         'alpha': 2.7,
         'L_min': 1e37,
-        'L_max': 1e42,
+        'L_max': 1e44,
         'glf_ref': 'Gruppioni+2013',
     },
 }
@@ -110,6 +110,92 @@ F_SENS = 1e-10
 
 # Thermal relic cross-section [cm^3/s]
 SIGMA_V_THERMAL = 3e-26
+
+# Solar luminosity [erg/s]
+L_SUN = 3.828e33
+
+# ---------------------------------------------------------------------------
+# mAGN: Willott et al. (2001) Radio Luminosity Function parameters
+# Two-component RLF at 151 MHz, H0=50 km/s/Mpc Einstein-de Sitter cosmology
+# ---------------------------------------------------------------------------
+H0_WILLOTT = 50.0                   # km/s/Mpc
+WILLOTT_RHO_L_STAR = 10**(-7.523)   # Mpc^{-3} (Willott cosmology)
+WILLOTT_BETA_L = 0.586
+WILLOTT_L_L_STAR = 10**26.48        # W/Hz at 151 MHz
+WILLOTT_K_L = 3.48
+WILLOTT_Z_L_STAR = 0.710
+WILLOTT_RHO_H_STAR = 10**(-6.757)   # Mpc^{-3}
+WILLOTT_BETA_H = 2.42
+WILLOTT_L_H_STAR = 10**27.39        # W/Hz at 151 MHz
+WILLOTT_Z_H_STAR = 2.03
+WILLOTT_Z_H0_LO = 0.568             # Gaussian width z < z_h*
+WILLOTT_Z_H0_HI = 0.956             # Gaussian width z >= z_h*
+
+# ---------------------------------------------------------------------------
+# mAGN: Lara et al. (2004) core-total radio luminosity relation
+# log L_core^{5GHz} = LARA_A + LARA_B * log L_tot^{1.4GHz}  [W/Hz]
+# ---------------------------------------------------------------------------
+LARA_A = 4.2
+LARA_B = 0.77
+
+# ---------------------------------------------------------------------------
+# mAGN: Di Mauro et al. (2014) gamma-radio-core correlation
+# log L_gamma [erg/s] = DIMAURO_A + DIMAURO_B * log L_core [W/Hz]
+# ---------------------------------------------------------------------------
+DIMAURO_GAMMA_RADIO_A = 2.0
+DIMAURO_GAMMA_RADIO_B = 1.008
+DIMAURO_K = 3.05                     # beaming/duty-cycle factor
+RADIO_ALPHA = 0.80                   # Inoue (2011) spectral index
+
+# ---------------------------------------------------------------------------
+# SFG: Gruppioni et al. (2013) modified Schechter IR LF parameters (Table C.2)
+# ---------------------------------------------------------------------------
+GRUPPIONI_PARAMS = {
+    'spiral': {
+        'gamma': 1.0, 'sigma': 0.50,
+        'log_Lstar': 9.78,    # log10(L*/L_sun)
+        'log_phistar': -2.12, # log10(phi*/Mpc^{-3})
+        'k_L': 4.49,
+        'k_R1': -0.54, 'k_R2': -7.13,
+    },
+    'starburst': {
+        'gamma': 1.0, 'sigma': 0.35,
+        'log_Lstar': 11.17,
+        'log_phistar': -4.46,
+        'k_L': 1.96,
+        'k_R1': 3.79, 'k_R2': -1.06,
+    },
+    'sf_agn': {
+        'gamma': 1.2, 'sigma': 0.40,
+        'log_Lstar': 10.80,
+        'log_phistar': -3.20,
+        'k_L': 3.17,
+        'k_R1': 0.67, 'k_R2': 3.17,
+    },
+}
+
+# ---------------------------------------------------------------------------
+# SFG: Ackermann et al. (2012) L_gamma - L_IR scaling
+# log10(L_{0.1-100GeV} / erg s^-1) = alpha * log10(L_IR / 10^10 L_sun) + beta
+# ---------------------------------------------------------------------------
+ACKERMANN_ALPHA_IR = 1.09
+ACKERMANN_BETA_IR = 39.19
+
+# ---------------------------------------------------------------------------
+# Mass-luminosity relations for halo bias
+# ---------------------------------------------------------------------------
+# mAGN: Di Mauro (2014) Eqs. C.20-C.21
+MAGN_MSTAR_NORM = 1e9               # M_sun
+MAGN_MSTAR_LNORM = 1e48             # erg/s
+MAGN_MSTAR_SLOPE = 0.36
+MAGN_MHALO_PIVOT = 10**8.8          # M_sun
+MAGN_MHALO_SLOPE = 0.645
+MAGN_MHALO_Z_EXP = 1.4
+# SFG: Eq. C.29
+SFG_MHALO_NORM = 1e12               # M_sun
+SFG_MHALO_LNORM = 6.8e39            # erg/s
+SFG_MHALO_SLOPE = 0.92
+SFG_MHALO_Z_EXP = 1.61
 
 # ---------------------------------------------------------------------------
 # Fermi-LAT energy bins (Pinetti et al. Table 2)

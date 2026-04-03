@@ -3,12 +3,14 @@
 Implements gamma-ray luminosity functions (GLFs) and window functions
 for BL Lacs, FSRQs, misaligned AGN, and star-forming galaxies.
 
-GLFs follow the LDDE parameterizations from:
-- BL Lac: Ajello et al. (2014)
-- FSRQ: Ajello et al. (2012)
-- mAGN: Di Mauro et al. (2014)
-- SFG: Gruppioni et al. (2013)
+GLF sources:
+- BL Lac: Ajello et al. (2014) — LDDE
+- FSRQ: Ajello et al. (2012) — LDDE
+- mAGN: Di Mauro et al. (2014) — radio LF → gamma conversion chain
+- SFG: Gruppioni et al. (2013) + Ackermann et al. (2012) — IR LF → gamma
 """
+
+import functools
 
 import numpy as np
 from scipy.integrate import quad
@@ -51,52 +53,282 @@ _FSRQ_PARAMS = {
     'L_ref': 1e48,     # reference luminosity for z_c(L)
 }
 
-# BL Lac: Ajello et al. (2014), MNRAS 441, 1760
-# Single-component LDDE with piecewise evolution.
-# NOTE: These parameters are calibrated estimates to produce a window peaking
-# at z~1.0 (consistent with Pinetti Fig. 5.1). They are NOT directly from a
-# published table — see docs/literature/ajello2014.md for details.
+# BL Lac: Ajello et al. (2014), ApJ 780, 73
+# Combined BL Lac population with LDDE inverse-sum evolution (Eq. C.4).
+# Parameters from thesis Table C.1 (originally from Ajello+ 2014).
 _BL_LAC_PARAMS = {
-    'A': 5.0e-9,       # Mpc^{-3} (combined BL Lac population)
-    'L_c': 1.0e46,     # erg/s (break luminosity)
-    'gamma1': 0.60,    # faint-end slope
-    'gamma2': 1.80,    # bright-end slope
-    'z_c_star': 1.2,   # peak redshift (positive evolution, from Ajello+ 2014)
-    'alpha': 0.15,     # luminosity dependence of z_c
-    'p1': 4.0,         # positive evolution below z_c
-    'p2': -2.0,        # negative evolution above z_c
-    'L_ref': 1e48,
+    'A': 9.20e-11,     # Mpc^{-3} (dPhi/d(log10 L) normalization)
+    'L_c': 2.43e48,    # erg/s (break luminosity L*)
+    'gamma1': 1.12,    # faint-end slope
+    'gamma2': 3.71,    # bright-end slope
+    'z_c_star': 1.67,  # peak redshift z*
+    'alpha': 4.46e-2,  # luminosity dependence beta of z_c
+    'p1': 4.50,        # positive low-z evolution
+    'p2': -12.88,      # steep negative high-z evolution
+    'L_ref': 1e48,     # reference luminosity for z_c(L)
 }
 
-# mAGN: Di Mauro et al. (2014), ApJ 780, 161
-# Derived from radio core LF via L_gamma-L_radio correlation.
-# Contributes ~25-50% of IGRB intensity but negligible anisotropy.
-_MAGN_PARAMS = {
-    'A': 3.0e-8,       # Mpc^{-3} (calibrated to ~25% IGRB at 1 GeV)
-    'L_c': 5e44,       # erg/s (characteristic gamma-ray luminosity)
-    'gamma1': 0.60,
-    'gamma2': 2.00,
-    'z_c_star': 0.8,   # peak tracks radio AGN evolution
-    'alpha': 0.15,
-    'p1': 3.5,         # moderate positive evolution
-    'p2': -2.0,
-    'L_ref': 1e48,
-}
+# ---------------------------------------------------------------------------
+# mAGN: Di Mauro et al. (2014) radio→gamma conversion chain
+# Willott (2001) RLF → Inoue (2011) freq → Lara (2004) core-total → Di Mauro
+# ---------------------------------------------------------------------------
 
-# SFG: Gruppioni et al. (2013), MNRAS 432, 23
-# IR LF converted via L_gamma = 10^{39.28} (L_IR/10^{10} L_sun)^{1.17}
-# Simplified as LDDE with luminosity evolution (1+z)^{3.55} to z~2.
-_SFG_PARAMS = {
-    'A': 1e-8,         # Mpc^{-3} (calibrated to ~10-30% of IGRB at 1 GeV)
-    'L_c': 5e40,       # erg/s (L* for gamma-ray SFGs)
-    'gamma1': 0.4,     # faint end
-    'gamma2': 2.5,     # bright end
-    'z_c_star': 2.0,   # tracks cosmic SFR peak
-    'alpha': 0.0,      # no luminosity dependence
-    'p1': 3.55,        # strong positive evolution
-    'p2': -4.0,        # rapid decline after z~2
-    'L_ref': 1e48,
-}
+def _willott_rlf(L_151, z):
+    """Willott et al. (2001) two-component radio luminosity function.
+
+    Returns dPhi/d(log10 L_151) [Mpc^{-3}] in the Willott cosmology (H0=50).
+
+    Parameters
+    ----------
+    L_151 : float
+        Radio luminosity at 151 MHz [W/Hz].
+    z : float
+        Redshift.
+    """
+    # Low-power component (Eq. C.10)
+    x_l = L_151 / cfg.WILLOTT_L_L_STAR
+    rho_l = cfg.WILLOTT_RHO_L_STAR * x_l**(-cfg.WILLOTT_BETA_L) * np.exp(-x_l)
+    if z < cfg.WILLOTT_Z_L_STAR:
+        rho_l *= (1.0 + z)**cfg.WILLOTT_K_L
+    else:
+        rho_l *= (1.0 + cfg.WILLOTT_Z_L_STAR)**cfg.WILLOTT_K_L
+
+    # High-power component (Eqs. C.11-C.12)
+    x_h = L_151 / cfg.WILLOTT_L_H_STAR
+    rho_h = cfg.WILLOTT_RHO_H_STAR * x_h**(-cfg.WILLOTT_BETA_H) * np.exp(-1.0 / x_h)
+    if z < cfg.WILLOTT_Z_H_STAR:
+        z_h0 = cfg.WILLOTT_Z_H0_LO
+    else:
+        z_h0 = cfg.WILLOTT_Z_H0_HI
+    f_h = np.exp(-0.5 * ((z - cfg.WILLOTT_Z_H_STAR) / z_h0)**2)
+    rho_h *= f_h
+
+    return max(rho_l + rho_h, 0.0)
+
+
+@functools.lru_cache(maxsize=512)
+def _willott_volume_correction(z):
+    """Comoving volume ratio eta(z) = (d_C^W / d_C)^2 * (H / H_W).
+
+    Converts Willott (H0=50, Omega_M=1) Mpc^{-3} to Planck cosmology Mpc^{-3}.
+    """
+    if z <= 0:
+        return 1.0
+
+    # Willott cosmology: Einstein-de Sitter (H0=50, Omega_M=1)
+    def _inv_H_W(zp):
+        return 1.0 / (cfg.H0_WILLOTT * np.sqrt((1.0 + zp)**3))
+
+    d_C_W, _ = quad(_inv_H_W, 0, z, limit=100)
+    d_C_W *= cfg.C_LIGHT_KM_S  # [Mpc]
+    H_W = cfg.H0_WILLOTT * np.sqrt((1.0 + z)**3)  # [km/s/Mpc]
+
+    # Pipeline cosmology
+    d_C = cosmo.chi(z) / cfg.h  # chi is in Mpc/h → physical Mpc
+    H_pipeline = cosmo.H(z)     # [km/s/Mpc]
+
+    if d_C <= 0 or d_C_W <= 0:
+        return 1.0
+
+    eta = (d_C_W / d_C)**2 * (H_pipeline / H_W)
+    return eta
+
+
+def _L151_from_Lgamma(L_gamma):
+    """Invert the radio→gamma chain to get L_151 from L_gamma.
+
+    Chain (Eqs. C.13-C.15):
+      L_gamma [erg/s] → nuL_nu_core [erg/s] → L_core^{5GHz} [W/Hz]
+      → L_tot^{1.4GHz} [W/Hz] → L_tot^{151MHz} [W/Hz]
+
+    Note: Di Mauro Eq. C.13 uses luminosities in erg/s (i.e., nuL_nu),
+    while Lara Eq. C.14 uses spectral luminosities in W/Hz.
+    Conversion: L [erg/s] = L [W/Hz] * nu [Hz] * 1e7 [erg/s per W].
+
+    Returns
+    -------
+    L_151 : float
+        Total radio luminosity at 151 MHz [W/Hz].
+    dL151_dLgamma : float
+        Jacobian dL_151/dL_gamma.
+    """
+    NU_5GHZ = 5.0e9     # Hz
+    W_TO_ERG = 1.0e7     # erg/s per W
+
+    # Step 1: L_gamma [erg/s] → nuL_nu_core [erg/s] via Di Mauro Eq. C.13
+    # log L_gamma = 2 + 1.008 * log(nuL_nu_core)  [both in erg/s]
+    log_nuLnu_core = (np.log10(L_gamma) - cfg.DIMAURO_GAMMA_RADIO_A) / cfg.DIMAURO_GAMMA_RADIO_B
+    nuLnu_core = 10.0**log_nuLnu_core  # erg/s
+
+    # Convert nuL_nu [erg/s] → L_core [W/Hz]: L_WHZ = nuLnu / (nu * 1e7)
+    L_core_WHZ = nuLnu_core / (NU_5GHZ * W_TO_ERG)
+    log_Lcore_WHZ = np.log10(L_core_WHZ)
+
+    # Step 2: L_core^{5GHz} [W/Hz] → L_tot^{1.4GHz} [W/Hz] via Lara Eq. C.14
+    log_Ltot_1p4 = (log_Lcore_WHZ - cfg.LARA_A) / cfg.LARA_B
+    L_tot_1p4 = 10.0**log_Ltot_1p4
+
+    # Step 3: L_tot^{1.4GHz} → L_tot^{151MHz} using spectral index (Eq. C.15)
+    freq_ratio = (1400.0 / 151.0)**cfg.RADIO_ALPHA
+    L_151 = L_tot_1p4 * freq_ratio
+
+    # Composite log-space Jacobian:
+    # dlog L_151 / dlog L_gamma = 1 / (DIMAURO_B * LARA_B)
+    # (the nuLnu↔W/Hz conversion is a constant offset in log-space, Jacobian = 1)
+    dlog_ratio = 1.0 / (cfg.DIMAURO_GAMMA_RADIO_B * cfg.LARA_B)
+    dL151_dLgamma = (L_151 / L_gamma) * dlog_ratio
+
+    return L_151, dL151_dLgamma
+
+
+def _glf_mAGN(L, z):
+    """mAGN GLF from Di Mauro et al. (2014) via Willott RLF (Eq. C.19).
+
+    phi_gamma = k * eta / (1+z)^{2-Gamma} * rho_r / (ln10 * L_151) * |dL_151/dL_gamma|
+
+    Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
+    """
+    if L <= 0 or z < 0:
+        return 0.0
+
+    L_151, dL151_dLgamma = _L151_from_Lgamma(L)
+
+    if L_151 <= 0:
+        return 0.0
+
+    rho_r = _willott_rlf(L_151, z)  # dPhi/d(log10 L) in Willott cosmology
+    eta = _willott_volume_correction(z)
+
+    Gamma = cfg.ASTRO_SOURCES['mAGN']['alpha']  # 2.37
+    k_corr = (1.0 + z)**(2.0 - Gamma)  # K-correction
+
+    # Eq. C.19: phi_gamma = k * eta / k_corr * (rho_r / (ln10 * L_151)) * |dL151/dLgamma|
+    dPhi_dL151 = rho_r / (np.log(10.0) * L_151)
+    phi_gamma = cfg.DIMAURO_K * eta / k_corr * dPhi_dL151 * abs(dL151_dLgamma)
+
+    return max(phi_gamma, 0.0)
+
+
+# ---------------------------------------------------------------------------
+# SFG: Gruppioni et al. (2013) IR LF → Ackermann et al. (2012) L_gamma-L_IR
+# ---------------------------------------------------------------------------
+
+def _gruppioni_component(L_IR, z, comp_name):
+    """Single component of the Gruppioni (2013) modified Schechter IR LF.
+
+    Returns dPhi/d(log10 L_IR) [Mpc^{-3}].
+
+    Parameters
+    ----------
+    L_IR : float
+        Total infrared luminosity (8-1000 um) [L_sun].
+    z : float
+        Redshift.
+    comp_name : str
+        'spiral', 'starburst', or 'sf_agn'.
+    """
+    p = cfg.GRUPPIONI_PARAMS[comp_name]
+    gamma = p['gamma']
+    sigma = p['sigma']
+    L_star = 10.0**p['log_Lstar']     # L_sun
+    phi_star = 10.0**p['log_phistar']  # Mpc^{-3}
+    k_L = p['k_L']
+    k_R1 = p['k_R1']
+    k_R2 = p['k_R2']
+
+    # Luminosity evolution L_0(z) — break at z=1.1 for all components (Eq. C.24)
+    if z <= 1.1:
+        L_0 = L_star * ((1.0 + z) / 1.15)**k_L
+    else:
+        L_0 = L_star * (2.1 / 1.15)**k_L  # frozen above z=1.1
+
+    # Density evolution phi_0(z) (Eqs. C.25-C.26)
+    if comp_name == 'spiral':
+        # Spiral: break at z=0.53
+        if z <= 0.53:
+            phi_0 = phi_star * ((1.0 + z) / 1.15)**k_R1
+        else:
+            phi_0 = phi_star * (1.53 / 1.15)**k_R1 * ((1.0 + z) / 1.53)**k_R2
+    else:
+        # Starburst and SF-AGN: break at z=1.1
+        if z <= 1.1:
+            phi_0 = phi_star * ((1.0 + z) / 1.15)**k_R1
+        else:
+            phi_0 = phi_star * (2.1 / 1.15)**k_R1 * ((1.0 + z) / 2.1)**k_R2
+
+    # Modified Schechter form (Eq. C.23)
+    ratio = L_IR / L_0
+    log_arg = np.log10(1.0 + ratio)
+    phi = phi_0 * ratio**(1.0 - gamma) * np.exp(-log_arg**2 / (2.0 * sigma**2))
+
+    return max(phi, 0.0)
+
+
+def _gruppioni_ir_lf(L_IR, z):
+    """Gruppioni et al. (2013) three-component IR luminosity function.
+
+    phi_IR = phi_spiral + phi_starburst + phi_SF-AGN
+
+    Returns dPhi/d(log10 L_IR) [Mpc^{-3}].
+
+    Parameters
+    ----------
+    L_IR : float
+        Total infrared luminosity (8-1000 um) [L_sun].
+    z : float
+        Redshift.
+    """
+    return (_gruppioni_component(L_IR, z, 'spiral')
+            + _gruppioni_component(L_IR, z, 'starburst')
+            + _gruppioni_component(L_IR, z, 'sf_agn'))
+
+
+def _L_IR_from_Lgamma(L_gamma):
+    """Invert Ackermann et al. (2012) L_gamma-L_IR relation.
+
+    log10(L_gamma/erg s^-1) = alpha * log10(L_IR / 10^10 L_sun) + beta
+
+    Returns
+    -------
+    L_IR : float
+        IR luminosity [L_sun].
+    dlogLIR_dlogLgamma : float
+        Jacobian d(log10 L_IR) / d(log10 L_gamma) = 1/alpha.
+    """
+    log_Lgamma = np.log10(L_gamma)
+    log_x = (log_Lgamma - cfg.ACKERMANN_BETA_IR) / cfg.ACKERMANN_ALPHA_IR
+    L_IR = 1e10 * cfg.L_SUN * 10.0**log_x  # [erg/s] → convert to L_sun below
+    L_IR_Lsun = L_IR / cfg.L_SUN            # [L_sun]
+
+    dlogLIR_dlogLgamma = 1.0 / cfg.ACKERMANN_ALPHA_IR
+
+    return L_IR_Lsun, dlogLIR_dlogLgamma
+
+
+def _glf_SFG(L, z):
+    """SFG GLF from Gruppioni (2013) IR LF + Ackermann (2012) scaling (Eq. C.28).
+
+    phi_gamma = phi_IR(L_IR(L_gamma), z) * |dlog10 L_IR / dlog10 L_gamma| / (L_gamma * ln10)
+
+    Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
+    """
+    if L <= 0 or z < 0:
+        return 0.0
+
+    L_IR_Lsun, dlogLIR_dlogLgamma = _L_IR_from_Lgamma(L)
+
+    if L_IR_Lsun <= 0:
+        return 0.0
+
+    phi_IR_logL = _gruppioni_ir_lf(L_IR_Lsun, z)  # dPhi/d(log10 L_IR)
+
+    # Eq. C.28: phi_gamma in dPhi/d(log10 L_gamma) = phi_IR * |dlogLIR/dlogLgamma|
+    phi_gamma_logL = phi_IR_logL * abs(dlogLIR_dlogLgamma)
+
+    # Convert to dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}]
+    phi_gamma = phi_gamma_logL / (L * np.log(10.0))
+
+    return max(phi_gamma, 0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -115,9 +347,11 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     params : dict
         GLF parameters (A, L_c, gamma1, gamma2, z_c_star, alpha, p1, p2, L_ref).
     evolution_form : str
-        'piecewise' — standard LDDE (FSRQ, mAGN, SFG):
+        'piecewise' — standard LDDE (FSRQ):
             e = [(1+z)/(1+z_c)]^p1 for z <= z_c, else [(1+z)/(1+z_c)]^p2
-        'sum' — BL Lac form (Di Mauro et al.):
+        'ldde_inv' — LDDE inverse-sum (Ajello+ 2014, Eq. C.4, BL Lac):
+            e = [r^{-p1} + r^{-p2}]^{-1}, r = (1+z)/(1+z_c)
+        'sum' — simple sum (legacy):
             e = [(1+z)/(1+z_c)]^p1 + [(1+z)/(1+z_c)]^p2
     """
     A = params['A']
@@ -144,11 +378,15 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     # Redshift evolution
     ratio = (1.0 + z) / (1.0 + z_c)
 
-    if evolution_form == 'sum':
-        # BL Lac form: sum of two power laws
+    if evolution_form == 'ldde_inv':
+        # Ajello+ (2014) Eq. C.4: smooth double power-law
+        # e = [r^{-p1} + r^{-p2}]^{-1}
+        e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
+    elif evolution_form == 'sum':
+        # Legacy sum form
         e_z = ratio**p1 + ratio**p2
     else:
-        # Standard piecewise LDDE
+        # Standard piecewise LDDE (FSRQ)
         if z <= z_c:
             e_z = ratio**p1
         else:
@@ -158,7 +396,8 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
 
 
 # ---------------------------------------------------------------------------
-# Source-specific GLF functions
+# Source-specific GLF functions (LDDE-based: FSRQ, BL Lac only)
+# mAGN and SFG are defined above with dedicated conversion chains.
 # ---------------------------------------------------------------------------
 
 def _glf_FSRQ(L, z):
@@ -167,18 +406,8 @@ def _glf_FSRQ(L, z):
 
 
 def _glf_BL_Lac(L, z):
-    """BL Lac GLF from Ajello et al. (2014), single-component LDDE."""
-    return _ldde_glf(L, z, _BL_LAC_PARAMS, evolution_form='piecewise')
-
-
-def _glf_mAGN(L, z):
-    """mAGN GLF from Di Mauro et al. (2014)."""
-    return _ldde_glf(L, z, _MAGN_PARAMS, evolution_form='piecewise')
-
-
-def _glf_SFG(L, z):
-    """SFG GLF from Gruppioni et al. (2013) IR LF with L_gamma scaling."""
-    return _ldde_glf(L, z, _SFG_PARAMS, evolution_form='piecewise')
+    """BL Lac GLF from Ajello et al. (2014), LDDE inverse-sum evolution."""
+    return _ldde_glf(L, z, _BL_LAC_PARAMS, evolution_form='ldde_inv')
 
 
 def glf(L, z, source_class):
@@ -337,18 +566,25 @@ def mean_intensity(E_GeV, source_class, z_max=5.0, n_z=300):
 def bias_astro(z, source_class):
     """Effective linear bias for an astrophysical source class.
 
-    Uses approximate halo mass assignments:
-    - Blazars (BL Lac, FSRQ): hosted in ~10^{13} M_sun halos
-    - mAGN: ~10^{13} M_sun halos
-    - SFG: ~10^{11-12} M_sun halos
+    Blazars use fixed halo mass. mAGN and SFG use mass-luminosity relations
+    evaluated at characteristic luminosities (Di Mauro Eqs. C.20-C.21, Eq. C.29).
     """
     from . import halo_model as hm
 
-    mass_map = {
-        'BL_Lac': 1e13,
-        'FSRQ': 1e13,
-        'mAGN': 1e13,
-        'SFG': 5e11,
-    }
-    M_host = mass_map.get(source_class, 1e12)
-    return hm.bias(M_host, z)
+    if source_class in ('BL_Lac', 'FSRQ'):
+        return hm.bias(1e13, z)
+
+    if source_class == 'mAGN':
+        L_char = 1e44  # characteristic mAGN L_gamma [erg/s]
+        M_star = cfg.MAGN_MSTAR_NORM * (L_char / cfg.MAGN_MSTAR_LNORM)**cfg.MAGN_MSTAR_SLOPE
+        M_halo = 1e13 * (M_star / (cfg.MAGN_MHALO_PIVOT * (1.0 + z)**cfg.MAGN_MHALO_Z_EXP))**cfg.MAGN_MHALO_SLOPE
+        M_halo = max(M_halo, 1e10)
+        return hm.bias(M_halo, z)
+
+    if source_class == 'SFG':
+        L_char = 1e39  # characteristic SFG L_gamma [erg/s]
+        M_halo = cfg.SFG_MHALO_NORM / (1.0 + z)**cfg.SFG_MHALO_Z_EXP * (L_char / cfg.SFG_MHALO_LNORM)**cfg.SFG_MHALO_SLOPE
+        M_halo = max(M_halo, 1e10)
+        return hm.bias(M_halo, z)
+
+    return hm.bias(1e12, z)

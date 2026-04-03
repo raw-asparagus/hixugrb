@@ -87,19 +87,38 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z\le z_c$, $^{p_2}$ for $z>z_c$ | FSRQ, mAGN, SFG | `_ldde_glf` |
-| 5.5 | Sum evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1} + [(1+z)/(1+z_c)]^{p_2}$ | (Available but not currently used) | `_ldde_glf` |
+| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z\le z_c$, $^{p_2}$ for $z>z_c$ | FSRQ | `_ldde_glf` |
+| 5.5 | LDDE inverse-sum: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | BL Lac ([Ajello+ 2014](literature/ajello2014.md) Eq. C.4) | `_ldde_glf` |
 | 5.6 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.3 (after $d_L^2$ cancellation) | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
-### GLF Parameters
+### LDDE GLF Parameters (FSRQ, BL Lac only)
 
 | Source | $A$ (Mpc⁻³) | $L_c$ (erg/s) | $\gamma_1$ | $\gamma_2$ | $z_c^*$ | $\alpha$ | $p_1$ | $p_2$ | Evolution | Reference |
 |--------|-------------|---------------|-----------|-----------|---------|---------|-------|-------|-----------|-----------|
 | FSRQ | $3.06\times10^{-9}$ | $8.4\times10^{47}$ | 0.21 | 1.58 | 1.47 | 0.21 | 7.35 | −6.51 | piecewise | [Ajello+ (2012)](literature/ajello2012.md) Table 3 |
-| BL Lac | $5.0\times10^{-9}$ | $1.0\times10^{46}$ | 0.60 | 1.80 | 1.2 | 0.15 | 4.0 | −2.0 | piecewise | [Ajello+ (2014)](literature/ajello2014.md), single-component |
-| mAGN | $3.0\times10^{-8}$ | $5\times10^{44}$ | 0.60 | 2.00 | 0.8 | 0.15 | 3.5 | −2.0 | piecewise | [Di Mauro+ (2014)](literature/dimauro2014.md), calibrated |
-| SFG | $1\times10^{-8}$ | $5\times10^{40}$ | 0.4 | 2.5 | 2.0 | 0.0 | 3.55 | −4.0 | piecewise | [Gruppioni+ (2013)](literature/gruppioni2013.md), calibrated |
+| BL Lac | $9.20\times10^{-11}$ | $2.43\times10^{48}$ | 1.12 | 3.71 | 1.67 | 0.0446 | 4.50 | −12.88 | ldde_inv | [Ajello+ (2014)](literature/ajello2014.md) Table C.1 |
+
+*Note:* The $\alpha$ column is the luminosity dependence of $z_c$: $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$. Code uses `alpha` for both sources; [Ajello+ (2014)](literature/ajello2014.md) calls the BL Lac parameter $\beta$.
+
+### mAGN GLF — Radio→Gamma Conversion Chain ([Di Mauro+ 2014](literature/dimauro2014.md))
+
+| # | Equation | Source | Function |
+|---|----------|--------|----------|
+| 5.7 | $\rho_r(L_{151}, z) = \rho_l(L_{151}, z) + \rho_h(L_{151}, z)$ (two-component RLF at 151 MHz) | [Willott+ (2001)](literature/willott2001.md) | `_willott_rlf` |
+| 5.8 | $\log_{10} L_\text{core}^{5\text{GHz}} = 4.2 + 0.77\,\log_{10} L_\text{tot}^{1.4\text{GHz}}$ | [Lara+ (2004)](literature/lara2004.md) | `_L151_from_Lgamma` |
+| 5.9 | $L_r^{1.4\text{GHz}} = L_r^{151\text{MHz}} \times (1400/151)^{-0.80}$ | [Inoue (2011)](literature/inoue2011.md) | `_L151_from_Lgamma` |
+| 5.10 | $\log_{10} L_\gamma = 2.0 + 1.008\,\log_{10} L_\text{core}^{5\text{GHz}}$ | [Di Mauro+ (2014)](literature/dimauro2014.md) | `_L151_from_Lgamma` |
+| 5.11 | $\phi_\gamma = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{\rho_r}{\ln(10)\,L_{151}}\,\left\|\frac{dL_{151}}{dL_\gamma}\right\|$; $k{=}3.05$, $\Gamma{=}2.37$ | [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 | `_glf_mAGN` |
+
+### SFG GLF — IR→Gamma Conversion Chain ([Gruppioni+ 2013](literature/gruppioni2013.md))
+
+| # | Equation | Source | Function |
+|---|----------|--------|----------|
+| 5.12 | $\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) | `_gruppioni_ir_lf` |
+| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) Eq. C.23 | `_gruppioni_component` |
+| 5.14 | $\log_{10} L_\gamma = 1.09\,\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | [Ackermann+ (2012)](literature/ackermann2012_sfg.md) | `_L_IR_from_Lgamma` |
+| 5.15 | $\phi_\gamma = \phi_\text{IR}\,|d\log_{10}L_\text{IR}/d\log_{10}L_\gamma| / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
 
 ### Spectral Indices ([Pinetti+](literature/pinetti2020.md) Table 3)
 

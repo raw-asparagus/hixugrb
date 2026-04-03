@@ -38,7 +38,7 @@
      │ b_HI   │            │
      │ P_HI   │  ┌─────────────────┐
      │ W_HI   │  │astro_sources.py │
-     └───┬────┘  │ LDDE GLFs (4)   │
+     └───┬────┘  │ GLFs (4 sources)│
          │       │ W_γ^astro(E,z)  │
          │       │ mean_intensity  │
          │       └────────┬────────┘
@@ -58,14 +58,14 @@
           │  delta_chi2   →  exclusion_curve     │
           └──────────────┬───────────────────────┘
                          │
-               ┌─────────┼──────────┐
-               ▼                    ▼
-        ┌─────────────┐     ┌─────────────────────────────┐
-        │validation.py│     │notebooks/                   │
-        │ Phase 1-6   │     │  pipeline_validation.ipynb  │
-        │ Step 5 (13  │     │  8 figures, inline plots    │
-        │  checks)    │     │  SNR table, exclusion curves│
-        └─────────────┘     └─────────────────────────────┘
+               │
+               ▼
+        ┌─────────────────────────────┐
+        │notebooks/                   │
+        │  pipeline_validation.ipynb  │
+        │  8 figures, inline plots    │
+        │  SNR table, exclusion curves│
+        └─────────────────────────────┘
 ```
 
 **Summary:** Config → Cosmology + Tables → Halo model (via hmf) → HI / DM / Astro tracers → 3D power spectra → Limber C_ℓ → Statistics (SNR, exclusion) → Plots / Validation
@@ -80,14 +80,13 @@
 | `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M), NFW Fourier transform ũ(k\|M) |
 | `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI |
 | `dm_model.py` | NFW ρ² profile and Fourier transform ṽ(k\|M), substructure boost B(M), clumping factor Δ², DM window W_γ^DM, DM power spectra |
-| `astro_sources.py` | LDDE gamma-ray luminosity functions for BL Lac, FSRQ, mAGN, SFG; astrophysical window W_γ^astro; mean UGRB intensity |
+| `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro; mean UGRB intensity |
 | `pppc4dmid.py` | PPPC4DMID photon yield table reader/interpolator; dN/dE for bb̄, τ⁺τ⁻, WW channels |
 | `ebl.py` | EBL opacity τ(E,z) via `ebltable` package (Dominguez+2011); analytic fallback |
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions, Fermi-LAT noise N^γ and PSF, Fermissimo specs |
 | `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
-| `validation.py` | Automated checks against [Pinetti et al. (2020)](literature/pinetti2020.md): σ₈, mass function, Ω_HI, EBL, PPPC4DMID, SNR forecasts (13 checks) |
-| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 8 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows, SNR table, exclusion curves |
+| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 8 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows, SNR table, exclusion curves; includes automated validation checks |
 
 ## Window Function Pipeline
 
@@ -123,11 +122,17 @@ cosmology.py: d_L(z)
     │
 astro_sources.py:
     ├─ L_sens(z)           ← 4π d_L² F_sens
-    ├─ glf(L, z, source)   ← LDDE double power-law (Eq. 5.2)
-    │   ├─ _FSRQ_PARAMS    ← [Ajello+ (2012)](literature/ajello2012.md) Table 3
-    │   ├─ _BL_LAC_PARAMS    ← [Ajello+ (2014)](literature/ajello2014.md), single-component piecewise LDDE
-    │   ├─ _MAGN_PARAMS    ← [Di Mauro+ (2014)](literature/dimauro2014.md), calibrated
-    │   └─ _SFG_PARAMS     ← [Gruppioni+ (2013)](literature/gruppioni2013.md), calibrated
+    ├─ glf(L, z, source)   ← dispatches to source-specific GLF
+    │   ├─ _FSRQ_PARAMS    ← LDDE, [Ajello+ (2012)](literature/ajello2012.md) Table 3
+    │   ├─ _BL_LAC_PARAMS  ← LDDE inverse-sum, [Ajello+ (2014)](literature/ajello2014.md) Table C.1
+    │   ├─ _glf_mAGN       ← Radio→Gamma chain (Eq. 5.11):
+    │   │   [Willott (2001)](literature/willott2001.md) RLF
+    │   │   → [Inoue (2011)](literature/inoue2011.md) freq scaling
+    │   │   → [Lara (2004)](literature/lara2004.md) core-total
+    │   │   → [Di Mauro (2014)](literature/dimauro2014.md) L_γ-L_r
+    │   └─ _glf_SFG        ← IR→Gamma chain (Eq. 5.15):
+    │       [Gruppioni (2013)](literature/gruppioni2013.md) 3-component IR LF
+    │       → [Ackermann (2012)](literature/ackermann2012_sfg.md) L_γ-L_IR
     │
     └─ W_gamma_astro(E, z) ← 1/(4π(1+z)²) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
                                [Pinetti Eq. 4.3 after d_L² cancellation]
