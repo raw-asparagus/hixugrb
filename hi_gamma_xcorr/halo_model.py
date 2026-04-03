@@ -146,8 +146,41 @@ def concentration_munoz_cuartas(M, z):
     return np.maximum(c, 1.0)
 
 
+def concentration_correa(M, z):
+    """Concentration c_200(M, z) from Correa et al. (2015) Appendix B1, Planck cosmology.
+
+    Semi-analytic model based on halo MAH. Valid for log10(M/M_sun) in [-2, 16],
+    z in [0, 20]. Uses two regimes: z <= 4 (with quadratic correction for the
+    slope break at ~10^11 M_sun) and z > 4 (simple power law).
+
+    M is in M_sun/h (pipeline convention); converted to M_sun for the polynomial.
+    """
+    M = np.asarray(M, dtype=float)
+    z = float(z)
+
+    # Convert M_sun/h → M_sun
+    log_M = np.log10(np.clip(M * cfg.h, 1e-2, 1e16))
+
+    if z <= 4:
+        # Low-z regime (Appendix B1, Planck)
+        zp1 = 1.0 + z
+        alpha = 1.7543 - 0.2766 * zp1 + 0.02039 * zp1**2
+        beta = 0.2753 + 0.00351 * zp1 - 0.3038 * zp1**0.0269
+        gamma = -0.01537 + 0.02102 * zp1**(-0.1475)
+        log_c = alpha + beta * log_M * (1.0 + gamma * log_M**2)
+    else:
+        # High-z regime (Appendix B1, Planck)
+        zp1 = 1.0 + z
+        alpha = 1.3081 - 0.1078 * zp1 + 0.00398 * zp1**2
+        beta = 0.0223 - 0.0944 * zp1**(-0.3907)
+        log_c = alpha + beta * log_M
+
+    c = 10.0**log_c
+    return np.maximum(c, 1.0)
+
+
 # Default concentration for DM halos
-concentration = concentration_dutton_maccio
+concentration = concentration_correa
 
 
 # ---------------------------------------------------------------------------

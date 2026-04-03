@@ -34,8 +34,8 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 2.4 | $\nu f(\nu) = A\left[1+(q\nu)^{-p}\right]\sqrt{\frac{q\nu}{2\pi}}\exp\left(-\frac{q\nu}{2}\right)$ | [Sheth, Mo & Tormen (2001)](literature/sheth_mo_tormen2001.md) | hmf `SMT` model |
 |    | $q=0.707$, $p=0.3$, $A\approx0.3222$ | | |
 | 2.5 | $b(\nu) = 1 + \frac{q\nu-1}{\delta_c} + \frac{2p}{\delta_c(1+(q\nu)^p)}$ | [Sheth & Tormen (1999)](literature/sheth_tormen1999.md) | `bias(M, z)` |
-| 2.6 | $\log_{10}c = a(z) + b(z)\log_{10}(M/10^{12})$ | [Dutton & Macciò (2014)](literature/dutton_maccio2014.md) Eqs. 10–11 | `concentration_dutton_maccio` |
-|    | $a(z)=0.520+(0.905-0.520)e^{-0.617z^{1.21}}$, $b(z)=-0.101+0.026z$ | Planck cosmology fit | |
+| 2.6 | $\log_{10}c = \alpha + \beta\log_{10}(M/M_\odot)[1+\gamma(\log_{10}M/M_\odot)^2]$ ($z \le 4$) | [Correa et al. (2015)](literature/correa2015.md) Appendix B1, Planck | `concentration_correa` |
+|    | $\alpha{=}1.7543{-}0.2766(1{+}z){+}0.02039(1{+}z)^2$; $\beta{=}0.2753{+}0.00351(1{+}z){-}0.3038(1{+}z)^{0.0269}$; $\gamma{=}{-}0.01537{+}0.02102(1{+}z)^{-0.1475}$ | | |
 | 2.7 | $f(c) = \ln(1+c) - c/(1+c)$ | NFW normalization | `_f_nfw(c)` |
 | 2.8 | $\tilde u(k\|M) = \frac{1}{f(c)}\left[\sin(kr_s)[\text{Si}((1{+}c)kr_s){-}\text{Si}(kr_s)] + \cos(kr_s)[\text{Ci}((1{+}c)kr_s){-}\text{Ci}(kr_s)] - \frac{\sin(ckr_s)}{(1{+}c)kr_s}\right]$ | Analytic NFW FT; $r_s=R_\text{vir}/c$ | `u_nfw(k, M, z)` |
 

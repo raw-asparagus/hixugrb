@@ -12,9 +12,7 @@ Systematic comparison of our pipeline's normalized window functions against [Pin
 - **SFG:** Implemented [Gruppioni+ (2013)](literature/gruppioni2013.md) 3-component IR LF with [Ackermann+ (2012)](literature/ackermann2012_sfg.md) L_γ–L_IR scaling
 
 ### Remaining Issues
-- Ω_HI(z) still decreases with z (halo model limitation; observed: increases)
-- mAGN and SFG window shapes still need calibration against published source counts
-- DM steepness needs concentration model review
+- Ω_HI(z) still decreases with z — inherent to passive Padmanabhan HIHM model (Section 6 conclusion viii); would require explicit parameter evolution to fix
 
 ---
 

@@ -33,4 +33,6 @@ At z=0: a=0.905, b=−0.101 → c(10^12) ≈ 8.0.
 
 ## Implementation
 
-**Module:** `halo_model.py` — `concentration_dutton_maccio(M, z)`. Default concentration for DM halos (`halo_model.concentration`). Valid for M = 10^10–10^15 M_sun/h; extrapolated as power law below.
+**Module:** `halo_model.py` — `concentration_dutton_maccio(M, z)`. Available as an alternative concentration model. Valid for M = 10¹⁰–10¹⁵ M☉/h; extrapolated as power law below.
+
+**Status:** Superseded by [Correa et al. (2015)](correa2015.md) as the default, which provides physically-motivated concentrations valid down to 10⁻² M☉ — essential for DM annihilation boost factor calculations.

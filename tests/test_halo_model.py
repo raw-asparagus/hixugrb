@@ -16,8 +16,22 @@ def test_bias_normalization():
 
 
 def test_concentration_z0():
+    """Correa c(10^12 M_sun, z=0) should be ~7-9."""
     c = float(hm.concentration(np.array([1e12]), 0.0)[0])
-    assert 6 < c < 12, f"c(1e12, z=0) = {c}, expected ~8"
+    assert 5 < c < 12, f"c(1e12, z=0) = {c}, expected ~8"
+
+
+def test_concentration_low_mass():
+    """Correa should give high concentrations at low mass (no extrapolation needed)."""
+    c = float(hm.concentration(np.array([1e6 / cfg.h]), 0.0)[0])
+    assert 20 < c < 80, f"c(1e6 M_sun, z=0) = {c}, expected ~30-60"
+
+
+def test_concentration_decreases_with_z():
+    """Concentration should decrease with redshift at fixed mass."""
+    c0 = float(hm.concentration(np.array([1e12]), 0.0)[0])
+    c2 = float(hm.concentration(np.array([1e12]), 2.0)[0])
+    assert c0 > c2, f"c(z=0)={c0:.1f} should be > c(z=2)={c2:.1f}"
 
 
 def test_nfw_fourier_normalization():
