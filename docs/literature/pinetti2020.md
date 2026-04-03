@@ -68,3 +68,5 @@ $$(\Delta C_\ell)^2 = \frac{1}{(2\ell+1)f_\text{sky}} \frac{N^\gamma}{(B_\ell^\g
 ## Implementation
 
 Primary reference for: `angular_power.py`, `statistics.py`, `noise_model.py`, `config.py` (instrument specs and energy bins)
+
+**Extended reference:** Pinetti (2022) PhD thesis, [arXiv:2212.00125](https://arxiv.org/abs/2212.00125) (Part I, Chapters 3–5, Appendices B–E). Same formalism with full derivations and explicit parameter tables. Local copy: `docs/2212.00125v1.pdf`. Claim-by-claim comparison: `docs/pinetti2022_evidence_matrix.md`.

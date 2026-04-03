@@ -179,7 +179,7 @@ GRUPPIONI_PARAMS = {
         'log_Lstar': 10.80,
         'log_phistar': -3.20,
         'k_L': 3.17,
-        'k_R1': 0.67, 'k_R2': 3.17,
+        'k_R1': 0.67, 'k_R2': -3.17,
     },
 }
 
