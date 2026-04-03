@@ -90,62 +90,6 @@ def bias(M, z):
 # Concentration-mass relations
 # ---------------------------------------------------------------------------
 
-def concentration_dutton_maccio(M, z):
-    """Concentration c_200(M, z) from Dutton & Macciò (2014), Eqs. 10–11.
-
-    Calibrated for Planck cosmology, M_200 in [1e10, 1e15] h^{-1} M_sun.
-    See docs/literature/dutton_maccio2014.md for details.
-    Extrapolated as a power law below 1e10.
-    """
-    M = np.asarray(M, dtype=float)
-    z = float(z)
-
-    # Dutton & Macciò (2014) Eqs. 10-11, Planck cosmology
-    b_z = -0.101 + 0.026 * z
-    a_z = 0.520 + (0.905 - 0.520) * np.exp(-0.617 * z**1.21) if z > 0 else 0.905
-
-    log10_c = a_z + b_z * np.log10(M / 1e12)
-    c = 10.0**log10_c
-    return np.maximum(c, 1.0)
-
-
-def concentration_munoz_cuartas(M, z):
-    """Concentration from Muñoz-Cuartas et al. (2011) + Bullock extrapolation.
-
-    Polynomial fit for M = 1e11 - 1e15 h^{-1} M_sun, extrapolated below
-    using c proportional to (M/M_*)^{-0.13} (1+z)^{-1}.
-    """
-    M = np.asarray(M, dtype=float)
-    z = float(z)
-
-    # Muñoz-Cuartas et al. (2011) fit coefficients
-    # log10(c) = a(z) + b(z) * log10(M_14) where M_14 = M / (1e14 h^{-1} M_sun)
-    # a(z) = 0.537 + (1.025 - 0.537) * exp(-0.718 * z^1.08)
-    # b(z) = -0.097 + 0.024 * z
-    a_z = 0.537 + (1.025 - 0.537) * np.exp(-0.718 * z**1.08) if z > 0 else 1.025
-    b_z = -0.097 + 0.024 * z
-
-    log_M14 = np.log10(M / 1e14)
-    log10_c = a_z + b_z * log_M14
-
-    c = 10.0**log10_c
-
-    # Bullock extrapolation for M < 1e10: c ~ (M/M_*)^{-0.13} * (1+z)^{-1}
-    # Anchor at M = 1e10 and extend the power law
-    M_anchor = 1e10
-    mask = M < M_anchor
-    if np.any(mask):
-        log10_c_anchor = a_z + b_z * np.log10(M_anchor / 1e14)
-        c_anchor = 10.0**log10_c_anchor
-        c_extrap = c_anchor * (M[mask] / M_anchor)**(-0.13)
-        if isinstance(c, np.ndarray):
-            c[mask] = c_extrap
-        else:
-            c = c_extrap
-
-    return np.maximum(c, 1.0)
-
-
 def concentration_correa(M, z):
     """Concentration c_200(M, z) from Correa et al. (2015) Appendix B1, Planck cosmology.
 
@@ -241,32 +185,6 @@ def u_nfw(k, M, z=0.0, c_func=None):
     result[mask] = (term1 + term2 + term3) / fc
 
     return result
-
-
-# ---------------------------------------------------------------------------
-# Tabulated mass function and bias on the mass grid
-# ---------------------------------------------------------------------------
-
-def mass_function_table(z, M_grid=None):
-    """Compute dn/dM on the mass grid at redshift z.
-
-    Returns (M_grid, dndM_arr).
-    """
-    if M_grid is None:
-        M_grid = cfg.M_GRID
-    dndM_arr = np.array([dndM(m, z) for m in M_grid])
-    return M_grid, dndM_arr
-
-
-def bias_table(z, M_grid=None):
-    """Compute halo bias on the mass grid at redshift z.
-
-    Returns (M_grid, bias_arr).
-    """
-    if M_grid is None:
-        M_grid = cfg.M_GRID
-    b_arr = np.array([bias(m, z) for m in M_grid])
-    return M_grid, b_arr
 
 
 # ---------------------------------------------------------------------------

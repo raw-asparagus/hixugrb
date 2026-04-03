@@ -59,6 +59,6 @@ $$c_\text{HI}(M,z) = c_{HI,0} \left(\frac{M}{10^{11} M_\odot}\right)^{-0.109} \f
 
 ## Implementation
 
-**Module:** `hi_model.py` — `M_HI()`, `c_HI()`, `rho_HI_profile()`, `u_HI()`, `rho_HI_mean()`, `Omega_HI()`, `T_bar_b()`, `b_HI()`, `P_HI_1h/2h()`, `W_HI()`
+**Module:** `hi_model.py` — `M_HI()`, `c_HI()`, `u_HI()`, `rho_HI_mean()`, `Omega_HI()`, `T_bar_b()`, `b_HI()`, `P_HI_1h/2h()`, `W_HI()`
 
 **Parameters adopted:** Modified NFW profile (Table A1): α=0.176, β=−0.69, v_c,0=40.7 km/s, c_HI,0=139, γ=0.13.

@@ -49,7 +49,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 |   | $\alpha=0.176$, $\beta=-0.69$, $v_{c,0}=40.7$ km/s ([Padmanabhan+ 2017](literature/padmanabhan2017.md) Table A1, modified NFW) | | |
 |   | $f_{H,c}=(1-Y_P)\Omega_B/\Omega_M$, $Y_P=0.24$ | | |
 | 3.2 | $c_\text{HI} = c_{HI,0}\left(\frac{M}{10^{11}M_\odot}\right)^{-0.109}\frac{4}{(1+z)^\gamma}$, $c_{HI,0}=139$, $\gamma=0.13$ | [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 | `c_HI(M, z)` |
-| 3.3 | $\rho_\text{HI}(r) = \rho_0\,r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.9 (modified NFW) | `rho_HI_profile` |
+| 3.3 | $\rho_\text{HI}(r) = \rho_0\,r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.9 (modified NFW) | (used inside `u_HI`) |
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{HI}\,dr = M_\text{HI}$ | Mass normalization | `rho0_HI` |
 | 3.5 | $\tilde u_\text{HI}(k\|M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.2 | `rho_HI_mean(z)` |
@@ -75,8 +75,8 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
 | 4.6 | $W_\gamma^\text{DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_\text{DM}}{m_\chi}\right)^2(1+z)^3\frac{1}{H(z)}\Delta^2\frac{dN}{dE'}e^{-\tau}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.1 | `W_gamma_DM` |
 |   | $E'=(1+z)E_\gamma$; $\langle\sigma v\rangle_\text{thermal}=3\times10^{-26}$ cm³/s | | |
-| 4.7 | $P_\text{DM}^\text{1h} = \int\frac{dn}{dM}[\tilde v/\Delta^2]^2\,dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.4 | `P_DM_1h` |
-| 4.8 | $P_\text{DM}^\text{2h} = [\int\frac{dn}{dM}\,b\,\tilde v/\Delta^2\,dM]^2\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.5 | `P_DM_2h` |
+| 4.7 | $P_\text{DM}^\text{1h} = \int\frac{dn}{dM}[\tilde v/\Delta^2]^2\,dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.4 | (not needed; pipeline uses cross-power only) |
+| 4.8 | $P_\text{DM}^\text{2h} = [\int\frac{dn}{dM}\,b\,\tilde v/\Delta^2\,dM]^2\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.5 | (not needed; pipeline uses cross-power only) |
 
 ---
 
@@ -176,7 +176,7 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 9.1 | $P_{\text{HI}\times\text{DM}}^\text{1h} = \int\frac{dn}{dM}\frac{\tilde v}{\Delta^2}\frac{\tilde u_\text{HI}\,M_\text{HI}}{\bar\rho_\text{HI}}dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.1 | `P_HI_DM_1h` |
+| 9.1 | $P_{\text{HI}\times\text{DM}}^\text{1h} = \int\frac{dn}{dM}\frac{\tilde v}{\Delta^2}\frac{\tilde u_\text{HI}\,M_\text{HI}}{\bar\rho_\text{HI}}dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.1 | (subdominant; not computed) |
 | 9.2 | $P_{\text{HI}\times\text{DM}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde v}{\Delta^2}dM][\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.2 | `P_HI_DM_2h` |
 | 9.3 | $P_{\text{HI}\times\text{astro}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,b_\text{astro}\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eqs. 5.3–5.4 | `P_HI_astro_2h` |
 | 9.4 | $C_\ell^{ij} = \int\frac{d\chi}{\chi^2}\,W_i(\chi)\,W_j(\chi)\,P_{ij}(k{=}(\ell{+}\tfrac12)/\chi,\,z)$ | Limber approximation; [Pinetti+](literature/pinetti2020.md) Eq. 2.1 | `C_ell_HI_gamma` |
@@ -201,10 +201,8 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 - [Cirelli et al. (2011)](literature/cirelli2011.md), JCAP 03, 051 — PPPC4DMID photon yield tables
 - [Di Mauro et al. (2013, 2014)](literature/dimauro2014.md), ApJ 780, 161 — mAGN gamma-ray emission
 - [[Dominguez](literature/dominguez2011.md) et al. (2011)](literature/dominguez2011.md), MNRAS 410, 2556 — EBL opacity model
-- [Dutton & Macciò (2014)](literature/dutton_maccio2014.md), MNRAS 441, 3359 — Concentration-mass relation
 - [Gruppioni et al. (2013)](literature/gruppioni2013.md), MNRAS 432, 23 — IR luminosity function (SFG)
 - [Moliné et al. (2017)](literature/moline2017.md), MNRAS 466, 4974 — Substructure boost factor
-- [Muñoz-Cuartas et al. (2011)](literature/munoz_cuartas2011.md), MNRAS 411, 584 — Concentration-mass (alternative)
 - [Padmanabhan, Refregier & Amara (2017)](literature/padmanabhan2017.md), MNRAS 469, 2323 — HI halo model
 - [Pinetti, Camera, Fornengo & Regis (2020)](literature/pinetti2020.md), arXiv:1911.04989 — Primary reference
 - [Planck Collaboration (2018)](literature/planck2018.md), A&A 641, A6 — Cosmological parameters

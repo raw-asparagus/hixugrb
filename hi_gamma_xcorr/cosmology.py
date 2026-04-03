@@ -129,12 +129,6 @@ def d_L(z):
     return chi(z) * (1.0 + z)
 
 
-def d_A(z):
-    """Angular diameter distance [Mpc/h]."""
-    z = np.asarray(z, dtype=float)
-    return chi(z) / (1.0 + z)
-
-
 # ---------------------------------------------------------------------------
 # Growth factor
 # ---------------------------------------------------------------------------
@@ -248,37 +242,3 @@ def sigma_M(M, z):
     return np.exp(interp(np.log(M)))
 
 
-def dlnsigma_dlnM(M, z, dlog=0.01):
-    """Numerical derivative d ln sigma / d ln M from interpolation table."""
-    _ensure_init()
-    interp = _build_sigma_interp(z)
-    lnM = np.log(M)
-    dlnM = dlog * np.log(10)
-    log_sig_lo = interp(lnM - dlnM)
-    log_sig_hi = interp(lnM + dlnM)
-    return (log_sig_hi - log_sig_lo) / (2.0 * dlnM)
-
-
-def sigma_M_table(z, M_grid=None):
-    """Return sigma(M) on a mass grid at redshift z (uses interpolation)."""
-    _ensure_init()
-    if M_grid is None:
-        M_grid = cfg.M_GRID
-    return M_grid, np.array([sigma_M(m, z) for m in M_grid])
-
-
-# ---------------------------------------------------------------------------
-# Convenience: mean matter density at redshift z
-# ---------------------------------------------------------------------------
-
-def rho_bar(z=0.0):
-    """Mean comoving matter density [M_sun/h / (Mpc/h)^3].
-
-    This is constant in comoving coordinates: rho_bar = Omega_m * rho_crit.
-    """
-    return cfg.RHO_BAR
-
-
-def rho_crit(z=0.0):
-    """Critical density at z=0 [M_sun/h / (Mpc/h)^3]."""
-    return cfg.RHO_CRIT

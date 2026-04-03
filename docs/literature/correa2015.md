@@ -43,6 +43,6 @@ $$\beta = 0.0223 - 0.0944(1+z)^{-0.3907}$$
 
 ## Implementation
 
-**Module:** `halo_model.py` — `concentration_correa(M, z)`. Default concentration for DM halos (`halo_model.concentration`). Supersedes [Dutton & Macciò (2014)](dutton_maccio2014.md) which was calibrated only for M = 10¹⁰–10¹⁵.
+**Module:** `halo_model.py` — `concentration_correa(M, z)`. Default (and only) concentration for DM halos (`halo_model.concentration`).
 
 **Software:** Authors provide the `commah` Python package (pip installable) for computing concentrations and MAHs at any cosmology. This pipeline uses the Appendix B1 fitting functions directly for performance.

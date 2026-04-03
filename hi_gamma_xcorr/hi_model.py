@@ -99,19 +99,6 @@ def rho0_HI(M, z):
     return m_hi / (rs**3 * norm_int)
 
 
-def rho_HI_profile(r, M, z):
-    """HI density profile rho_HI(r) [M_sun/h / (Mpc/h)^3].
-
-    rho_HI(r) = rho_0 * r_s^3 / [(r + 0.75*r_s)(r + r_s)^2]
-    """
-    r = np.asarray(r, dtype=float)
-    rho_0 = rho0_HI(M, z)
-    c_h = c_HI(M, z)
-    Rv = hm.R_vir(M, z)
-    rs = Rv / c_h
-    return rho_0 * rs**3 / ((r + 0.75 * rs) * (r + rs)**2)
-
-
 def u_HI(k, M, z):
     """Normalized Fourier transform of the HI profile: u_tilde_HI(k | M, z).
 
@@ -285,11 +272,6 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
     dlnM = np.log(M_arr[1] / M_arr[0])
     I_2h *= dlnM / rho
     return I_2h**2 * cosmo.P_lin(k, z)
-
-
-def P_HI(k, z, **kwargs):
-    """Total HI power spectrum P_HI(k, z) = P^{1h} + P^{2h} [(Mpc/h)^3]."""
-    return P_HI_1h(k, z, **kwargs) + P_HI_2h(k, z, **kwargs)
 
 
 # ---------------------------------------------------------------------------

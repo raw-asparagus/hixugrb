@@ -39,20 +39,6 @@ _CHANNEL_MAP = {
 # Table loading
 # ---------------------------------------------------------------------------
 
-def download_tables():
-    """Download PPPC4DMID tables from GitHub mirror."""
-    import urllib.request
-    os.makedirs(_data_dir, exist_ok=True)
-    url = 'https://raw.githubusercontent.com/carmeloevoli/PPPC4DMID-C/master/data/AtProduction_gammas.txt'
-    print(f'Downloading PPPC4DMID tables from {url}...')
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    resp = urllib.request.urlopen(req, timeout=60)
-    data = resp.read()
-    with open(_table_file, 'wb') as f:
-        f.write(data)
-    print(f'Saved to {_table_file} ({len(data)/1e6:.1f} MB)')
-
-
 def _load_tables():
     """Parse the PPPC4DMID ASCII table and build interpolators."""
     global _tables_loaded, _log10_masses, _log10_x, _interpolators

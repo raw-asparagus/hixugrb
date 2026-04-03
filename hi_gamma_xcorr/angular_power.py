@@ -18,36 +18,6 @@ from . import noise_model as nm
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
 # ---------------------------------------------------------------------------
 
-def P_HI_DM_1h(k, z, n_M=120):
-    """One-halo HI × DM cross-power spectrum.
-
-    P^{1h} = integral (dn/dM) [v_tilde/Delta^2] [u_HI * M_HI/rho_HI] dM
-    """
-    k = np.atleast_1d(np.asarray(k, dtype=float))
-    rho_HI = hi.rho_HI_mean(z)
-    Delta2 = dm.clumping_factor(z)
-
-    if rho_HI <= 0 or Delta2 <= 0:
-        return np.zeros_like(k)
-
-    M_min = max(cfg.M_MIN_HI, 1e8)
-    M_max = min(cfg.M_MAX_HI, 1e16)
-    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
-    result = np.zeros_like(k)
-
-    for M in M_arr:
-        dn = hm.dndM(M, z)
-        m_hi = hi.M_HI(M, z)
-        if dn <= 0 or m_hi <= 0:
-            continue
-        u_hi = hi.u_HI(k, M, z)
-        vt = dm.v_tilde(k, M, z)
-        result += dn * (vt / Delta2) * (u_hi * m_hi / rho_HI) * M
-
-    dlnM = np.log(M_arr[1] / M_arr[0])
-    return result * dlnM
-
-
 def P_HI_DM_2h(k, z, n_M=120):
     """Two-halo HI × DM cross-power spectrum.
 

@@ -69,12 +69,6 @@ def get_mass_function(z):
     return _mf_cache[z_key]
 
 
-def clear_cache():
-    """Clear all cached MassFunction instances."""
-    _mf_cache.clear()
-    _bias_cache.clear()
-
-
 # ---------------------------------------------------------------------------
 # Drop-in replacements for halo_model.py and cosmology.py functions
 # ---------------------------------------------------------------------------
@@ -112,16 +106,6 @@ def sigma(M, z):
     return np.exp(np.interp(log_M, log_m_grid, log_sig_grid))
 
 
-def dlnsigma_dlnm(M, z):
-    """Numerical derivative d ln sigma / d ln M from hmf grid."""
-    mf = get_mass_function(z)
-    log_m = np.log(mf.m)
-    log_sig = np.log(np.maximum(mf.sigma, 1e-30))
-    deriv = np.gradient(log_sig, log_m)
-    log_M = np.log(float(M))
-    return float(np.interp(log_M, log_m, deriv))
-
-
 def nu(M, z):
     """Peak height nu = delta_c^2 / sigma^2(M, z)."""
     sig = sigma(M, z)
@@ -134,65 +118,3 @@ def mean_density():
     return mf.mean_density
 
 
-def bias_ST(M, z):
-    """Sheth-Tormen halo bias b(M, z).
-
-    Uses the analytic Sheth-Tormen (1999) formula directly,
-    evaluated at the peak height from hmf's sigma(M, z).
-    This is consistent with the SMT mass function.
-    """
-    nu_val = nu(M, z)
-    q, p = cfg.SMT_Q, cfg.SMT_P
-    return 1.0 + (q * nu_val - 1.0) / cfg.DELTA_C + \
-        2.0 * p / (cfg.DELTA_C * (1.0 + (q * nu_val)**p))
-
-
-def power_spectrum(z):
-    """Linear matter power spectrum P(k, z) from hmf.
-
-    Returns (k, P_k) in h-dependent units: k [h/Mpc], P [(Mpc/h)^3].
-    """
-    mf = get_mass_function(z)
-    return mf.k.copy(), mf.power.copy()
-
-
-# ---------------------------------------------------------------------------
-# Vectorized mass integrals (performance optimization)
-# ---------------------------------------------------------------------------
-
-def integrate_over_mass(func_of_M, z, M_min=None, M_max=None):
-    """Integrate func_of_M(M) * dndM * dM over the hmf mass grid.
-
-    Parameters
-    ----------
-    func_of_M : callable
-        Function taking mass array M [M_sun/h], returning array.
-    z : float
-        Redshift.
-    M_min, M_max : float, optional
-        Mass bounds (default: full hmf grid).
-
-    Returns
-    -------
-    result : float
-        Integral value.
-    """
-    from scipy.integrate import trapezoid
-
-    m_arr, dndm_arr = dndm_array(z)
-
-    if M_min is not None:
-        mask = m_arr >= M_min
-        m_arr = m_arr[mask]
-        dndm_arr = dndm_arr[mask]
-    if M_max is not None:
-        mask = m_arr <= M_max
-        m_arr = m_arr[mask]
-        dndm_arr = dndm_arr[mask]
-
-    if len(m_arr) < 2:
-        return 0.0
-
-    f_arr = np.array([func_of_M(m) for m in m_arr])
-    integrand = dndm_arr * f_arr * m_arr  # extra M from d(lnM) Jacobian
-    return trapezoid(integrand, np.log(m_arr))

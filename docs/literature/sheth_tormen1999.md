@@ -34,4 +34,4 @@ $$b(\nu) = 1 + \frac{q\nu - 1}{\delta_c} + \frac{2p}{\delta_c(1 + (q\nu)^p)}$$
 
 ## Implementation
 
-**Module:** `halo_model.py` — `bias(M, z)` and `hmf_interface.py` — `bias_ST(M, z)`. Parameters in `config.py`: `SMT_Q`, `SMT_P`, `DELTA_C`.
+**Module:** `halo_model.py` — `bias(M, z)`. Parameters in `config.py`: `SMT_Q`, `SMT_P`, `DELTA_C`.
