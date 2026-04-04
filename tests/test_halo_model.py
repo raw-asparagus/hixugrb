@@ -16,15 +16,21 @@ def test_bias_normalization():
 
 
 def test_concentration_z0():
-    """Correa c(10^12 M_sun, z=0) should be ~7-9."""
+    """c_vir(10^12 M_sun, z=0) should be ~10-15 (c_200 ~ 8 converted to virial)."""
     c = float(hm.concentration(np.array([1e12]), 0.0)[0])
-    assert 5 < c < 12, f"c(1e12, z=0) = {c}, expected ~8"
+    assert 8 < c < 18, f"c_vir(1e12, z=0) = {c}, expected ~12"
+
+
+def test_concentration_c200_z0():
+    """Correa c_200(10^12 M_sun, z=0) should be ~7-9."""
+    c = float(hm.concentration_correa(np.array([1e12]), 0.0)[0])
+    assert 5 < c < 12, f"c_200(1e12, z=0) = {c}, expected ~8"
 
 
 def test_concentration_low_mass():
-    """Correa should give high concentrations at low mass (no extrapolation needed)."""
+    """c_vir should give high concentrations at low mass."""
     c = float(hm.concentration(np.array([1e6 / cfg.h]), 0.0)[0])
-    assert 20 < c < 80, f"c(1e6 M_sun, z=0) = {c}, expected ~30-60"
+    assert 20 < c < 120, f"c_vir(1e6 M_sun, z=0) = {c}, expected ~27-80"
 
 
 def test_concentration_decreases_with_z():

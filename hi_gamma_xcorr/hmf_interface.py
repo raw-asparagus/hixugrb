@@ -11,8 +11,9 @@ import warnings
 
 from . import config as cfg
 
-# Suppress hmf's extrapolation warning
+# Suppress hmf's deprecation warnings
 warnings.filterwarnings('ignore', message="'extrapolate_with_eh'")
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='hmf')
 
 # ---------------------------------------------------------------------------
 # Lazy import and cached MassFunction instances
@@ -37,7 +38,8 @@ _HMF_KWARGS = dict(
     },
     sigma_8=cfg.SIGMA_8,
     n=cfg.N_S,
-    transfer_model='EH',
+    transfer_model='CAMB',
+    transfer_params={'extrapolate_with_eh': True},
 )
 
 

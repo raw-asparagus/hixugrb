@@ -8,7 +8,6 @@ All masses in M_sun/h, distances in Mpc/h, wavenumbers in h/Mpc.
 
 import numpy as np
 from scipy.integrate import quad
-from functools import lru_cache
 
 from . import config as cfg
 from . import cosmology as cosmo
@@ -40,10 +39,13 @@ def c_HI(M, z):
 
     c_HI = c_{HI,0} * (M / 10^{11} M_sun)^{-0.109} * 4 / (1+z)^gamma
 
-    Padmanabhan+ (2017) Table A1: c_HI,0=139, gamma=0.13.
+    Padmanabhan+ (2017) Eq. 3, Table A1: c_HI,0=139, gamma=0.13.
+    The mass pivot is 10^{11} M_sun (not M_sun/h), so M [M_sun/h] is
+    converted to M_sun via M_sun = M * h before applying the exponent.
     """
     M = np.asarray(M, dtype=float)
-    return cfg.HI_C0 * (M / 1e11)**(-0.109) * 4.0 / (1.0 + z)**cfg.HI_GAMMA_CONC
+    M_solar = M * cfg.h  # M_sun/h → M_sun
+    return cfg.HI_C0 * (M_solar / 1e11)**(-0.109) * 4.0 / (1.0 + z)**cfg.HI_GAMMA_CONC
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +139,6 @@ def u_HI(k, M, z):
 # ---------------------------------------------------------------------------
 
 _rho_HI_cache = {}  # keyed by round(z, 4)
-_b_HI_cache = {}
 
 
 def rho_HI_mean(z, M_min=None, M_max=None):
@@ -235,7 +236,7 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
         if mhi <= 0 or dn <= 0:
             continue
         u = u_HI(k, M, z)
-        # Trapezoidal weight in log-mass
+        # Rectangle rule in log-mass
         result += dn * mhi**2 * u**2 * M  # M from d(lnM)
 
     dlnM = np.log(M_arr[1] / M_arr[0])

@@ -77,7 +77,7 @@ All distances are **comoving**. Proper quantities appear only where physics requ
 | Quantity | Convention |
 |----------|------------|
 | χ(z), d_L(z) | Comoving [Mpc/h] |
-| R_vir(M, z) | Comoving [Mpc/h], defined via ρ_crit(z) = ρ_crit,0 × E(z)² |
+| R_vir(M, z) | [Mpc/h], defined via Δ_vir(z) × ρ_crit(z), Bryan & Norman (1998) |
 | v_circ(M, z) | Physical [km/s], explicitly converts M and R to physical units |
 | (1+z)³ in W_DM | Proper density evolution: ρ_DM,proper = ρ_DM,comoving × (1+z)³ |
 
@@ -139,11 +139,11 @@ The pipeline defines $\nu = \delta_c^2 / \sigma^2(M, z)$, which is $\nu_\text{pa
 
 ### Virial overdensity
 
-$\Delta_\text{vir} = 200$ (fixed). The Pinetti thesis uses the Bryan & Norman z-dependent $\Delta_\text{vir}(z)$, but the pipeline simplifies to 200 throughout. See `pinetti2022_evidence_matrix.md` D11.
+$\Delta_\text{vir}(z)$ from Bryan & Norman (1998): $\Delta_c = 18\pi^2 + 82x - 39x^2$ where $x = \Omega_M(z) - 1$, relative to the critical density. At $z=0$ with Planck 2018 cosmology, $\Delta_c \approx 103$ (equivalently $\sim327$ relative to mean matter density). Implemented in `halo_model.Delta_vir(z)`.
 
 ### Concentration
 
-Correa et al. (2015) Appendix B1 fitting functions, calibrated for Planck 2013 cosmology (Ω_m=0.317, h=0.67). The pipeline uses Planck 2018 cosmology (Ω_m=0.3153, h=0.6736) — the difference is small. The Pinetti thesis uses different Correa coefficients from a different cosmology fit. See `pinetti2022_evidence_matrix.md` D2.
+Correa et al. (2015) Appendix B1 fitting functions for $c_{200}$, calibrated for Planck 2013 cosmology (Ω_m=0.317, h=0.67). Converted to $c_\text{vir}$ via `halo_model.c200_to_cvir()` using the Bryan & Norman $\Delta_\text{vir}(z)$. The Pinetti thesis uses different Correa coefficients from a different cosmology fit. See `pinetti2022_evidence_matrix.md` D2.
 
 ---
 
@@ -203,14 +203,14 @@ The pipeline makes several deliberate choices that differ from the primary refer
 | # | Deviation | Nature |
 |---|-----------|--------|
 | D2 | Correa concentration coefficients | Different Planck cosmology fit |
-| D3 | No c₂₀₀→c_vir conversion | Pipeline uses Δ_vir=200 throughout |
+| ~~D3~~ | ~~No c₂₀₀→c_vir conversion~~ | **Resolved:** `c200_to_cvir()` now converts to virial definition |
 | D4 | SF-AGN k_R2 sign | Thesis typo corrected |
 | D5 | Ω_HI computed, not fixed | More physical approach |
 | D6 | SMT q = 0.707, not 0.75 | Both used in literature |
 | D7 | PPPC4DMID public tables | vs thesis private Pythia code |
 | D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy |
 | D9 | T̄_b coefficient 188h vs 44 μK form | Equivalent, rounding difference |
-| D11 | Δ_vir = 200 fixed | vs Bryan & Norman z-dependent |
+| ~~D11~~ | ~~Δ_vir = 200 fixed~~ | **Resolved:** Bryan & Norman z-dependent Δ_vir(z) now implemented |
 | D12 | BL Lac LDDE exponent signs | Follow Pinetti, not original paper |
 
 ---

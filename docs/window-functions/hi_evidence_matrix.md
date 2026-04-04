@@ -153,9 +153,9 @@ This document audits every equation, model choice, parameter value, and computat
 
 | # | Item | File:Line | Impact |
 |---|------|-----------|--------|
-| D1 | `_b_HI_cache` declared but never populated | `hi_model.py:140` | Performance: `b_HI(z)` recomputes at every call; ~200 redundant quad evaluations per $C_\ell$ computation |
-| D2 | Comment says "trapezoidal" but implements rectangle rule | `hi_model.py:238` | Documentation mismatch only |
-| D3 | `from functools import lru_cache` imported but unused | `hi_model.py:3` | Dead import |
+| ~~D1~~ | ~~`_b_HI_cache` declared but never populated~~ | — | **Resolved:** dead code removed |
+| ~~D2~~ | ~~Comment says "trapezoidal" but implements rectangle rule~~ | — | **Resolved:** comment corrected to "rectangle rule" |
+| ~~D3~~ | ~~`from functools import lru_cache` imported but unused~~ | — | **Resolved:** dead import removed |
 
 ---
 
@@ -163,15 +163,15 @@ This document audits every equation, model choice, parameter value, and computat
 
 | # | Item | Thesis | Pipeline | Nature | Severity |
 |---|------|--------|----------|--------|----------|
-| 1 | $\Delta_{\rm vir}$ definition | $\Delta_{\rm vir}(z)$ from Bryan & Norman | Fixed $\Delta_{\rm vir}=200$ | Simplification | Minor |
+| ~~1~~ | ~~$\Delta_{\rm vir}$ definition~~ | $\Delta_{\rm vir}(z)$ from Bryan & Norman | **Now matches:** Bryan & Norman $\Delta_c(z)$ | **Resolved** | — |
 | 2 | SMT $q$ parameter | $q = 0.75$ (ST 2002) | $q = 0.707$ (SMT 1999) | Different literature calibration | Minor |
 | 3 | $\Omega_{\rm HI}$ treatment | Fixed $2.45\times10^{-4}$ | Computed from halo integral (z-dependent) | Pipeline improvement | Minor |
 | 4 | Correa concentration coefficients | Thesis-specific fit | Planck Appendix B1 fit | Different cosmology fit | Minor (DM only) |
-| 5 | $c_{200} \to c_{\rm vir}$ conversion | Performed (Eqs. 3.38–3.41) | Not performed | Consistent with $\Delta_{\rm vir}=200$ choice | Minor (DM only) |
+| ~~5~~ | ~~$c_{200} \to c_{\rm vir}$ conversion~~ | Performed | **Now matches:** `c200_to_cvir()` implemented | **Resolved** | — |
 | 6 | Limber $k$ substitution | $k = \ell/\chi$ | $k = (\ell+1/2)/\chi$ | Pipeline improvement (LoVerde & Afshordi 2008) | Negligible |
 | 7 | $\bar{T}_b$ coefficient | $44\,\mu$K (pre-evaluated) | $188h$ mK (un-substituted) | Equivalent modulo rounding | Negligible |
-| 8 | EH vs CAMB transfer function | CAMB (implicit) | EH for hmf, CAMB for $P_{\rm lin}$ | Internal inconsistency | Moderate |
-| 9 | $c_{\rm HI}$ mass pivot units | $10^{11}M_\odot$ in equation | `M / 1e11` where M is $M_\odot/h$ | **Needs verification** | ~4% if wrong |
+| ~~8~~ | ~~EH vs CAMB transfer function~~ | CAMB | **Now matches:** hmf uses `transfer_model='CAMB'` | **Resolved** | — |
+| ~~9~~ | ~~$c_{\rm HI}$ mass pivot units~~ | $10^{11}M_\odot$ | **Fixed:** `M * h / 1e11` converts M_sun/h to M_sun | **Resolved** | — |
 
 ---
 

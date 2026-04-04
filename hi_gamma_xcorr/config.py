@@ -62,7 +62,7 @@ DELTA_C = 1.686                 # Spherical collapse threshold
 SMT_Q = 0.707                  # SMT parameter q
 SMT_P = 0.3                    # SMT parameter p
 SMT_A = 0.3222                 # SMT normalization A
-DELTA_VIR = 200.0              # Virial overdensity (M_200 definition)
+DELTA_VIR_FIXED = 200.0        # Legacy fixed overdensity (M_200c definition)
 
 # ---------------------------------------------------------------------------
 # HI model parameters (Padmanabhan, Refregier & Amara 2017, Table A1)

@@ -17,20 +17,52 @@ from . import cosmology as cosmo
 from . import hmf_interface as hmfi
 
 # ---------------------------------------------------------------------------
+# Virial overdensity — Bryan & Norman (1998)
+# ---------------------------------------------------------------------------
+
+def Delta_vir(z):
+    """Virial overdensity Delta_vir(z) from Bryan & Norman (1998).
+
+    Delta_vir = 18*pi^2 + 82*x - 39*x^2
+    where x = Omega_M(z) - 1 and Omega_M(z) = Omega_M * (1+z)^3 / E(z)^2.
+
+    For flat LCDM with Planck 2018 (Omega_M=0.3153):
+      Delta_vir(z=0) ~ 337, approaching 18*pi^2 ~ 178 at high z.
+    """
+    Ez2 = cosmo.E(z)**2
+    Omega_z = cfg.OMEGA_M * (1.0 + z)**3 / Ez2
+    x = Omega_z - 1.0
+    return 18.0 * np.pi**2 + 82.0 * x - 39.0 * x**2
+
+
+# ---------------------------------------------------------------------------
 # Virial radius and circular velocity
 # ---------------------------------------------------------------------------
 
 def R_vir(M, z=0.0):
-    """Physical virial radius R_200c [Mpc/h] for halo of mass M [M_sun/h] at redshift z.
+    """Virial radius R_vir [Mpc/h] for halo of mass M [M_sun/h] at redshift z.
 
-    Uses M_200c definition: M = (4/3) pi Delta * rho_crit(z) * R_phys^3
-    where rho_crit(z) = rho_crit,0 * E(z)^2 is the physical critical density at z.
-    Returns the physical radius in Mpc/h units (i.e., R_phys * h in Mpc).
+    Uses the Bryan & Norman (1998) z-dependent virial overdensity:
+      M = (4/3) pi Delta_vir(z) * rho_crit(z) * R^3
+    where rho_crit(z) = rho_crit,0 * E(z)^2.
+    Returns the radius in Mpc/h units.
     """
     M = np.asarray(M, dtype=float)
     Ez2 = cosmo.E(z)**2
-    rho_crit_z = cfg.RHO_CRIT * Ez2  # physical rho_crit(z) in h-units
-    return (3.0 * M / (4.0 * np.pi * cfg.DELTA_VIR * rho_crit_z))**(1.0 / 3.0)
+    rho_crit_z = cfg.RHO_CRIT * Ez2
+    Dv = Delta_vir(z)
+    return (3.0 * M / (4.0 * np.pi * Dv * rho_crit_z))**(1.0 / 3.0)
+
+
+def R_200c(M, z=0.0):
+    """Radius R_200c [Mpc/h] defined with fixed Delta=200 w.r.t. critical density.
+
+    Needed for the Correa c_200 relation and for converting c_200 → c_vir.
+    """
+    M = np.asarray(M, dtype=float)
+    Ez2 = cosmo.E(z)**2
+    rho_crit_z = cfg.RHO_CRIT * Ez2
+    return (3.0 * M / (4.0 * np.pi * 200.0 * rho_crit_z))**(1.0 / 3.0)
 
 
 # G in units of km^2/s^2 per (M_sun / Mpc): precomputed for efficiency
@@ -123,8 +155,58 @@ def concentration_correa(M, z):
     return np.maximum(c, 1.0)
 
 
-# Default concentration for DM halos
-concentration = concentration_correa
+def c200_to_cvir(c200, z):
+    """Convert NFW concentration from c_200c to c_vir definition.
+
+    For an NFW halo, the scale radius r_s is invariant between definitions.
+    Given c_200 = R_200c / r_s, we need c_vir = R_vir / r_s where R_vir is
+    defined via Delta_vir(z).
+
+    The implicit relation is:
+      (c_vir / c_200)^3 = (200 / Delta_vir) * f(c_vir) / f(c_200)
+    where f(c) = ln(1+c) - c/(1+c).
+
+    Solved iteratively via Newton's method.
+    """
+    c200 = np.asarray(c200, dtype=float)
+    scalar = c200.ndim == 0
+    c200 = np.atleast_1d(c200)
+
+    Dv = Delta_vir(z)
+    ratio = 200.0 / Dv  # < 1 when Dv > 200 (low z), so c_vir > c_200
+    f200 = _f_nfw(c200)
+
+    # Initial guess: c_vir ~ c_200 * (200 / Dv)^(1/3) * correction
+    c_vir = c200 * ratio**(1.0 / 3.0) * 1.2
+
+    # Newton iterations: solve g(c) = c^3 * f(c200) - ratio * c200^3 * f(c) = 0
+    for _ in range(20):
+        fc = _f_nfw(c_vir)
+        g = c_vir**3 * f200 - ratio * c200**3 * fc
+        # dg/dc = 3*c^2*f200 - ratio*c200^3 * f'(c)
+        # f'(c) = c / (1+c)^2
+        dgdc = 3.0 * c_vir**2 * f200 - ratio * c200**3 * c_vir / (1.0 + c_vir)**2
+        dc = g / dgdc
+        c_vir = c_vir - dc
+        c_vir = np.clip(c_vir, 1.0, 1e4)
+        if np.all(np.abs(dc) < 1e-8 * c_vir):
+            break
+
+    return float(c_vir[0]) if scalar else c_vir
+
+
+def concentration_vir(M, z):
+    """Virial concentration c_vir(M, z).
+
+    Computes c_200 from Correa et al. (2015) then converts to c_vir
+    using the Bryan & Norman Delta_vir(z).
+    """
+    c200 = concentration_correa(M, z)
+    return c200_to_cvir(c200, z)
+
+
+# Default concentration for DM halos (now returns c_vir)
+concentration = concentration_vir
 
 
 # ---------------------------------------------------------------------------

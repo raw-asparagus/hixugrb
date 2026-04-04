@@ -224,3 +224,102 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
         result += W_hi**2 * P_hi * weight
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Normalized window functions for plotting
+# ---------------------------------------------------------------------------
+
+def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
+                       channel='bb', source_classes=None,
+                       z_min_hi=None, z_max_hi=None,
+                       unresolved_only=True, include_DM=True):
+    r"""Compute uniformly normalized window functions for all tracers.
+
+    Returns $\hat{W}_i(z) = \frac{c}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
+
+    for each tracer i. This strips the per-chi Jacobian and absolute amplitude,
+    leaving a dimensionless kernel that integrates to unity over redshift:
+    $\int \hat{W}_i(z)\,dz = 1$.
+
+    The mean intensity $\langle I_i \rangle$ is tracer-specific:
+    - HI: $\langle I_\mathrm{HI} \rangle = \int dz\,(c/H)\,W_\mathrm{HI}^{(\chi)}$
+    - Astro: $\langle I_S \rangle = \int dz\,(c/H)\,W_\gamma^{S,(\chi)}$
+    - DM: $\langle I_\mathrm{DM} \rangle = \int dz\,(c/H)\,W_\gamma^{\mathrm{DM},(\chi)}$
+
+    Parameters
+    ----------
+    z_arr : array
+        Redshift grid for evaluation.
+    E_GeV : float
+        Gamma-ray energy [GeV] for gamma-ray windows.
+    m_chi_GeV : float
+        DM mass [GeV].
+    sigma_v : float, optional
+        DM cross-section. None = thermal relic.
+    channel : str
+        DM annihilation channel.
+    source_classes : list of str, optional
+        Astrophysical source classes. None = all four.
+    z_min_hi, z_max_hi : float, optional
+        HI band limits. If None, uses the full z_arr range (survey-independent).
+    unresolved_only : bool
+        If True, astro windows use unresolved sources only.
+    include_DM : bool
+        Whether to include DM window.
+
+    Returns
+    -------
+    result : dict
+        Keys: 'z', 'HI', source class names, optionally 'DM'.
+        Each value is an array of normalized window function values on z_arr.
+    """
+    if source_classes is None:
+        source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
+
+    z_arr = np.asarray(z_arr, dtype=float)
+    dz = z_arr[1] - z_arr[0] if len(z_arr) > 1 else 1.0
+
+    # c*h/H(z) converts per-chi window to per-z: W^(z) = W^(chi) * dchi/dz
+    # where dchi/dz = c*h/H in [Mpc/h per unit z].
+    c_h_over_H = np.array([cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z) for z in z_arr])
+
+    result = {'z': z_arr}
+
+    # --- HI ---
+    survey_independent_hi = (z_min_hi is None and z_max_hi is None)
+    if survey_independent_hi:
+        # Intrinsic T_b * b_HI (no band selection, no H/(c*h) Jacobian)
+        W_hi_perz = np.array([hi.T_bar_b(z) * hi.b_HI(z) for z in z_arr])
+    else:
+        # Survey-dependent: W_HI^(chi) includes H/(c*h), so * c*h/H cancels it
+        W_hi_perz = np.array([
+            hi.W_HI(z, z_min_hi, z_max_hi) for z in z_arr
+        ]) * c_h_over_H
+
+    I_hi = np.sum(W_hi_perz) * dz
+    result['HI'] = W_hi_perz / I_hi if I_hi > 0 else np.zeros_like(z_arr)
+
+    # --- Astrophysical sources ---
+    for src in source_classes:
+        # W_astro^(chi) does NOT absorb dchi/dz, so per-z = W^(chi) * c*h/H
+        W_astro_perz = np.array([
+            astro.W_gamma_astro(E_GeV, z, src, unresolved_only=unresolved_only)
+            for z in z_arr
+        ]) * c_h_over_H
+
+        I_src = np.sum(W_astro_perz) * dz
+        result[src] = W_astro_perz / I_src if I_src > 0 else np.zeros_like(z_arr)
+
+    # --- DM ---
+    if include_DM:
+        # W_DM^(chi) absorbs 1/H, so per-z = W_DM^(chi) * c*h/H
+        W_dm_perz = np.array([
+            dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
+            for z in z_arr
+        ]) * c_h_over_H
+
+        I_dm = np.sum(W_dm_perz) * dz
+        result['DM'] = W_dm_perz / I_dm if I_dm > 0 else np.zeros_like(z_arr)
+
+    return result
