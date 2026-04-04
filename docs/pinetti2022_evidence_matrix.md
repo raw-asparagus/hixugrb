@@ -302,7 +302,7 @@ This document compares every equation, model choice, and parameter value documen
 
 | # | Item | Thesis | Pipeline | Nature | Impact |
 |---|------|--------|----------|--------|--------|
-| 1 | **FSRQ evolution form** | LDDE inverse-sum Eq. C.4 (p.210) for both BL Lac and FSRQ | Piecewise for FSRQ (`evolution_form='piecewise'`), ldde_inv for BL Lac | **Thesis error** — thesis incorrectly unifies the two forms. Pipeline correctly follows the original [Ajello+ (2012)](literature/ajello2012.md) piecewise LDDE for FSRQ and [Ajello+ (2014)](literature/ajello2014.md) inverse-sum for BL Lac | **Medium** — affects FSRQ GLF redshift evolution |
+| 1 | **FSRQ evolution form** | LDDE inverse-sum Eq. C.4 (p.210) for both BL Lac and FSRQ | Piecewise for FSRQ (`evolution_form='piecewise'`), ldde_inv for BL Lac | **Pipeline bug** — the original [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 ALSO uses the smooth inverse-sum form (paper: "continuous around the redshift peak"), NOT piecewise. The thesis correctly unifies the two. Pipeline should use `ldde_inv` for FSRQ as well. | **Medium** — affects FSRQ GLF redshift evolution |
 | 2 | **Correa concentration coefficients** | Eq. 3.36 (p.99): α=1.628, β=1.661, γ=−0.020 | α=1.754, β=0.275, γ=−0.015 (Planck fit) | Different cosmology fits from the same Correa et al. (2015) paper | **Low–Medium** — affects halo concentrations; pipeline uses the Planck cosmology–consistent fit |
 | 3 | **c₂₀₀→c_vir conversion** | Eqs. 3.38–3.41 (p.99): explicit conversion with $\Delta_\text{vir}$-dependent coefficients | Not performed; uses $c_{200}$ directly | Pipeline works in $M_{200}$ definition throughout | **Low** — $c_{200} \approx c_\text{vir}$ for $\Delta_\text{vir} \approx 200$ at low $z$ |
 | 4 | **SFG SF-AGN $k_{R2}$** | Table C.2 (p.213): $k_{R2} = 3.17$ (positive) | $k_{R2} = -3.17$ (negative) | **Thesis typo** — pipeline matches the original [Gruppioni+ (2013)](literature/gruppioni2013.md) value | **Medium** — wrong sign would cause unphysical density evolution at $z>1.1$ |
@@ -313,6 +313,7 @@ This document compares every equation, model choice, and parameter value documen
 | 9 | **$\bar T_b$ coefficient** | 44 μK (pre-evaluated with $\Omega_\text{HI}$) | 188$h$ mK (un-substituted) | Equivalent modulo rounding and $\Omega_\text{HI}$ treatment | **Negligible** |
 | 10 | **EBL analytic fallback** | Not described | Calibrated analytic $\tau(E,z)$ | Pipeline addition for robustness | **None** (fallback only) |
 | 11 | **$\Delta_\text{vir}$ definition** | $\Delta_\text{vir}(z)$ from Bryan & Norman fit, Eq. 3.27 (p.96) | Fixed $\Delta_\text{vir} = 200$ | Simplification | **Low** — $\Delta_\text{vir}(z=0) \approx 337$ for Planck cosmology, but virial quantities are used consistently within each framework |
+| 12 | **BL Lac LDDE exponent signs** | Eq. C.4 (p.210): $[r^{-p_1} + r^{-p_2}]^{-1}$ (negative exponents) | Same as thesis: `ratio**(-p1) + ratio**(-p2)` | Original [Ajello+ (2014)](literature/ajello2014.md) Eq. 18 uses **positive** exponents $[r^{p_1} + r^{p_2}]^{-1}$. Pipeline follows Pinetti convention. These produce different evolution shapes around $z_c$. | **Medium** — investigate whether more recent BL Lac literature uses positive or negative exponents |
 
 ---
 

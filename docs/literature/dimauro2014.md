@@ -6,7 +6,7 @@
 
 ## Abstract
 
-Calculates diffuse gamma-ray emission from unresolved misaligned AGN (radio galaxies). Establishes a physical L_γ–L_radio correlation validated by statistical tests and Fermi-LAT source counts. mAGN contribute 10–83% of the IGRB, are ~500–1000× more numerous than blazars, and produce negligible anisotropy.
+Calculates diffuse gamma-ray emission from unresolved misaligned AGN (radio galaxies). Establishes a physical L_γ–L_radio correlation validated by statistical tests and Fermi-LAT source counts. mAGN contribute 10–63% of the IGRB (depending on model assumptions), are far more numerous than blazars, and produce negligible anisotropy.
 
 ## Methodology
 

@@ -37,8 +37,10 @@ Gamma-ray pair production on EBL photons: $\gamma_\text{HE} + \gamma_\text{EBL} 
 
 tau(E,z) provided as 2D tabulated grid (energy vs redshift) via the `ebltable` Python package.
 
-**Analytic fallback approximation:**
+**Analytic fallback approximation (pipeline-derived, not from this paper):**
 $$\tau(E,z) \approx 2.5 \left(\frac{E}{100\text{ GeV}}\right)^{1.0} \left(\frac{z}{1.0}\right)^{1.3} \times \left[1 + \left(\frac{20\text{ GeV}}{E}\right)^4\right]^{-1}$$
+
+Calibrated to match Dominguez et al. tabulated results at a few anchor points. Used only when `ebltable` is unavailable.
 
 ## Implementation
 

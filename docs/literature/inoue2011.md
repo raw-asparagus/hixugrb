@@ -20,7 +20,7 @@ $$L_r^{1.4\,\text{GHz}} = L_r^{151\,\text{MHz}} \times \left(\frac{1400}{151}\ri
 
 ### Radio-gamma correlation
 
-Partial correlation analysis gives $L_\gamma \propto L_{5\,\text{GHz}}^{1.16}$, consistent with the [Di Mauro+ (2014)](dimauro2014.md) relation used in this pipeline.
+Partial correlation analysis gives $\log_{10} L_\gamma = (-3.90 \pm 0.61) + (1.16 \pm 0.02) \log_{10} L_{5\,\text{GHz}}$ for gamma-ray luminosity in the **0.1–10 GeV** band (Eq. 5). Note: [Di Mauro+ (2014)](dimauro2014.md) extends this to 0.1–100 GeV.
 
 ## Implementation
 

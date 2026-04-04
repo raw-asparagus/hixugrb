@@ -37,8 +37,8 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 | Omega_M | 0.3153 |
 | Omega_Lambda | 0.6847 |
 | Omega_B | 0.0493 |
-| Omega_CDM | 0.2660 |
-| Omega_DM | Omega_M - Omega_B = 0.266 |
+| Omega_CDM | 0.2644 (= Omega_c h^2 / h^2, cold DM only) |
+| Omega_DM | 0.2660 (= Omega_M - Omega_B, total DM incl. neutrinos; used by pipeline) |
 | T_CMB | 2.7255 K |
 | rho_crit | 2.775 × 10^{11} M_sun/h / (Mpc/h)^3 |
 

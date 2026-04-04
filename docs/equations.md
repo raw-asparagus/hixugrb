@@ -169,6 +169,12 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 | 8.8 | $B_\ell^\gamma = \exp(-\sigma_b^2\ell^2/2)$; $\sigma_b=\sigma_0/(1+0.25\sigma_0\ell)$ | [Pinetti+](literature/pinetti2020.md) Eqs. 4.9–4.10 | `beam_fermi` |
 | 8.9 | $N^\gamma$ from [Pinetti+](literature/pinetti2020.md) Table 2 (12 energy bins) | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Table 2 | `noise_fermi` |
 | 8.10 | $f_\text{sky,eff} = \min(f_\text{sky}^\text{radio}, f_\text{sky}^\gamma)$ | Conservative overlap | `f_sky_effective` |
+| 8.11 | $W_\ell(E) = 2\pi\int_{-1}^{1}d\cos\theta\,P_\ell(\cos\theta)\,\text{PSF}(\theta,E)$ | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 4 | `beam_fermi_exact` |
+| 8.12 | $\text{PSF}(\theta) = \frac{1-1/\gamma}{2\pi\sigma_K^2}\left[1+\frac{\theta^2}{2\gamma\sigma_K^2}\right]^{-\gamma}$ (King function) | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 4; $\gamma=2$ | `_king_psf` |
+| 8.13 | $\langle W_\ell^k\rangle = \int W_\ell(E)E^{-\alpha}dE\,/\,\int E^{-\alpha}dE$; $\alpha=2.3$ | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 5 | `beam_fermi_bin_averaged` |
+| 8.14 | $W_\text{pix}(\ell) \approx \exp(-\ell^2\theta_\text{pix}^2/2)$; $\theta_\text{pix}=\sqrt{4\pi/12N_\text{side}^2}$ | HEALPix pixel window | `pixel_window` |
+| 8.15 | $\ell_\max$: $\langle W_{\ell_\max}^k\rangle = 0.61$ or $1000$ (whichever smaller) | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 7; Table I | `ell_max_fermi` |
+| 8.16 | $F_\text{sens}(E) = F_\text{sens,ref}\,[\sigma_0(E)/\sigma_0(E_\text{ref})]^2$; $E_\text{ref}=5$ GeV | Energy-dependent sensitivity (data mode) | `F_sens_energy` |
 
 ---
 

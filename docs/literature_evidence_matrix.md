@@ -62,7 +62,7 @@ This matrix verifies every equation, parameter value, and factual claim in the 1
 | 5.8 | p₂ = −6.51 | −6.51 ± 1.97 | **Match** |
 | 5.9 | μ = 2.44 | 2.44 ± 0.01 | **Match** |
 | 5.10 | 186 sources | "ALL" row = 186 | **Match** |
-| 5.11 | Piecewise LDDE evolution | Eq. 4: separate z ≤ z_c and z > z_c | **Match** |
+| 5.11 | ~~Piecewise LDDE evolution~~ | Eq. 15: smooth inverse-sum $[r^{p_1} + r^{p_2}]^{-1}$, NOT piecewise. Paper explicitly says "continuous around the redshift peak." | **MISMATCH** — pipeline uses `evolution_form='piecewise'` but paper uses smooth inverse-sum (same form as BL Lac). See pinetti2022_evidence_matrix D1. |
 
 ### 6. Ajello et al. (2014) — `ajello2014.md` vs `1310.0006v1.pdf`
 
@@ -77,7 +77,7 @@ This matrix verifies every equation, parameter value, and factual claim in the 1
 | 6.7 | z* = 1.67 | LDDE1: 1.67 | **Match** |
 | 6.8 | β = 4.46×10⁻² | LDDE1: 4.46×10⁻² | **Match** |
 | 6.9 | α = 2.11 | LDDE1 μ* = 2.12 ± 0.03 | **Minor** — .md says 2.11, paper LDDE1 says 2.12. Pinetti thesis Table C.1 uses 2.11; likely from Pinetti rounding. |
-| 6.10 | LDDE inverse-sum evolution form | Eq. C.4 in Pinetti: [((1+z)/(1+z_c))^(−p₁) + ((1+z)/(1+z_c))^(−p₂)]^(−1) | **Match** |
+| 6.10 | LDDE inverse-sum evolution form | Paper Eq. 18 uses **positive** exponents: $[r^{p_1} + r^{p_2}]^{-1}$. Pinetti Eq. C.4 uses **negative** exponents: $[r^{-p_1} + r^{-p_2}]^{-1}$. Pipeline follows Pinetti. | **Exponent sign discrepancy** — pipeline follows Pinetti (2022), not original paper. Produces different evolution shape around z_c. |
 | 6.11 | Model choice: LDDE1 (τ=0) not LDDE2 | LDDE1 has τ=0.0 (fixed); LDDE2 has τ≠0. Paper prefers LDDE2 by likelihood. Pinetti thesis adopts LDDE1. | **Deliberate choice** — follows Pinetti (2022), not the paper's best-fit |
 
 ### 7. Di Mauro et al. (2014) — `dimauro2014.md` vs `1304.0908v2.pdf`

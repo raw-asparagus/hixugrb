@@ -10,9 +10,10 @@ Improves Press-Schechter predictions by accounting for ellipsoidal (rather than 
 
 ## Methodology
 
-- Excursion set formalism with ellipsoidal collapse criterion
-- Three free parameters fitted to N-body simulations
-- Universal in peak height nu = delta_c^2 / sigma^2(M)
+- Excursion set formalism with ellipsoidal collapse criterion (moving barrier)
+- Ellipsoidal barrier shape introduces mass-dependent collapse threshold (Eq. 3–4)
+- GIF simulation mass function (Eq. 6) fitted with parameters a=0.707, q=0.3 (paper notation)
+- Universal in peak height ν = δ_sc / σ(M) (paper convention; pipeline uses ν = δ_c² / σ²)
 
 ## Key Results
 
@@ -22,16 +23,23 @@ Improves Press-Schechter predictions by accounting for ellipsoidal (rather than 
 
 ## Equation Used
 
-**SMT multiplicity function:**
-$$\nu f(\nu) = A \left[1 + (q\nu)^{-p}\right] \sqrt{\frac{q\nu}{2\pi}} \exp\left(-\frac{q\nu}{2}\right)$$
+**SMT multiplicity function (Eq. 6, GIF simulation fit):**
+$$\nu f(\nu) = 2A \left[1 + \frac{1}{(a\nu^2)^p}\right] \sqrt{\frac{a\nu^2}{2\pi}} \exp\left(-\frac{a\nu^2}{2}\right)$$
 
-| Parameter | Value |
-|-----------|-------|
-| A | 0.3222 |
-| q | 0.707 |
-| p | 0.3 |
+where ν = δ_sc/σ (paper convention). The pipeline uses ν = δ_c²/σ² (i.e., ν_pipeline = ν_paper²), with the factor of 2 absorbed into A:
 
-The mass function: $dn/dM = (\bar\rho/M^2) \, f(\sigma) \, |d\ln\sigma/d\ln M|$ where $f(\sigma) = 2 \nu f(\nu)$.
+| Paper parameter | Pipeline parameter | Value |
+|---|---|---|
+| a | SMT_Q (= q) | 0.707 |
+| q | SMT_P (= p) | 0.3 |
+| 2A | — | 2 × 0.322 ≈ 0.644 |
+| — | SMT_A (includes factor 2) | 0.3222 |
+
+**Halo bias (Eq. 8, with barrier parameters a=0.707, b=0.5, c=0.6):**
+
+The paper also derives the large-scale bias relation from the moving barrier. The pipeline uses the simpler [Sheth & Tormen (1999)](sheth_tormen1999.md) bias formula which is equivalent for practical purposes.
+
+The mass function: $dn/dM = (\bar\rho/M^2) \, f(\sigma) \, |d\ln\sigma/d\ln M|$.
 
 ## Implementation
 

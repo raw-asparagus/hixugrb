@@ -46,11 +46,13 @@ $$M_\star = 10^9\left(\frac{L}{10^{48}\,\text{erg/s}}\right)^{0.36}$$
 ## Key Results
 
 - LDDE provides best fit among PDE, PLE, LDDE models
-- HSP BL Lacs: negative evolution ($p_1 < 0$ when fit separately)
+- HSP BL Lacs: negative evolution (density increases toward z=0)
 - LISP (ISP+LSP): positive evolution peaking at $z \sim 1.2$
 - Combined BL Lac population: peaks at $z \sim 1.2$–$1.7$ (luminosity-dependent)
-- BL Lacs contribute ~1–5% of extragalactic gamma-ray background
-- Spectral index: $\alpha = 2.11$ ([Pinetti+](pinetti2020.md) Table 3)
+- BL Lacs contribute ~10–15% of the isotropic gamma-ray background
+- Spectral index: μ★ = 2.12 ± 0.03 (LDDE1, Table 3); pipeline uses 2.11 following Pinetti (2022) rounding
+
+**Exponent sign discrepancy:** The paper's Eq. 18 uses positive exponents $[r^{p_1} + r^{p_2}]^{-1}$, while Pinetti (2022) Eq. C.4 uses negative exponents $[r^{-p_1} + r^{-p_2}]^{-1}$. The pipeline follows Pinetti's convention. These produce different evolution shapes around the redshift peak.
 
 ## Implementation
 

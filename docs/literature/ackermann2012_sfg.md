@@ -14,7 +14,7 @@ Examines 69 dwarf, spiral, and luminous/ultraluminous infrared galaxies using th
 
 $$\log_{10}\left(\frac{L_{0.1\text{–}100\,\text{GeV}}}{\text{erg s}^{-1}}\right) = \alpha_\text{IR}\,\log_{10}\left(\frac{L_{8\text{–}1000\,\mu\text{m}}}{10^{10}\,L_\odot}\right) + \beta_\text{IR}$$
 
-with $\alpha_\text{IR} = 1.09$ and $\beta_\text{IR} = 39.19$.
+with $\alpha_\text{IR} = 1.09$ and $\beta_\text{IR} = 39.19$ (Table 5, EM method, excluding galaxies hosting Swift-BAT AGN). The full sample gives $\alpha = 1.17 \pm 0.07$, $\beta = 39.28 \pm 0.08$; the AGN-excluded subsample is used for cleaner SFG-only calibration.
 
 This quasi-linear scaling converts the [Gruppioni+ (2013)](gruppioni2013.md) infrared luminosity function into a gamma-ray luminosity function via:
 

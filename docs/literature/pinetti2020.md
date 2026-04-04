@@ -28,21 +28,27 @@ Derives the first theoretical prediction of the cross-correlation signal between
 ## Equations Used in This Pipeline
 
 **Limber integral (Eq. 2.1):**
-$$C_\ell^{ij} = \int \frac{d\chi}{\chi^2} W_i(\chi) W_j(\chi) P_{ij}\left(k = \frac{\ell+1/2}{\chi}, z\right)$$
+$$C_\ell^{ij} = \int \frac{d\chi}{\chi^2} W_i(\chi) W_j(\chi) P_{ij}\left(k = \frac{\ell}{\chi}, z\right)$$
 
-**HI window function (Eqs. 3.15–3.16):**
-$$W_\text{HI}(\chi) = \bar{T}_b(z) \, b_\text{HI}(z) \, \phi(z) \, \frac{H(z)}{c}$$
+*Note: The paper uses k = ℓ/χ. The pipeline uses k = (ℓ+1/2)/χ (LoVerde & Afshordi 2008 improvement for low-ℓ accuracy). See pinetti2022_evidence_matrix D8.*
 
-**DM window function (Eq. 4.1):**
-$$W_\gamma^\text{DM} = \frac{(\Omega_\text{DM}\rho_c)^2}{4\pi} \frac{\langle\sigma v\rangle}{2m_\chi^2} \frac{(1+z)^3}{H(z)} \Delta^2(z) \frac{dN_\gamma}{dE'} e^{-\tau}$$
+**HI window function (Eqs. 3.15–3.16, per-z convention):**
+$$W_\text{HI}^{(z)} = \bar{T}_b(z) \, \phi(z)$$
+
+where φ(z) is a top-hat selection function over the radio band. The pipeline's effective per-χ window combines this with b_HI and the H/(c·h) Jacobian: $W_\text{HI}^{(\chi)} = \bar{T}_b \, b_\text{HI} \, \phi(z) \, H/(c \cdot h)$. The bias enters through the halo model power spectrum in the paper's formulation.
+
+**DM window function (Eq. 4.1, per-z convention):**
+$$W_\gamma^\text{DM} = \frac{(\Omega_\text{DM}\rho_c)^2}{4\pi} \frac{\langle\sigma v\rangle}{2m_\chi^2} (1+z)^3 \Delta^2(z) \frac{dN_\gamma}{dE'} e^{-\tau}$$
+
+*Note: The paper's Eq. 4.1 does NOT include 1/H(z). That factor arises from the Limber measure dχ/dz = c/H(z). The pipeline's per-χ window absorbs the 1/H factor for consistency with the integration convention.*
 
 **Astrophysical window function (Eq. 4.3):**
 $$W_\gamma^\text{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\text{thr}} \Phi(L,z) \frac{dF}{dE} dL$$
 
 **Brightness temperature (Eq. 3.4):**
-$$\bar{T}_b(z) = 188 \, h \, \Omega_\text{HI}(z) \frac{(1+z)^2}{E(z)} \text{ mK}$$
+$$\bar{T}_b(z) = 44\,\mu\text{K} \, \frac{\Omega_\text{HI}(z)\,h}{2.45\times10^{-4}} \frac{(1+z)^2}{E(z)}$$
 
-*Note: The formalism document (line 233) writes the coefficient as "180" while the HI guide and standard references use "188 h". The difference is <5% and arises from rounding conventions. Our implementation uses 188h.*
+which is equivalent to $\bar{T}_b \approx 180\,\Omega_\text{HI}\,h\,(1+z)^2/E(z)$ mK. The pipeline uses the coefficient 188h mK from standard 21-cm references — a ~4% difference from rounding conventions, within the systematic uncertainty on Ω_HI.
 
 **Clumping factor (Eq. 4.2):**
 $$\Delta^2(z) = \frac{1}{\bar\rho^2} \int \frac{dn}{dM} \int \rho^2 d^3x \, dM$$
@@ -59,7 +65,7 @@ $$(\Delta C_\ell)^2 = \frac{1}{(2\ell+1)f_\text{sky}} \frac{N^\gamma}{(B_\ell^\g
 
 ## Instrument Specifications
 
-**Radio (Table 1):** MeerKAT (64 dishes, 13.5m, UHF/L), SKA1 (197 dishes, 14.5m), SKA2 (2000 dishes)
+**Radio (Table 1):** MeerKAT (64 dishes, 13.5m, UHF/L), SKA1 (133+64 dishes, 14.5m), SKA2 (2000 dishes)
 
 **Fermi-LAT (Table 2):** 12 energy bins 0.5–1000 GeV with N_gamma, f_sky, sigma_0 per bin
 

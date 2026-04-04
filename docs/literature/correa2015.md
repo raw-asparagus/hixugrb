@@ -14,7 +14,7 @@ Presents a semi-analytic, physically motivated model for dark matter halo concen
 - Valid down to microhalo masses (10⁻² M☉) — critical for DM annihilation boost
 - Predicts slope change at ~10¹¹ M☉ from MAH transition (exponential → power-law growth)
 - No artificial upturn at high masses (only relaxed halos)
-- Explicit Planck cosmology fitting functions (Appendix B1)
+- Explicit Planck 2013 cosmology fitting functions (Appendix B1; Ω_m=0.317, h=0.67, σ_8=0.834, n_s=0.962 — note: NOT Planck 2018 as used by the pipeline, but the difference is small)
 
 ## Equations Used in This Pipeline (Appendix B1, Planck cosmology)
 

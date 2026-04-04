@@ -16,7 +16,7 @@ Develops a model relating halo abundance to large-scale spatial distribution usi
 
 ## Key Results
 
-- Halos below M* are less clustered; above M* are more clustered
+- Low-mass halos are more clustered (less anti-biased) than Press-Schechter predicts; high-mass halos are slightly less biased than PS predicts
 - Bias depends only on mass function shape, not merger history
 - Excellent agreement with N-body measurements
 

@@ -1,6 +1,6 @@
 # Ajello et al. (2012) — FSRQ Luminosity Function
 
-**Authors:** M. Ajello, R. W. Romani, D. Gasparrini, et al.
+**Authors:** M. Ajello, M. S. Shaw, R. W. Romani, C. D. Dermer, L. Costamante, et al.
 **Journal:** ApJ 751(2), 108
 **arXiv:** [1110.3787](https://arxiv.org/abs/1110.3787)
 
@@ -27,8 +27,10 @@ Determines the gamma-ray luminosity function of flat-spectrum radio quasars (FSR
 **LDDE double power-law:**
 $$\frac{d\Phi}{d\log_{10} L} = \frac{A}{(L/L_c)^{\gamma_1} + (L/L_c)^{\gamma_2}}$$
 
-**Piecewise evolution:**
-$$e(z,L) = \begin{cases} [(1+z)/(1+z_c)]^{p_1} & z \le z_c(L) \\ [(1+z)/(1+z_c)]^{p_2} & z > z_c(L) \end{cases}$$
+**Smooth inverse-sum evolution (Eq. 15):**
+$$e(z,L) = \left[\left(\frac{1+z}{1+z_c}\right)^{p_1} + \left(\frac{1+z}{1+z_c}\right)^{p_2}\right]^{-1}$$
+
+*Note: The paper explicitly states this parametrization is "continuous around the redshift peak" (unlike a piecewise form). This is the same functional form as Ajello+(2014) for BL Lacs.*
 
 **Luminosity-dependent peak:** $z_c(L) = z_c^* (L/10^{48})^\alpha$
 
@@ -50,4 +52,6 @@ $$e(z,L) = \begin{cases} [(1+z)/(1+z_c)]^{p_1} & z \le z_c(L) \\ [(1+z)/(1+z_c)]
 
 ## Implementation
 
-**Module:** `astro_sources.py` — `_FSRQ_PARAMS`, `_glf_FSRQ()`, piecewise evolution form. Parameters taken directly from Table 3.
+**Module:** `astro_sources.py` — `_FSRQ_PARAMS`, `_glf_FSRQ()`. Parameters taken directly from Table 3.
+
+**Pipeline discrepancy:** The pipeline uses `evolution_form='piecewise'` for FSRQ, but the paper's Eq. 15 is a smooth inverse-sum — the same form as Ajello+(2014) for BL Lacs. Pinetti (2022) Eq. C.4 also uses the smooth form for both. The pipeline's piecewise form is incorrect relative to both sources.

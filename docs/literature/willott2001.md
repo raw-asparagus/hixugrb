@@ -12,7 +12,7 @@ Derives the radio luminosity function (RLF) from the combined 3CRR, 6CE, and 7CR
 
 - 151 MHz steep-spectrum radio luminosity function
 - Two-component model: low-power (FRI-like) + high-power (FRII/quasar-like)
-- Assumes **H₀ = 50 km/s/Mpc, Ω_M = 1, Ω_Λ = 0** (Einstein–de Sitter cosmology)
+- Assumes **H₀ = 50 km/s/Mpc, Ω_M = 0, Ω_Λ = 0** (open/empty cosmology). Note: the pipeline uses Model C with Ω_M = 0 (Table 1, second row), not the Ω_M = 1 (Einstein–de Sitter) row, following [Di Mauro+ (2014)](dimauro2014.md).
 
 ## Key Results Used in This Pipeline
 
@@ -52,7 +52,7 @@ where:
 | $k$ / $z_\star$ | $k_l = 3.48$, $z_{l\star} = 0.710$ | $z_{h\star} = 2.03$ | — |
 | $z_{h0}$ | — | 0.568 / 0.956 | — |
 
-**Important:** All densities are in the Willott cosmology (H₀ = 50, Ω_M = 1). A comoving volume correction factor η is required to convert to Planck 2018 cosmology.
+**Important:** All densities are in the Willott cosmology (H₀ = 50, Ω_M = 0). A comoving volume correction factor η(z) = (d_C^W/d_C)² × (H/H_W) is required to convert to Planck 2018 cosmology.
 
 ## Implementation
 
