@@ -271,8 +271,8 @@ This document compares every substantive physical claim, equation, model choice,
 |---|-------------------|----------------|------------------------|--------|
 | 3.1 | Model | Semi-analytic, Ref. [362] = **Correa et al. (2015)** (Eq. 3.35–3.36) | **Correa et al. (2015)** (sole implementation) | **Match** |
 | 3.2 | Functional form | log₁₀ c₂₀₀ = α + β log₁₀(M₂₀₀/M☉) [1 + γ (log₁₀ M₂₀₀/M☉)²] | Same parametric form | **Match** |
-| 3.3 | Redshift-dependent coefficients (α,β,γ) | Eq. 3.36: α=1.627−0.246(1+z)+0.0172(1+z)², etc. | Implemented in `concentration_correa()` | **Match** |
-| 3.4 | c₂₀₀ → c_vir conversion | Eqs. 3.38–3.41: linear mapping cvir = a·c₂₀₀ + b | Implemented | **Match** |
+| 3.3 | Redshift-dependent coefficients (α,β,γ) | Eq. 3.36: α=1.627−0.246(1+z)+0.0172(1+z)², etc. | Implemented in `concentration_correa()` with **different coefficients** (Planck fit: α=1.754−0.277(1+z)+0.020(1+z)², etc.) | **Partial** — Functional form matches; coefficient values differ (thesis vs Planck cosmology fit from the same Correa et al. 2015 paper) |
+| 3.4 | c₂₀₀ → c_vir conversion | Eqs. 3.38–3.41: linear mapping cvir = a·c₂₀₀ + b | **Not implemented** — code uses c₂₀₀ directly | **Differs** — Pipeline works entirely in the M₂₀₀ definition; no conversion to virial quantities |
 
 ## 4. Halo Bias
 
@@ -476,6 +476,8 @@ This document compares every substantive physical claim, equation, model choice,
 | # | Item | Nature of Difference | Impact |
 |---|------|---------------------|--------|
 | 2.3 | SMT q parameter | Code: 0.707 vs Thesis: 0.75 | **Low** — both are common in literature; ~5% effect on mass function tails |
+| 3.3 | Correa concentration coefficients | Code: Planck-fit (α=1.754…) vs Thesis: different cosmology fit (α=1.628…) | **Low–Medium** — both from Correa et al. (2015); pipeline uses Planck-consistent fit |
+| 3.4 | c₂₀₀ → c_vir conversion | Code: not performed (uses c₂₀₀ directly) vs Thesis: explicit conversion (Eqs. 3.38–3.41) | **Low** — c₂₀₀ ≈ c_vir for Δ_vir ≈ 200 at low z |
 | 5.3 | ṽ(k) normalization | Different convention (unnormalized vs /M) | **None** — absorbed into Δ² normalization; results identical |
 | 11.2 | DM photon spectra source | Code: PPPC4DMID (public) vs Thesis: private Pythia code | **Low** — both Pythia-based; differences at percent level |
 | 17.2 | Limber k substitution | Code: (ℓ+½)/χ vs Thesis: ℓ/χ | **Low** — code is more accurate at low ℓ; improvement over thesis |

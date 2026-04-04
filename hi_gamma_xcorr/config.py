@@ -101,7 +101,7 @@ ASTRO_SOURCES = {
     'SFG': {
         'alpha': 2.7,
         'L_min': 1e37,
-        'L_max': 1e44,
+        'L_max': 1e42,
         'glf_ref': 'Gruppioni+2013',
     },
 }
@@ -305,7 +305,7 @@ RADIO_TELESCOPES = {
 
 # Radio system temperature model: T_sys = T_inst + T_sky
 # T_sky = 60 * (300 MHz / nu)^2.55  [K]
-# T_inst ~ 20 K (approximate; absorbed into the T_sys formula below)
+# T_inst ~ 30 K (hardcoded constant in noise_model.T_sys)
 T_SKY_COEFF = 60.0             # [K]
 T_SKY_NU_REF = 300.0           # [MHz]
 T_SKY_INDEX = 2.55
