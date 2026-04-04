@@ -97,7 +97,7 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | $\rho_s = M/(4\pi r_s^3 f(c))$, $f(c) = \ln(1+c) - c/(1+c)$ | Standard NFW; thesis Eq. 3.24 | `dm_model.py:_rho_s` line 19 | Same | **Match** | |
 | $r_s = R_{\rm vir}/c$, $c$ from Correa (2015) | Thesis Sec. 3.3 | `_rho_s` calls `hm.concentration` | Thesis Correa coefficients via `concentration_correa_thesis` (not yet wired into `_rho_s`) | **Match** | Default is `concentration_correa` via `c200_to_cvir` |
 | $\int 4\pi r^2 \rho^2 dr = \frac{4\pi}{3}\rho_s^2 r_s^3[1 - 1/(1+c)^3]$ | Analytic NFW result | `rho2_integral_analytic` line 33 | Same | **Match** | Verified: $\int_0^c (1+x)^{-4} dx = \frac{1}{3}[1-(1+c)^{-3}]$ |
-| $\tilde{v}(k|M) = (4\pi/\bar\rho^2)\int r^2 \rho^2 \sin(kr)/(kr) dr$ | Thesis Eq. 5.1 implicit | `v_tilde` line 54 | Same | **Match** | Normalization: $\tilde{v}(k\to 0) = \int\rho^2 d^3x / \bar\rho^2$ |
+| $\tilde{v}(k \mid M) = (4\pi/\bar\rho^2)\int r^2 \rho^2 \sin(kr)/(kr) dr$ | Thesis Eq. 5.1 implicit | `v_tilde` line 54 | Same | **Match** | Normalization: $\tilde{v}(k\to 0) = \int\rho^2 d^3x / \bar\rho^2$ |
 | $\tilde{v}$ numerical: $r_{\rm min} = 10^{-6} r_s$ | Implementation | line 87 | Same | **Match** | Negligible error: $\rho^2 r^2 \to 0$ as $r\to 0$ |
 | Concentration below $10^{-2}\,M_\odot$ | Correa valid to $\sim 10^{-2}\,M_\odot$ | Code evaluates at $\sim 10^{-4}\,M_\odot/h$ | Same | **Investigate** | Smooth extrapolation but unvalidated |
 
@@ -111,9 +111,9 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | Coefficients from Table 3, $\alpha=2$, tidal stripping | Moline Table 3 | `config.py:MOLINE_BOOST_COEFFS` line 121 | Same | **Match** | $[-0.186, 0.144, -8.8\times10^{-3}, 1.13\times10^{-3}, -3.7\times10^{-5}, -2\times10^{-7}]$ |
 | $B(M,z) = B(M,z{=}0)/(1+z)$ | Moline thesis Eq. 3.48 | line 134 | Same | **Match** | |
 | Polynomial argument in $M_\odot$ (not $M_\odot/h$) | Moline: masses in physical $M_\odot$ | `M_solar = M * cfg.h` line 115 | Same | **Investigate** | See Section 0. Consistent with `concentration_correa` but inconsistent with `v_circ` |
-| Valid range: $10^{-6} < M\,[M_\odot] < 10^{15}$ | Moline Sec. 3.2 | `np.clip(M_solar, 1e-6, 1e15)` line 126 | Same | **Match** | |
+| Valid range: $10^{-6} \lt M\,[M_\odot] \lt 10^{15}$ | Moline Sec. 3.2 | `np.clip(M_solar, 1e-6, 1e15)` line 126 | Same | **Match** | |
 | Output clipped to $[0, 1000]$ | Not in literature | `np.clip(B, 0.0, 1000.0)` line 139 | Same | **Differs** | Numerical safety; $B$ never reaches 1000 in practice |
-| Conservative: $B=0$ for $M < 10^7\,M_\odot$ | Pipeline design | lines 118--123 | Same | **Match** | |
+| Conservative: $B=0$ for $M \lt 10^7\,M_\odot$ | Pipeline design | lines 118--123 | Same | **Match** | |
 | `optimistic` distinct from `intermediate` | Pipeline docs (line 159) | Both map to $M_{\rm min,sub} = 10^{-6}$ (line 175) | Same | **Bug** | Documented as having "enhanced substructure" but not implemented |
 
 ---
@@ -188,7 +188,7 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | $I_{\rm DM} = \int (dn/dM)\,b\,\tilde{v}/\Delta^2\,dM$ | Eq. 5.1 | lines 48, 53 | Would use $q=0.75$ bias | **Match** | $\tilde{v}/\Delta^2$ is the correct normalization |
 | $I_{\rm HI} = \int (dn/dM)\,b\,\tilde{u}_{\rm HI}\,M_{\rm HI}/\bar\rho_{\rm HI}\,dM$ | Eq. 5.2 | line 50 | Would use $q=0.75$ bias | **Match** | |
 | Mass range: HI-relevant | $M_{\rm HI} = 0$ outside $[10^8, 10^{16}]$ | lines 34--35 | Same | **Match** | |
-| Limber $k = (\ell+1/2)/\chi$ | LoVerde & Afshordi (2008) | line 163 | $k = \ell/\chi$ via `pinetti2022.limber_k()` | **Differs** | Pipeline improvement; ~5% at $\ell=10$, negligible at $\ell>100$ |
+| Limber $k = (\ell+1/2)/\chi$ | LoVerde & Afshordi (2008) | line 163 | $k = \ell/\chi$ via `pinetti2022.limber_k()` | **Differs** | Pipeline improvement; ~5% at $\ell=10$, negligible at $\ell \gt 100$ |
 | $d\chi/dz = c \cdot h / H(z)$ in [Mpc/h] | Standard | line 155 | Same | **Match** | |
 
 ---
@@ -198,10 +198,10 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | # | Item | Method | Pipeline (Pinetti 2022) | Impact |
 |---|------|--------|------------------------|--------|
 | C1 | $\rho^2$ volume integral | Analytic formula | Same | Exact |
-| C2 | $\tilde{v}(k|M)$ Fourier transform | Numerical quadrature (`scipy.quad`, epsrel=1e-5) | Same | Accurate; performance bottleneck |
+| C2 | $\tilde{v}(k \mid M)$ Fourier transform | Numerical quadrature (`scipy.quad`, epsrel=1e-5) | Same | Accurate; performance bottleneck |
 | C3 | $\Delta^2(z)$ mass integral | Rectangle rule, 200 points, $d\ln M$ | Same | Adequate (~1% accuracy) |
 | C4 | $C_\ell$ Limber redshift integral | Rectangle rule, uniform grid ($n_z=200$) | Same | Sub-percent accuracy |
-| C5 | Cross/auto power spectra | 2-halo term only | Same | Justified at $\ell < 1000$ |
+| C5 | Cross/auto power spectra | 2-halo term only | Same | Justified at $\ell \lt 1000$ |
 | C6 | PPPC4DMID | Public tables (thesis used private Pythia) | Same (Pythia unavailable) | Percent-level, irreducible |
 | C7 | Mass limits in $\Delta^2$ | Clamped to $[10^{-4}, 10^{17}]$ vs config $[10^{-6}, 10^{18}]$ | Same | Few-% underestimate |
 

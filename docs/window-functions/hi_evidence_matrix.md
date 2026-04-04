@@ -81,7 +81,7 @@ This document audits every equation, model choice, parameter value, and computat
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
 | $\tilde{u}_{\rm HI} = (4\pi/M_{\rm HI})\int_0^{R_{\rm vir}} r^2 \rho_{\rm HI} \sin(kr)/(kr)\,dr$ | Thesis Eq. 4.11 | `hi_model.py:u_HI(k,M,z)` lines 102–132 | Same | **Match** | No analytic FT exists for modified NFW; numerical quadrature is the correct approach |
-| $\tilde{u}_{\rm HI}(k\to0) = 1$ normalization | Standard convention | `u_HI` returns 1.0 for $k < 10^{-10}$ | Same | **Match** | |
+| $\tilde{u}_{\rm HI}(k\to0) = 1$ normalization | Standard convention | `u_HI` returns 1.0 for $k \lt 10^{-10}$ | Same | **Match** | |
 | Numerical integration: `scipy.quad`, `epsrel=1e-6`, `limit=200` | N/A (computational choice) | `hi_model.py:129` | Same | Appropriate | Expensive but accurate |
 
 ### 3.5 Mean HI density
@@ -145,7 +145,7 @@ This document audits every equation, model choice, parameter value, and computat
 | C2 | $P_{\rm HI}^{\rm 1h/2h}$ mass integral | Rectangle rule over log-spaced grid (n_M=160, 8 decades) | Same | ~1% accuracy. Comment at `hi_model.py:238` says "trapezoidal" but is actually rectangle rule |
 | C3 | $\bar\rho_{\rm HI}$, $b_{\rm HI}$ mass integrals | Adaptive quadrature (`scipy.quad`, epsrel=1e-5) | Same | High accuracy |
 | C4 | $C_\ell$ Limber redshift integral | Rectangle rule, uniform grid ($n_z=200$) | Same | Sub-percent accuracy |
-| C5 | Cross/auto power spectra | 2-halo term only (1-halo omitted) | Same | Justified at $\ell < 1000$ |
+| C5 | Cross/auto power spectra | 2-halo term only (1-halo omitted) | Same | Justified at $\ell \lt 1000$ |
 | C6 | hmf transfer function | Eisenstein-Hu (no-wiggle) vs CAMB for $P_{\rm lin}$ | Same | ~2–3% inconsistency in $\sigma(M)$. BAO wiggles absent but smoothed out by $\sigma$ integration |
 
 ---

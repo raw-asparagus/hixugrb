@@ -303,7 +303,7 @@ This document compares every substantive physical claim, equation, model choice,
 
 | # | Claim / Parameter | Pinetti (2022) | Code (`dm_model.py`) | Pipeline (Pinetti 2022) | Status |
 |---|-------------------|----------------|----------------------|-------------------------|--------|
-| 7.1 | Definition | Δ²(z) = ⟨ρ²⟩/ρ̄² = ∫ (dn/dM) ∫ ρ²(x|M) d³x / ρ̄² dM (Eq. 3.61) | `clumping_factor(z)` — same integral | — | **Match** |
+| 7.1 | Definition | Δ²(z) = ⟨ρ²⟩/ρ̄² = ∫ (dn/dM) ∫ ρ²(x∣M) d³x / ρ̄² dM (Eq. 3.61) | `clumping_factor(z)` — same integral | — | **Match** |
 | 7.2 | Substructure inclusion | Replace ρ² → (1+B)ρ² (Eq. 3.62) | Same replacement | — | **Match** |
 
 ## 8. Power Spectrum Decomposition (1-halo / 2-halo)

@@ -101,7 +101,7 @@ $$\boxed{\Phi_\gamma^{\rm mAGN}(L_\gamma, z) = \frac{k\,\eta(z)}{(1+z)^{2-\Gamma
 | $(1+z)^{-(2-\Gamma)}$ | $(1+z)^{+0.37}$ | K-correction (observed-to-rest-frame energy shift) |
 | $\eta(z)$ | (Layer 3) | Cosmology volume correction |
 | $\rho_r/(\ln 10\,L_{151})$ | (Layer 2) | Converts $d\Phi/d\log_{10}L$ → $d\Phi/dL$ |
-| $|dL_{151}/dL_\gamma|$ | (Layer 4) | Variable-change Jacobian |
+| $\lvert dL_{151}/dL_\gamma \rvert$ | (Layer 4) | Variable-change Jacobian |
 
 **Implementation:** `astro_sources.py:_glf_mAGN()`.
 

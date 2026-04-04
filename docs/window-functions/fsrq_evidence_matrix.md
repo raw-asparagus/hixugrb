@@ -60,7 +60,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Evolution form: smooth inverse-sum (continuous around peak) | Ajello+ (2012) Eq. 15: $[r^{p_1}+r^{p_2}]^{-1}$ with $p_1>0, p_2<0$ | `_ldde_glf` line 422: $[r^{-p_1}+r^{-p_2}]^{-1}$ | Same | **Differs** (sign convention) | **Sign convention differs between Ajello and Pinetti.** Pipeline follows Pinetti thesis Eq. C.4 convention (negative exponents). With the same $(p_1,p_2)$ values, the two forms give **numerically different** evolution profiles. See `pinetti2022_evidence_matrix.md` D12 |
+| Evolution form: smooth inverse-sum (continuous around peak) | Ajello+ (2012) Eq. 15: $[r^{p_1}+r^{p_2}]^{-1}$ with $p_1 \gt 0, p_2 \lt 0$ | `_ldde_glf` line 422: $[r^{-p_1}+r^{-p_2}]^{-1}$ | Same | **Differs** (sign convention) | **Sign convention differs between Ajello and Pinetti.** Pipeline follows Pinetti thesis Eq. C.4 convention (negative exponents). With the same $(p_1,p_2)$ values, the two forms give **numerically different** evolution profiles. See `pinetti2022_evidence_matrix.md` D12 |
 | $r = (1+z)/(1+z_c(L))$ | Standard definition | Line 414 | Same | **Match** | |
 | Peaks at $r=1$ (i.e., $z=z_c$) with $e=0.5$ | Both conventions | Verified analytically | Same | **Match** | |
 | Low-z and high-z suppression | Both conventions | Verified analytically | Same | **Match** | |
@@ -163,7 +163,7 @@ Neither affects the FSRQ window function $W_\gamma^{\rm FSRQ}(z)$ itself — onl
 | LDDE formula structure | Double power-law in L ✓; $z_c(L)$ luminosity dependence ✓; inverse-sum evolution ✓ |
 | Peak behavior at $r=1$ | Both Ajello and Pinetti forms give $e(r=1)=1/2$ ✓ |
 | Asymptotic behavior | Both forms → 0 as $r\to 0$ or $r\to\infty$ ✓ |
-| Sign of evolution exponents | $p_1>0, p_2<0$ both in Ajello and pipeline ✓ |
+| Sign of evolution exponents | $p_1 \gt 0, p_2 \lt 0$ both in Ajello and pipeline ✓ |
 | Spectral index $\alpha=2.44$ | Matches Pinetti+ (2020) Table 3 and Ajello+ (2012) $\mu$ ✓ |
 | L integration range | $[10^{44}, 10^{52}]$ erg/s matches Pinetti thesis Table 3.1 ✓ |
 | Blazar convention for bias | Fixed $10^{13}\,M_\odot$ matches Pinetti framework (same as BL Lac) ✓ |

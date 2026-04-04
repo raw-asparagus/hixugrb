@@ -51,7 +51,7 @@ This document compares every equation, model choice, and parameter value documen
 | 2.6 | $\log_{10}c = \alpha + \beta\log_{10}(M/M_\odot)[1+\gamma(\log_{10}M/M_\odot)^2]$; Correa et al. (2015) Planck coefficients | Eqs. 3.35–3.36 (p.99): same functional form but **different coefficients** | `concentration_correa` with Planck Appendix B1 coefficients | Thesis coefficients via `pinetti2022.concentration_correa_thesis()` | **Match** (thesis) |
 | 2.6+ | $c_{200} \to c_\text{vir}$ conversion | Eqs. 3.38–3.41 (p.99): linear mapping $c_\text{vir} = a\,c_{200} + b$ with $\Delta_\text{vir}$-dependent coefficients | `c200_to_cvir()` implemented | Same | **Match** |
 | 2.7 | $f(c) = \ln(1+c) - c/(1+c)$ | Eq. 3.43 (p.101) | `_f_nfw(c)` | Same | **Match** |
-| 2.8 | $\tilde u(k|M)$: analytic NFW FT with Si, Ci functions | Eq. 3.45 (p.101) | `u_nfw(k, M, z)` | Same | **Match** |
+| 2.8 | $\tilde u(k \mid M)$: analytic NFW FT with Si, Ci functions | Eq. 3.45 (p.101) | `u_nfw(k, M, z)` | Same | **Match** |
 
 ---
 
@@ -65,7 +65,7 @@ This document compares every equation, model choice, and parameter value documen
 | 3.2 | $c_\text{HI} = 4\,c_{HI,0}(1+z)^{-\gamma}(M/10^{11}M_\odot)^{-0.109}$; $c_{HI,0}=139$, $\gamma=0.13$ | Eq. 4.10 (p.114) | `c_HI(M, z)` | Same | **Match** |
 | 3.3 | $\rho_\text{HI}(r) = \rho_0 r_s^3/[(r+0.75r_s)(r+r_s)^2]$ (modified NFW) | Eq. 4.8 (p.114) | Same profile | Same | **Match** |
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}} 4\pi r^2 \rho_\text{HI}\,dr = M_\text{HI}$ | Eq. 4.9 (p.114) | `rho0_HI` | Same | **Match** |
-| 3.5 | $\tilde u_\text{HI}(k|M) = (4\pi/M_\text{HI})\int_0^{R_\text{vir}} r^2 \rho_\text{HI} \sin(kr)/(kr)\,dr$ | Eq. 4.11 (p.114) | `u_HI(k, M, z)` | Same | **Match** |
+| 3.5 | $\tilde u_\text{HI}(k \mid M) = (4\pi/M_\text{HI})\int_0^{R_\text{vir}} r^2 \rho_\text{HI} \sin(kr)/(kr)\,dr$ | Eq. 4.11 (p.114) | `u_HI(k, M, z)` | Same | **Match** |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int (dn/dM) M_\text{HI}\,dM$ | Eq. 4.5 (p.114) | `rho_HI_mean(z)` | Same | **Match** |
 | 3.7 | $\Omega_\text{HI}(z) = (1+z)^{-3}\bar\rho_\text{HI}/\rho_c$ | Eq. 4.6 (p.114) | `Omega_HI(z)` — computed from integral | Fixed $2.45\times10^{-4}$ | **Match** (thesis) |
 | 3.8 | $\bar T_b = 188\,h\,\Omega_\text{HI}(z)(1+z)^2/E(z)$ mK | Thesis uses $T_\text{obs} = 44\,\mu\text{K}\times(\Omega_\text{HI}h/2.45\times10^{-4})\times(1+z)^2/E(z)$ (p.122) | `T_bar_b(z)` | $44\,\mu$K via `pinetti2022.T_bar_b_thesis()` | **Match** (thesis) |
@@ -82,7 +82,7 @@ This document compares every equation, model choice, and parameter value documen
 |-----|-------------------|-----------------|----------|-------------------------|--------|
 | 4.1 | $\rho_s = M/[4\pi r_s^3 f(c)]$ | Eq. 3.43 (p.101) | `_rho_s(M, z)` | Same | **Match** |
 | 4.2 | $\int_0^{R_\text{vir}} 4\pi r^2 \rho_\text{NFW}^2\,dr = (4\pi/3)\rho_s^2 r_s^3[1-(1+c)^{-3}]$ | Analytic result implied by Eq. 3.46 (p.101) | `rho2_integral_analytic` | Same | **Match** |
-| 4.3 | $\tilde v(k|M) = (4\pi/\bar\rho_m^2)\int_0^{R_\text{vir}} r^2 \rho^2 \sin(kr)/(kr)\,dr$ | Eq. 3.46 (p.101): $\tilde\nu(k) = \int_0^{R_\text{vir}} (4\pi r^2/M) \rho^2 \sin(kr)/(kr)\,dr$ | `v_tilde(k, M, z)` | Same | **Partial** — Thesis normalizes by $M$; pipeline uses unnormalized $\tilde v = \int \rho^2 d^3x \times \sin(kr)/(kr)$. Consistent when combined with $\Delta^2$ normalization |
+| 4.3 | $\tilde v(k \mid M) = (4\pi/\bar\rho_m^2)\int_0^{R_\text{vir}} r^2 \rho^2 \sin(kr)/(kr)\,dr$ | Eq. 3.46 (p.101): $\tilde\nu(k) = \int_0^{R_\text{vir}} (4\pi r^2/M) \rho^2 \sin(kr)/(kr)\,dr$ | `v_tilde(k, M, z)` | Same | **Partial** — Thesis normalizes by $M$; pipeline uses unnormalized $\tilde v = \int \rho^2 d^3x \times \sin(kr)/(kr)$. Consistent when combined with $\Delta^2$ normalization |
 | 4.4a | $\log_{10}B(M,z{=}0) = \sum_{i=0}^{5} b_i [\log_{10}(M/M_\odot)]^i$ (Moliné+ 2017) | Eq. 3.47 (p.101) | `boost_moline` | Same | **Match** |
 | — | $d_0{=}{-}0.186$, $d_1{=}0.144$, $d_2{=}{-}8.8{\times}10^{-3}$, $d_3{=}1.13{\times}10^{-3}$, $d_4{=}{-}3.7{\times}10^{-5}$, $d_5{=}{-}2{\times}10^{-7}$ | Same values (p.101) | Same values | Same | **Match** |
 | 4.4b | $B(M,z) = B(M,0)/(1+z)$ | Eq. 3.48 (p.101) | Same | Same | **Match** |
@@ -103,7 +103,7 @@ This document compares every equation, model choice, and parameter value documen
 | 5.1 | $L_\text{sens}(z) = 4\pi d_L^2 F_\text{sens}$; $F_\text{sens} = 10^{-10}$ cm⁻²s⁻¹ | Eqs. 3.75–3.76 (p.108) | `L_sens(z)` | Same | **Match** |
 | 5.2 | $d\Phi/d\log_{10}L = A/[(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}]$ | Eq. C.2 (p.209): same form (with additional Gaussian in Γ, set to 1 by assuming Γ=μ★) | `_ldde_glf` | Same | **Match** |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Text after Eq. C.4 (p.210): $z_c = z_\star(L/10^{48})^\beta$ | `_ldde_glf` | Same | **Match** |
-| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z \le z_c$, $^{p_2}$ for $z > z_c$ (FSRQ) | **Not in thesis** — thesis uses Eq. C.4 (ldde_inv) for both BL Lac and FSRQ | `_ldde_glf` with `evolution_form='piecewise'` | Same | **Differs** — Thesis (p.210) states: "BL Lacs and FSRQs exhibit the same functional form for the GLF" and uses Eq. C.4 for both. Pipeline correctly uses piecewise for FSRQ per the original [Ajello+ (2012)](literature/ajello2012.md). **Thesis appears to be in error here.** See [§ Summary](#summary-of-differences) |
+| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z \le z_c$, $^{p_2}$ for $z \gt z_c$ (FSRQ) | **Not in thesis** — thesis uses Eq. C.4 (ldde_inv) for both BL Lac and FSRQ | `_ldde_glf` with `evolution_form='piecewise'` | Same | **Differs** — Thesis (p.210) states: "BL Lacs and FSRQs exhibit the same functional form for the GLF" and uses Eq. C.4 for both. Pipeline correctly uses piecewise for FSRQ per the original [Ajello+ (2012)](literature/ajello2012.md). **Thesis appears to be in error here.** See [§ Summary](#summary-of-differences) |
 | 5.5 | LDDE inverse-sum: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$ (BL Lac) | Eq. C.4 (p.210) | `_ldde_glf` with `evolution_form='ldde_inv'` | Same | **Match** |
 | 5.6 | $W_\gamma^\text{astro} = \frac{1}{4\pi(1+z)^2}\int \Phi(L,z)\frac{L}{E_\text{GeV\to erg}\,I_\alpha}E_\text{rest}^{-\alpha}\,dL$ | Eq. 5.15 (p.122) via Eqs. 3.65–3.70 (p.107–108) | `W_gamma_astro` | Same | **Match** |
 
@@ -142,7 +142,7 @@ This document compares every equation, model choice, and parameter value documen
 | 5.8 | $\log L_\text{core}^{5\text{GHz}} = 4.2 + 0.77\log L_\text{tot}^{1.4\text{GHz}}$ | Eq. C.14 (p.211) | Same | Same | **Match** |
 | 5.9 | $L_r^{1.4\text{GHz}} = L_r^{151\text{MHz}}\times(1400/151)^{-0.80}$ | Eq. C.15 (p.211): $\alpha_r = 0.80$ | Same | Same | **Match** |
 | 5.10 | $\log L_\gamma = 2.0 + 1.008\log L_\text{core}^{5\text{GHz}}$ | Eq. C.13 (p.211) | Same | Same | **Match** |
-| 5.11 | $\phi_\gamma = k\eta(1+z)^{-(2-\Gamma)}\frac{1}{\ln(10)L_{151}}\left|\frac{dL_{151}}{dL_\gamma}\right|\rho_r$; $k{=}3.05$, $\Gamma{=}2.37$ | Eq. C.19 (p.211–212) | `_glf_mAGN` | Same | **Match** |
+| 5.11 | $\phi_\gamma = k\eta(1+z)^{-(2-\Gamma)}\frac{1}{\ln(10)L_{151}}\left\lvert\frac{dL_{151}}{dL_\gamma}\right\rvert\rho_r$; $k{=}3.05$, $\Gamma{=}2.37$ | Eq. C.19 (p.211–212) | `_glf_mAGN` | Same | **Match** |
 | — | Willott cosmology correction $\eta = d^2V_W/(dz\,d\Omega) \;/\; d^2V/(dz\,d\Omega)$ | Eqs. C.16–C.18 (p.211) | `_willott_volume_correction` | Same | **Match** |
 
 ### mAGN Halo Mass Relation
@@ -175,7 +175,7 @@ This document compares every equation, model choice, and parameter value documen
 | Eq. | Claim / Equation | Thesis Reference | Pipeline | Pipeline (Pinetti 2022) | Status |
 |-----|-------------------|-----------------|----------|-------------------------|--------|
 | 5.14 | $\log_{10}L_\gamma = 1.09\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | Eq. C.27 (p.213) | `_L_IR_from_Lgamma` | Same | **Match** |
-| 5.15 | $\phi_\gamma = \phi_\text{IR}\,|d\log L_\text{IR}/d\log L_\gamma|/(L_\gamma\ln10)$ | Eq. C.28 (p.213) | `_glf_SFG` | Same | **Match** |
+| 5.15 | $\phi_\gamma = \phi_\text{IR}\,\lvert d\log L_\text{IR}/d\log L_\gamma \rvert/(L_\gamma\ln10)$ | Eq. C.28 (p.213) | `_glf_SFG` | Same | **Match** |
 | — | $M(L) = 10^{12}M_\odot(1+z)^{-1.61}(L/6.8\times10^{39})^{0.92}$ | Eq. C.29 (p.213) | Same | Same | **Match** |
 
 ### Spectral Indices
@@ -306,7 +306,7 @@ This document compares every equation, model choice, and parameter value documen
 | 1 | **FSRQ evolution form** | LDDE inverse-sum Eq. C.4 (p.210) for both BL Lac and FSRQ | `ldde_inv` for both FSRQ and BL Lac | Same | **Fixed** — pipeline previously used piecewise for FSRQ, but [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 uses the smooth inverse-sum (paper: "continuous around the redshift peak"). Now matches both paper and thesis. | **Resolved** |
 | 2 | **Correa concentration coefficients** | Eq. 3.36 (p.99): α=1.628, β=1.661, γ=−0.020 | α=1.754, β=0.275, γ=−0.015 (Planck fit) | Thesis coefficients via `pinetti2022.concentration_correa_thesis()` | Different cosmology fits from the same Correa et al. (2015) paper | **Low–Medium** — affects halo concentrations; pipeline uses the Planck cosmology–consistent fit |
 | 3 | **c₂₀₀→c_vir conversion** | Eqs. 3.38–3.41 (p.99): explicit conversion with $\Delta_\text{vir}$-dependent coefficients | `c200_to_cvir()` implemented | Same | **Resolved** — `c200_to_cvir()` implemented | **Resolved** |
-| 4 | **SFG SF-AGN $k_{R2}$** | Table C.2 (p.213): $k_{R2} = 3.17$ (positive) | $k_{R2} = -3.17$ (negative) | $-3.17$ (thesis typo; follows original paper) | **Thesis typo** — pipeline matches the original [Gruppioni+ (2013)](literature/gruppioni2013.md) value | **Medium** — wrong sign would cause unphysical density evolution at $z>1.1$ |
+| 4 | **SFG SF-AGN $k_{R2}$** | Table C.2 (p.213): $k_{R2} = 3.17$ (positive) | $k_{R2} = -3.17$ (negative) | $-3.17$ (thesis typo; follows original paper) | **Thesis typo** — pipeline matches the original [Gruppioni+ (2013)](literature/gruppioni2013.md) value | **Medium** — wrong sign would cause unphysical density evolution at $z \gt 1.1$ |
 | 5 | **$\Omega_\text{HI}$ treatment** | Fixed: $2.45\times10^{-4}$ (p.122) | Computed from $\int (dn/dM) M_\text{HI}\,dM$ (z-dependent) | Fixed $2.45\times10^{-4}$ | Pipeline is more physical; thesis acknowledges factor-of-2 possible variation | **Low** — few-percent difference in $T_b$ and $W_\text{HI}$ |
 | 6 | **SMT $q$ parameter** | $q = 0.75$ (Eq. 3.33, p.98) | $q = 0.707$ | $q = 0.75$ via `pinetti2022.bias_pinetti()` | Both values used in literature (ST99 vs ST02) | **Low** — ~5% effect on mass function tails |
 | 7 | **DM photon spectra** | Private Pythia code (p.123) | PPPC4DMID public tables | Same (public tables; private Pythia unavailable) | Both Pythia-based | **Low** — percent-level differences |

@@ -26,7 +26,7 @@ This document audits every equation, model choice, parameter value, and computat
 | Low-power form: power-law × exp cutoff × density evolution | Willott Eq. for $\rho_l$; Di Mauro Eq. C.10 | Lines 124-129 | Same | **Match** | |
 | Low-power frozen at $z \ge z_{l\star}$ | Willott (2001) text | Line 129: `(1+Z_L_STAR)^K_L` | Same | **Match** | |
 | High-power form: power-law × inverse-exp cutoff × Gaussian | Willott Eqs. for $\rho_h$; Di Mauro Eqs. C.11-C.12 | Lines 131-139 | Same | **Match** | |
-| High-power Gaussian width z-dependent | Willott (2001) | Lines 134-137: `z_h0 = 0.568` if $z<z_{h\star}$, else `0.956` | Same | **Match** | |
+| High-power Gaussian width z-dependent | Willott (2001) | Lines 134-137: `z_h0 = 0.568` if $z \lt z_{h\star}$, else `0.956` | Same | **Match** | |
 | $\rho_{l\star} = 10^{-7.523}$ Mpc⁻³ | Willott Table 1 | `WILLOTT_RHO_L_STAR` | Same | **Match** | |
 | $\beta_l = 0.586$ | Willott Table 1 | `WILLOTT_BETA_L` | Same | **Match** | |
 | $L_{l\star} = 10^{26.48}$ W/Hz | Willott Table 1 | `WILLOTT_L_L_STAR` | Same | **Match** | |
@@ -74,7 +74,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Full assembly formula $\phi_\gamma = k\eta(1+z)^{-(2-\Gamma)}\rho_r/(\ln 10\,L_{151})\,|dL_{151}/dL_\gamma|$ | Di Mauro+ (2014) Eq. C.19 | `_glf_mAGN` lines 240-242 | Same | **Match** | |
+| Full assembly formula $\phi_\gamma = k\eta(1+z)^{-(2-\Gamma)}\rho_r/(\ln 10\,L_{151})\,\lvert dL_{151}/dL_\gamma \rvert$ | Di Mauro+ (2014) Eq. C.19 | `_glf_mAGN` lines 240-242 | Same | **Match** | |
 | Beaming factor $k = 3.05$ | Di Mauro+ (2014) | `DIMAURO_K = 3.05` | Same | **Match** | |
 | Mean photon index $\Gamma = 2.37$ | Pinetti+ (2020) Table 3 | `ASTRO_SOURCES['mAGN']['alpha'] = 2.37` | Same | **Match** | |
 | K-correction $(1+z)^{-(2-\Gamma)} = (1+z)^{0.37}$ | Di Mauro+ (2014) Eq. C.19 | Line 238: `(1+z)**(2-Gamma)` | Same | **Match** | |
@@ -167,7 +167,7 @@ None of these affect the mAGN window function $W_\gamma^{\rm mAGN}(z)$ itself �
 |---------|-----------|
 | Willott parameters match which model? | Parameter values ($\rho_{l\star}=10^{-7.523}$, etc.) verified to match Willott Table 1 Model A (EdS). Internally self-consistent with EdS volume correction |
 | Log-space Jacobian correctness | Di Mauro (slope=1.008) × Lara (slope=0.77) = 0.776; inverse = 1.288. nuLnu↔W/Hz and freq scaling are log-space constant offsets (Jacobian=1). Verified analytically |
-| K-correction sign | $(1+z)^{-(2-\Gamma)} = (1+z)^{-(2-2.37)} = (1+z)^{+0.37}$. This is a positive correction (boost at high $z$), as expected for $\Gamma>2$ |
+| K-correction sign | $(1+z)^{-(2-\Gamma)} = (1+z)^{-(2-2.37)} = (1+z)^{+0.37}$. This is a positive correction (boost at high $z$), as expected for $\Gamma \gt 2$ |
 | h-factor handling in $d_L$ | `cosmo.d_L(z)/cfg.h` correctly converts Mpc/h → physical Mpc before conversion to cm |
 | Unit dimensional check | $[\Phi]$=Mpc⁻³ (erg/s)⁻¹, $[L/I_\alpha]\cdot[E^{-\alpha}]$=ph·s⁻¹·GeV⁻¹·(erg/s)⁻¹·(erg/s)=ph·s⁻¹·GeV⁻¹. After $(1+z)^{-2}/(4\pi)$: ph·s⁻¹·GeV⁻¹·sr⁻¹·Mpc⁻³. Consistent with Pinetti+ (2020) emissivity units |
 

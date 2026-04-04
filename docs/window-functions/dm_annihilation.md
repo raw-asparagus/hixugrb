@@ -224,9 +224,9 @@ High-energy gamma rays absorbed by pair production on EBL photons: $\gamma_{\rm 
 
 | Regime | $\tau$ | Effect |
 |--------|--------|--------|
-| $E < 10$ GeV, any $z < 1$ | $\ll 1$ | Transparent |
+| $E \lt 10$ GeV, any $z \lt 1$ | $\ll 1$ | Transparent |
 | $E \sim 30$ GeV, $z \sim 0.5$ | $\sim 1$ | Onset of absorption |
-| $E > 100$ GeV, $z > 0.5$ | $\gg 1$ | Opaque |
+| $E \gt 100$ GeV, $z \gt 0.5$ | $\gg 1$ | Opaque |
 
 ### 7b. Energy convention
 
@@ -349,12 +349,12 @@ config.py [Planck 2018, SIGMA_V_THERMAL, MOLINE_BOOST_COEFFS, M_MIN/MAX_DM]
 
 | Simplification | Nature | Pipeline (Pinetti 2022) | Effect |
 |----------------|--------|------------------------|--------|
-| Two-halo term only (no one-halo) | Theoretical | Same | One-halo subdominant at $\ell < 1000$; conservative |
+| Two-halo term only (no one-halo) | Theoretical | Same | One-halo subdominant at $\ell \lt 1000$; conservative |
 | Rectangle rule for mass integration | Numerical | Same | Adequate for 200 points over smooth integrand |
 | Single NFW profile (no profile variations) | Theoretical | Same | Standard; scatter in $c(M)$ is $\sim 0.15$ dex |
 | Majorana DM assumed ($1/2$ factor) | Theoretical | Same | Dirac DM would remove the $1/2$, doubling the signal |
 | Correa c(M) extrapolated below $10^{-2}\,M_\odot$ | Theoretical | Same | Smooth extrapolation but unvalidated; affects microhalo $\Delta^2$ |
-| EBL from Dominguez (2011) only | Theoretical | Same | Saldana-Lopez (2021) is more modern; <20% difference |
+| EBL from Dominguez (2011) only | Theoretical | Same | Saldana-Lopez (2021) is more modern; less than 20% difference |
 | Mass limits clamped to $[10^{-4}, 10^{17}]$ | Numerical | Same | Truncates 2 decades of microhalos; few-% on $\Delta^2$ |
 | `optimistic` boost = `intermediate` | Incomplete | Same | Not yet implemented as a distinct scenario |
 | PPPC4DMID public tables vs thesis Pythia | Data source | Same (public; thesis Pythia unavailable) | Percent-level, irreducible |

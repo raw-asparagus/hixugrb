@@ -37,7 +37,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 2.6 | $\log_{10}c = \alpha + \beta\log_{10}(M/M_\odot)[1+\gamma(\log_{10}M/M_\odot)^2]$ ($z \le 4$) | [Correa et al. (2015)](literature/correa2015.md) Appendix B1, Planck | `concentration_correa` |
 |    | $\alpha{=}1.7543{-}0.2766(1{+}z){+}0.02039(1{+}z)^2$; $\beta{=}0.2753{+}0.00351(1{+}z){-}0.3038(1{+}z)^{0.0269}$; $\gamma{=}{-}0.01537{+}0.02102(1{+}z)^{-0.1475}$ | | |
 | 2.7 | $f(c) = \ln(1+c) - c/(1+c)$ | NFW normalization | `_f_nfw(c)` |
-| 2.8 | $\tilde u(k\|M) = \frac{1}{f(c)}\left[\sin(kr_s)[\text{Si}((1{+}c)kr_s){-}\text{Si}(kr_s)] + \cos(kr_s)[\text{Ci}((1{+}c)kr_s){-}\text{Ci}(kr_s)] - \frac{\sin(ckr_s)}{(1{+}c)kr_s}\right]$ | Analytic NFW FT; $r_s=R_\text{vir}/c$ | `u_nfw(k, M, z)` |
+| 2.8 | $\tilde u(k \mid M) = \frac{1}{f(c)}\left[\sin(kr_s)[\text{Si}((1{+}c)kr_s){-}\text{Si}(kr_s)] + \cos(kr_s)[\text{Ci}((1{+}c)kr_s){-}\text{Ci}(kr_s)] - \frac{\sin(ckr_s)}{(1{+}c)kr_s}\right]$ | Analytic NFW FT; $r_s=R_\text{vir}/c$ | `u_nfw(k, M, z)` |
 
 ---
 
@@ -51,7 +51,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 3.2 | $c_\text{HI} = c_{HI,0}\left(\frac{M}{10^{11}M_\odot}\right)^{-0.109}\frac{4}{(1+z)^\gamma}$, $c_{HI,0}=139$, $\gamma=0.13$ | [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Table A1 | `c_HI(M, z)` |
 | 3.3 | $\rho_\text{HI}(r) = \rho_0\,r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.9 (modified NFW) | (used inside `u_HI`) |
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{HI}\,dr = M_\text{HI}$ | Mass normalization | `rho0_HI` |
-| 3.5 | $\tilde u_\text{HI}(k\|M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |
+| 3.5 | $\tilde u_\text{HI}(k \mid M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.2 | `rho_HI_mean(z)` |
 | 3.7 | $\Omega_\text{HI}(z) = (1+z)^{-3}\bar\rho_\text{HI}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 | `Omega_HI(z)` |
 | 3.8 | $\bar T_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)}$ mK | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.4 | `T_bar_b(z)` |
@@ -69,7 +69,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 |---|----------|--------|----------|
 | 4.1 | $\rho_s = M / [4\pi r_s^3 f(c)]$ | NFW scale density | `_rho_s(M, z)` |
 | 4.2 | $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{NFW}^2\,dr = \frac{4\pi}{3}\rho_s^2 r_s^3[1-(1+c)^{-3}]$ | Analytic $\rho^2$ integral | `rho2_integral_analytic` |
-| 4.3 | $\tilde v(k\|M) = \frac{4\pi}{\bar\rho_m^2}\int_0^{R_\text{vir}}r^2\rho_\text{NFW}^2\frac{\sin kr}{kr}dr$ | Fourier transform of $\rho^2$ | `v_tilde(k, M, z)` |
+| 4.3 | $\tilde v(k \mid M) = \frac{4\pi}{\bar\rho_m^2}\int_0^{R_\text{vir}}r^2\rho_\text{NFW}^2\frac{\sin kr}{kr}dr$ | Fourier transform of $\rho^2$ | `v_tilde(k, M, z)` |
 | 4.4a | $\log_{10}B(M,z{=}0) = \sum_{i=0}^{5}b_i[\log_{10}(M/M_\odot)]^i$ | [Moliné et al. (2017)](literature/moline2017.md) Eq. 18, Table 3 ($\alpha{=}2$) | `boost_moline` |
 | 4.4b | $B(M,z) = B(M,z{=}0)/(1+z)$ | Thesis Eq. 3.48 | `boost_moline` |
 | 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
@@ -88,7 +88,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z\le z_c$, $^{p_2}$ for $z>z_c$ | FSRQ | `_ldde_glf` |
+| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z \le z_c$, $^{p_2}$ for $z \gt z_c$ | FSRQ | `_ldde_glf` |
 | 5.5 | LDDE inverse-sum: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | BL Lac ([Ajello+ 2014](literature/ajello2014.md) Eq. C.4) | `_ldde_glf` |
 | 5.6 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.3 (after $d_L^2$ cancellation) | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
@@ -110,7 +110,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.8 | $\log_{10} L_\text{core}^{5\text{GHz}} = 4.2 + 0.77\,\log_{10} L_\text{tot}^{1.4\text{GHz}}$ | [Lara+ (2004)](literature/lara2004.md) | `_L151_from_Lgamma` |
 | 5.9 | $L_r^{1.4\text{GHz}} = L_r^{151\text{MHz}} \times (1400/151)^{-0.80}$ | [Inoue (2011)](literature/inoue2011.md) | `_L151_from_Lgamma` |
 | 5.10 | $\log_{10} L_\gamma = 2.0 + 1.008\,\log_{10} L_\text{core}^{5\text{GHz}}$ | [Di Mauro+ (2014)](literature/dimauro2014.md) | `_L151_from_Lgamma` |
-| 5.11 | $\phi_\gamma = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{\rho_r}{\ln(10)\,L_{151}}\,\left\|\frac{dL_{151}}{dL_\gamma}\right\|$; $k{=}3.05$, $\Gamma{=}2.37$ | [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 | `_glf_mAGN` |
+| 5.11 | $\phi_\gamma = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{\rho_r}{\ln(10)\,L_{151}}\,\left\lvert\frac{dL_{151}}{dL_\gamma}\right\rvert$; $k{=}3.05$, $\Gamma{=}2.37$ | [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 | `_glf_mAGN` |
 
 ### SFG GLF — IR→Gamma Conversion Chain ([Gruppioni+ 2013](literature/gruppioni2013.md))
 
@@ -119,7 +119,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.12 | $\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) | `_gruppioni_ir_lf` |
 | 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) Eq. C.23 | `_gruppioni_component` |
 | 5.14 | $\log_{10} L_\gamma = 1.09\,\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | [Ackermann+ (2012)](literature/ackermann2012_sfg.md) | `_L_IR_from_Lgamma` |
-| 5.15 | $\phi_\gamma = \phi_\text{IR}\,|d\log_{10}L_\text{IR}/d\log_{10}L_\gamma| / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
+| 5.15 | $\phi_\gamma = \phi_\text{IR}\,\lvert d\log_{10}L_\text{IR}/d\log_{10}L_\gamma \rvert / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
 
 ### Spectral Indices ([Pinetti+](literature/pinetti2020.md) Table 3)
 

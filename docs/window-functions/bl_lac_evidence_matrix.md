@@ -39,16 +39,16 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 
 ## 2. BL Lac Parameters (Pinetti thesis Table C.1 / Ajello+ 2014 LDDE1)
 
-| Parameter | Literature | Pipeline | Pipeline (Pinetti 2022) | Status |
-|-----------|-----------|----------|-------------------------|--------|
-| $A$ | $9.20\times 10^{-11}$ Mpc$^{-3}$ | `_BL_LAC_PARAMS['A']=9.20e-11` | Same | **Match** |
-| $L_c$ (= $L_\star$) | $2.43\times 10^{48}$ erg/s | `L_c=2.43e48` | Same | **Match** |
-| $\gamma_1$ | 1.12 | `gamma1=1.12` | Same | **Match** |
-| $\gamma_2$ | 3.71 | `gamma2=3.71` | Same | **Match** |
-| $z_\star$ | 1.67 | `z_c_star=1.67` | Same | **Match** |
+| Parameter | Literature | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
+|-----------|-----------|----------|-------------------------|--------|-------|
+| $A$ | $9.20\times 10^{-11}$ Mpc$^{-3}$ | `_BL_LAC_PARAMS['A']=9.20e-11` | Same | **Match** | |
+| $L_c$ (= $L_\star$) | $2.43\times 10^{48}$ erg/s | `L_c=2.43e48` | Same | **Match** | |
+| $\gamma_1$ | 1.12 | `gamma1=1.12` | Same | **Match** | |
+| $\gamma_2$ | 3.71 | `gamma2=3.71` | Same | **Match** | |
+| $z_\star$ | 1.67 | `z_c_star=1.67` | Same | **Match** | |
 | $\beta$ (luminosity dep. of $z_c$) | $4.46\times 10^{-2}$ | `alpha=4.46e-2` | Same | **Match** | Note: code symbol `alpha` = paper symbol $\beta$ |
-| $p_1$ | 4.50 | `p1=4.50` | Same | **Match** |
-| $p_2$ | $-12.88$ | `p2=-12.88` | Same | **Match** |
+| $p_1$ | 4.50 | `p1=4.50` | Same | **Match** | |
+| $p_2$ | $-12.88$ | `p2=-12.88` | Same | **Match** | |
 | Photon index $\alpha$ | 2.11 (Pinetti+ 2020 Table 3) | `ASTRO_SOURCES['BL_Lac']['alpha']=2.11` | Same | **Match** | Ajello+ 2014 LDDE1 fit: $\mu_\star = 2.12\pm 0.03$ |
 | $L_{\min}$ | $7\times 10^{43}$ erg/s (Pinetti+ 2020) | `ASTRO_SOURCES['BL_Lac']['L_min']=7e43` | Same | **Match** | |
 | $L_{\max}$ | $10^{52}$ erg/s (Pinetti+ 2020) | `ASTRO_SOURCES['BL_Lac']['L_max']=1e52` | Same | **Match** | |
@@ -78,7 +78,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | Energy band: 0.1-100 GeV | Pinetti+ (2020); Fermi-LAT standard | `E_min_band=0.1, E_max_band=100.0` (lines 538-539) | Same | **Match** | |
 | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}\,dE$ | Standard normalization | Line 544 (generic $\alpha$), Line 546 (log branch for $\alpha\approx 2$) | Same | **Match** | Analytic formula with safe branch for $\alpha\to 2$ |
 | $E_{\rm rest} = (1+z)E_{\rm obs}$ | Standard cosmological blueshift | Line 549 | Same | **Match** | |
-| No EBL attenuation $e^{-\tau}$ applied | — | Not present in `W_gamma_astro` | Same | **Differs** (simplification) | EBL applied to $W_\gamma^{\rm DM}$ but not to astrophysical windows. Matters for $E > 30$ GeV at $z > 0.5$ |
+| No EBL attenuation $e^{-\tau}$ applied | — | Not present in `W_gamma_astro` | Same | **Differs** (simplification) | EBL applied to $W_\gamma^{\rm DM}$ but not to astrophysical windows. Matters for $E \gt 30$ GeV at $z \gt 0.5$ |
 
 ---
 
@@ -131,7 +131,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 |---|------|--------|----------|-------|
 | T1 | LDDE negative-exponent sign convention | Literature choice | Shape-level | Pipeline follows Pinetti (2022) thesis Eq. C.4 with $r^{-p_i}$; Ajello+ 2014 Eq. 18 uses $r^{+p_i}$. Parameter values unchanged. See deviation D12 |
 | T2 | Single fixed photon index $\alpha=2.11$ | Simplification | Low | Real BL Lac population has $\sigma_\mu \sim 0.27$ scatter and HSP/ISP/LSP sub-populations with different peak energies |
-| T3 | No EBL attenuation on astrophysical window | Simplification | Medium | Matters for $E > 30$ GeV at $z > 0.5$ (up to factor ~10 suppression). DM window correctly includes $e^{-\tau}$; astro windows do not |
+| T3 | No EBL attenuation on astrophysical window | Simplification | Medium | Matters for $E \gt 30$ GeV at $z \gt 0.5$ (up to factor ~10 suppression). DM window correctly includes $e^{-\tau}$; astro windows do not |
 | T4 | Fixed halo mass $10^{13}\,M_\odot/h$ (no $L$-dependence) | Simplification | Minor | $\sim 10$--$20\%$ on clustering amplitude. Standard in blazar literature |
 | T5 | $E_{\rm ref}=5$ GeV for PSF scaling (data mode) | Convention | Low | Not specified in Ammazzalorso+ 2018; pipeline choice |
 | T6 | Simplified PSF-area scaling vs Ammazzalorso Eq. 1 | Simplification | Low | Ammazzalorso's exact masking depends on bright-source distribution; pipeline uses $[\sigma_0(E)]^2$ proxy |
@@ -148,7 +148,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | C2 | Window integral via `scipy.quad` in log-$L$ | `epsrel=1e-5`, `limit=200` | High accuracy |
 | C3 | $I_\alpha$ computed analytically with log branch at $\alpha \approx 2$ | Lines 543-546 | Exact, safe near $\alpha=2$ |
 | C4 | $d_L$ converted to physical cm | Lines 41-42, 517-518 | Explicit h-factor handling |
-| C5 | $z_c$ lower-clipped at 0.01 | Line 411 | Prevents singularity at $L\to 0$ or $\beta < 0$ |
+| C5 | $z_c$ lower-clipped at 0.01 | Line 411 | Prevents singularity at $L\to 0$ or $\beta \lt 0$ |
 | C6 | $\max(\phi\cdot e, 0)$ safeguard | Line 435 | Prevents negative GLF from numerical edge cases |
 
 ---
@@ -170,8 +170,8 @@ None of these affect the BL Lac window function $W_\gamma^{\rm BL\,Lac}(E_\gamma
 | # | Item | Literature/Thesis | Pipeline | Pipeline (Pinetti 2022) | Nature | Severity |
 |---|------|-------------------|----------|-------------------------|--------|----------|
 | 1 | LDDE exponent signs | Ajello+ 2014: $r^{+p_i}$ | $r^{-p_i}$ (thesis convention) | Same | Literature choice | Shape-level |
-| 2 | Single photon index $\alpha=2.11$ | Ajello+ 2014: $\mu_\star=2.12\pm 0.03$ | Fixed $\alpha=2.11$ | Same | Simplification | Low (<1% on $\alpha$) |
-| 3 | No EBL attenuation | Pinetti Eq. 4.3 does not include $e^{-\tau}$ explicitly; literature treats EBL separately | No $e^{-\tau}$ | Same | Simplification | Medium ($E > 30$ GeV) |
+| 2 | Single photon index $\alpha=2.11$ | Ajello+ 2014: $\mu_\star=2.12\pm 0.03$ | Fixed $\alpha=2.11$ | Same | Simplification | Low (below 1% on $\alpha$) |
+| 3 | No EBL attenuation | Pinetti Eq. 4.3 does not include $e^{-\tau}$ explicitly; literature treats EBL separately | No $e^{-\tau}$ | Same | Simplification | Medium ($E \gt 30$ GeV) |
 | 4 | Fixed $M_{\rm halo} = 10^{13}\,M_\odot/h$ | Standard in thesis | Same | Same | Simplification | Minor |
 | 5 | Data-mode $F_{\rm sens}(E) \propto [\sigma_0(E)]^2$ | Ammazzalorso Eq. 1: more complex masking | $[\sigma_0(E)]^2$ proxy | Same | Simplification | Low |
 | 6 | $E_{\rm ref} = 5$ GeV (data mode) | Not specified | Pipeline choice | Same | Convention | None |

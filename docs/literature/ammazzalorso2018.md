@@ -37,7 +37,7 @@ These specifications define the data-analysis-grade treatment for an actual cros
 | PSF selection | PSF3 (type 32) below 1.2 GeV; PSF1+2+3 (type 56) above | Sec. II.A |
 | Pixelization | HEALPix N_side = 1024 (~0.06° spacing) | Sec. II.A |
 | Energy bins | 11 bins, 0.631–1000 GeV (Table I) | Sec. II.A, Table I |
-| Galactic cut | \|b\| < 30° | Sec. II.A.1 |
+| Galactic cut | $\lvert b \rvert \lt 30^\circ$ | Sec. II.A.1 |
 | Point source mask | FL8Y + 3FHL (>10 GeV), energy-dependent radius (Eq. 1) | Sec. II.A.1 |
 | Foreground model | gll_iem_v06.fits, Poisson likelihood normalization | Sec. II.A.1 |
 | Multipole range | ℓ_min = 40, ℓ_max from W_ℓ = 0.61 condition (Table I) | Sec. III, Eq. 7 |

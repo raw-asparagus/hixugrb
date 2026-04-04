@@ -57,14 +57,14 @@ This document audits every equation, model choice, parameter value, and computat
 
 ### SF-AGN
 
-| Parameter | Literature | Pipeline | Pipeline (Pinetti 2022) | Status |
-|-----------|-----------|----------|-------------------------|--------|
-| $\gamma$ | 1.2 | 1.2 | Same | **Match** |
-| $\sigma$ | 0.40 | 0.40 | Same | **Match** |
-| $\log_{10}(L_\star/L_\odot)$ | 10.80 | 10.80 | Same | **Match** |
-| $\log_{10}(\phi_\star/{\rm Mpc}^{-3})$ | −3.20 | -3.20 | Same | **Match** |
-| $k_L$ | 3.17 | 3.17 | Same | **Match** |
-| $k_{R1}$ | 0.67 | 0.67 | Same | **Match** |
+| Parameter | Literature | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
+|-----------|-----------|----------|-------------------------|--------|-------|
+| $\gamma$ | 1.2 | 1.2 | Same | **Match** | |
+| $\sigma$ | 0.40 | 0.40 | Same | **Match** | |
+| $\log_{10}(L_\star/L_\odot)$ | 10.80 | 10.80 | Same | **Match** | |
+| $\log_{10}(\phi_\star/{\rm Mpc}^{-3})$ | −3.20 | -3.20 | Same | **Match** | |
+| $k_L$ | 3.17 | 3.17 | Same | **Match** | |
+| $k_{R1}$ | 0.67 | 0.67 | Same | **Match** | |
 | $k_{R2}$ | **−3.17** (Gruppioni original) | -3.17 | **−3.17 (thesis typo; follows original)** | **Match** (vs paper); **Differs** (vs thesis typo) | Pinetti thesis Table C.2 has typo +3.17; pipeline correctly uses -3.17 matching Gruppioni's original paper |
 
 ---
@@ -76,9 +76,9 @@ This document audits every equation, model choice, parameter value, and computat
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
 | $L_0(z) = L_\star ((1+z)/1.15)^{k_L}$ | Gruppioni+ (2013); Pinetti Eq. C.24 | Line 276 | Same | **Match** | |
-| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | Line 275-278: applies to **ALL** components | Same | **Differs** (simplification) | **Pipeline applies $z=1.1$ break uniformly to all three components.** Paper only specifies this break for spiral. Starburst and SF-AGN in the paper have single power laws with no break. Effect is small since $z>1.1$ contribution is heavily suppressed by cosmological dimming |
+| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | Line 275-278: applies to **ALL** components | Same | **Differs** (simplification) | **Pipeline applies $z=1.1$ break uniformly to all three components.** Paper only specifies this break for spiral. Starburst and SF-AGN in the paper have single power laws with no break. Effect is small since $z \gt 1.1$ contribution is heavily suppressed by cosmological dimming |
 | Reference normalization $(1+z)/1.15$ | Pipeline convention (z=0.15 first-bin midpoint) | `(1.0+z)/1.15` | Same | N/A | Equivalent to paper's bin-by-bin parameterization |
-| Frozen value $(2.1/1.15)^{k_L}$ at $z>1.1$ | Standard freezing | Line 278 | Same | **Match** | |
+| Frozen value $(2.1/1.15)^{k_L}$ at $z \gt 1.1$ | Standard freezing | Line 278 | Same | **Match** | |
 
 ### Density evolution $\Phi_0(z)$
 
@@ -152,9 +152,9 @@ This document audits every equation, model choice, parameter value, and computat
 
 | # | Item | Nature | Severity | Notes |
 |---|------|--------|----------|-------|
-| T1 | $L_0$ frozen at $z=1.1$ for ALL components | Deliberate simplification | Minor | Paper only specifies break for spiral; starburst and SF-AGN have single power laws. Effect is small since $z>1.1$ contribution is heavily suppressed by $(1+z)^{-2}$ cosmological dimming |
+| T1 | $L_0$ frozen at $z=1.1$ for ALL components | Deliberate simplification | Minor | Paper only specifies break for spiral; starburst and SF-AGN have single power laws. Effect is small since $z \gt 1.1$ contribution is heavily suppressed by $(1+z)^{-2}$ cosmological dimming |
 | T2 | $(1+z)/1.15$ reference normalization | Pipeline convention | Low | Paper parameterizes per-bin; pipeline uses continuous $(1+z)/1.15$ normalization to $z=0.15$ midpoint. Mathematically equivalent |
-| T3 | SF-AGN $k_{R2}=-3.17$ (pipeline correct; thesis typo) | Correction | Low | Pinetti thesis Table C.2 shows $+3.17$ (typo); pipeline uses $-3.17$ from Gruppioni original. Thesis typo would cause unphysical density growth at $z>1.1$ |
+| T3 | SF-AGN $k_{R2}=-3.17$ (pipeline correct; thesis typo) | Correction | Low | Pinetti thesis Table C.2 shows $+3.17$ (typo); pipeline uses $-3.17$ from Gruppioni original. Thesis typo would cause unphysical density growth at $z \gt 1.1$ |
 | T4 | Fixed characteristic luminosity $L^{\rm char}=10^{39}$ erg/s for bias | Simplification | Minor | Not prescribed in literature; alternative would be luminosity-weighted effective bias integral |
 | T5 | Pure power-law gamma-ray spectrum $\alpha=2.7$ | Simplification | Low | Real SFG spectra have pion-bump curvature; a single power law is the standard Pinetti Table 3 choice |
 | T6 | AGN-excluded Ackermann calibration | Literature choice | Low | Pipeline uses $\alpha_{\rm IR}=1.09$, $\beta_{\rm IR}=39.19$ (EM method, AGN-excluded) rather than full-sample $\alpha=1.17\pm 0.07$ for cleaner SFG calibration |
@@ -206,9 +206,9 @@ None of these affect the SFG window function $W_\gamma^{\rm SFG}(z)$ itself — 
 |---------|-----------|
 | Modified Schechter form implementation | Code line 297: `phi_0 * ratio**(1-gamma) * exp(-log(1+ratio)^2 / (2*sigma^2))` matches Gruppioni Eq. 8 exactly |
 | L_IR units in Gruppioni vs Ackermann | Gruppioni uses $L_\odot$; Ackermann formula uses $L_{\rm IR}/(10^{10}L_\odot)$ so units are consistent. Code correctly uses $L_\odot$ throughout |
-| Jacobian sign | $d\log L_{\rm IR}/d\log L_\gamma = 1/\alpha_{\rm IR} = 0.917 > 0$ (positive, as expected for monotonic relation) |
+| Jacobian sign | $d\log L_{\rm IR}/d\log L_\gamma = 1/\alpha_{\rm IR} = 0.917 \gt 0$ (positive, as expected for monotonic relation) |
 | Unit dimensional check | $[\Phi_\gamma]$=Mpc⁻³·(erg/s)⁻¹ from $[\Phi_{\rm IR}]$·[dimensionless]·[erg/s]⁻¹ |
-| Gruppioni parameter typo (SF-AGN $k_{R2}$) | Pipeline correctly uses $-3.17$ (Gruppioni original); thesis typo $+3.17$ would cause unphysical density growth at $z>1.1$ |
+| Gruppioni parameter typo (SF-AGN $k_{R2}$) | Pipeline correctly uses $-3.17$ (Gruppioni original); thesis typo $+3.17$ would cause unphysical density growth at $z \gt 1.1$ |
 | Integration range $[10^{37}, 10^{42}]$ erg/s | Matches Pinetti thesis Table 3.1 for SFG |
 | Spectral index $\alpha=2.7$ | Matches Pinetti Table 3 (softest index, reflects pion-bump from CR-ISM interactions) |
 
