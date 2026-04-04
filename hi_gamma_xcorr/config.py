@@ -356,3 +356,43 @@ N_ELL_PLOT = 50  # Log-spaced for plotting
 ELL_PLOT = np.unique(np.logspace(
     np.log10(ELL_MIN), np.log10(ELL_MAX), N_ELL_PLOT
 ).astype(int))
+
+# ---------------------------------------------------------------------------
+# Ammazzalorso et al. (2018) energy bins and multipole ranges (Table I)
+# Data-analysis-grade specifications for Fermi-LAT cross-correlation.
+# Columns: E_min [GeV], E_max [GeV], l_min, l_max
+# ---------------------------------------------------------------------------
+AMMAZZALORSO_BINS = np.array([
+    [  0.631,    1.202,   40,   220],
+    [  1.202,    2.290,   40,   250],
+    [  2.290,    4.786,   40,   307],
+    [  4.786,    9.120,   40,   487],
+    [  9.120,   17.38,    40,   695],
+    [ 17.38,    36.31,    40,   907],
+    [ 36.31,    69.18,    40,  1000],
+    [ 69.18,   131.8,     40,  1000],
+    [131.8,    275.4,     40,  1000],
+    [275.4,    524.8,     40,  1000],
+    [524.8,   1000.0,     40,  1000],
+])
+
+AMMAZZALORSO_E_MIN = AMMAZZALORSO_BINS[:, 0]
+AMMAZZALORSO_E_MAX = AMMAZZALORSO_BINS[:, 1]
+AMMAZZALORSO_ELL_MIN = AMMAZZALORSO_BINS[:, 2].astype(int)
+AMMAZZALORSO_ELL_MAX = AMMAZZALORSO_BINS[:, 3].astype(int)
+AMMAZZALORSO_E_B = np.sqrt(AMMAZZALORSO_E_MIN * AMMAZZALORSO_E_MAX)  # geometric mean
+AMMAZZALORSO_N_BINS = len(AMMAZZALORSO_BINS)
+
+# Minimum multipole for data-analysis (Ammazzalorso Sec. III)
+FERMI_ELL_MIN = 40
+
+# ---------------------------------------------------------------------------
+# Fermi-LAT PSF: King function parameters for exact beam computation
+# (Ammazzalorso Eq. 4)
+#
+# The PSF is modeled as a single King function with tail index gamma_king.
+# sigma_king is calibrated from the 68% containment angle at each energy.
+# For a King function: PSF(theta) = (1-1/gamma)/(2*pi*sigma^2) *
+#                      [1 + theta^2/(2*gamma*sigma^2)]^{-gamma}
+# ---------------------------------------------------------------------------
+FERMI_PSF_GAMMA_KING = 2.0  # King function tail index (standard for Fermi)

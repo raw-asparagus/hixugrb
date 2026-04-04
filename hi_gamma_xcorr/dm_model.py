@@ -233,8 +233,10 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     if dNdE <= 0:
         return 0.0
 
-    # EBL attenuation
-    atten = ebl_mod.attenuation(np.atleast_1d(E_emit), z)[0]
+    # EBL attenuation — evaluated at OBSERVED energy E_GeV, not emitted energy.
+    # ebltable.opt_depth(z, E) takes the observed energy at Earth and integrates
+    # the absorption along the full propagation path from z to 0.
+    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
 
     # Clumping factor (expensive — should be cached in practice)
     # For now, use a simple power-law fit

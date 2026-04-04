@@ -83,10 +83,10 @@
 | `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro; mean UGRB intensity |
 | `pppc4dmid.py` | PPPC4DMID photon yield table reader/interpolator; dN/dE for bb̄, τ⁺τ⁻, WW channels |
 | `ebl.py` | EBL opacity τ(E,z) via `ebltable` package (Dominguez+2011); analytic fallback |
-| `noise_model.py` | Radio noise (dish + interferometer), beam functions, Fermi-LAT noise N^γ and PSF, Fermissimo specs |
+| `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs |
 | `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
-| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 8 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows, SNR table, exclusion curves; includes automated validation checks |
+| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 9 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows (survey-independent, forecast, data-analysis), SNR table, exclusion curves |
 
 ## Window Function Pipeline
 
@@ -138,7 +138,10 @@ astro_sources.py:
                                [Pinetti Eq. 4.3 after d_L² cancellation]
 ```
 
-**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Set `unresolved_only=False` for survey-independent (total emission).
+**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Two modes:
+- `unresolved_mode='forecast'`: constant F_sens = 10⁻¹⁰ cm⁻²s⁻¹ ([Pinetti+ 2020](literature/pinetti2020.md))
+- `unresolved_mode='data'`: energy-dependent F_sens(E) scaled by PSF area ([Ammazzalorso+ 2018](literature/ammazzalorso2018.md))
+- `unresolved_only=False`: survey-independent total emission
 
 ### W_γ^DM — Dark matter annihilation
 

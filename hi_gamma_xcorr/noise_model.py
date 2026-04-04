@@ -2,9 +2,16 @@
 
 Implements radio telescope noise (single-dish + interferometer),
 Fermi-LAT noise and PSF, and Fermissimo specifications.
+
+Two Fermi-LAT beam modes:
+- Gaussian approximation (beam_fermi): forecasting-grade, from Pinetti+(2020)
+- Exact King function (beam_fermi_exact): data-analysis-grade, from Ammazzalorso+(2018)
 """
 
 import numpy as np
+from scipy.integrate import quad
+from scipy.special import eval_legendre
+
 from . import config as cfg
 from . import cosmology as cosmo
 
@@ -193,6 +200,164 @@ def beam_fermi(ell, E_GeV):
     sig0 = sigma_psf_fermi(E_GeV)  # radians
     sigma_b = sig0 / (1.0 + 0.25 * sig0 * ell)
     return np.exp(-sigma_b**2 * ell**2 / 2.0)
+
+
+# ---------------------------------------------------------------------------
+# Exact Fermi-LAT beam via King function PSF (Ammazzalorso Eq. 4)
+# ---------------------------------------------------------------------------
+
+def _king_psf(theta, sigma_king, gamma_king):
+    """King function PSF normalized over the sphere.
+
+    PSF(theta) = (1 - 1/gamma) / (2*pi*sigma^2) * [1 + theta^2/(2*gamma*sigma^2)]^{-gamma}
+
+    Parameters
+    ----------
+    theta : float
+        Angle [radians].
+    sigma_king : float
+        King function scale parameter [radians].
+    gamma_king : float
+        King function tail index.
+    """
+    norm = (1.0 - 1.0 / gamma_king) / (2.0 * np.pi * sigma_king**2)
+    u = theta**2 / (2.0 * gamma_king * sigma_king**2)
+    return norm * (1.0 + u)**(-gamma_king)
+
+
+def _sigma_king_from_containment(theta_68, gamma_king):
+    """Compute King function sigma from the 68% containment angle.
+
+    For a King function, the cumulative integral over a cone of half-angle r is:
+        F(r) = 1 - [1 + r^2/(2*gamma*sigma^2)]^{1-gamma}
+    Setting F(theta_68) = 0.68 and solving for sigma.
+    """
+    # F(r) = 1 - [1 + r^2/(2*gamma*sigma^2)]^{1-gamma} = 0.68
+    # [1 + r^2/(2*gamma*sigma^2)]^{1-gamma} = 0.32
+    # 1 + r^2/(2*gamma*sigma^2) = 0.32^{1/(1-gamma)}
+    # sigma^2 = r^2 / (2*gamma * (0.32^{1/(1-gamma)} - 1))
+    exponent = 1.0 / (1.0 - gamma_king)
+    factor = 0.32**exponent - 1.0
+    if factor <= 0:
+        return theta_68 / 2.0  # fallback
+    sigma2 = theta_68**2 / (2.0 * gamma_king * factor)
+    return np.sqrt(sigma2)
+
+
+def beam_fermi_exact(ell, E_GeV):
+    """Exact Fermi-LAT beam window function via Legendre transform of King PSF.
+
+    Implements Ammazzalorso et al. (2018) Eq. 4:
+        W_l(E) = 2*pi * integral_{-1}^{1} d(cos theta) * P_l(cos theta) * PSF(theta, E)
+
+    Uses a King function PSF with gamma = FERMI_PSF_GAMMA_KING, calibrated from
+    the 68% containment angle sigma_0(E).
+
+    Parameters
+    ----------
+    ell : array-like
+        Multipoles (integers).
+    E_GeV : float
+        Photon energy [GeV].
+
+    Returns
+    -------
+    W_ell : array
+        Beam window function at each multipole.
+    """
+    ell = np.asarray(ell, dtype=float)
+    gamma_king = cfg.FERMI_PSF_GAMMA_KING
+
+    # 68% containment angle from the parametric formula
+    theta_68 = sigma_psf_fermi(E_GeV)  # radians
+    sigma_king = _sigma_king_from_containment(theta_68, gamma_king)
+
+    W_ell = np.empty_like(ell)
+    for i, l_val in enumerate(ell):
+        l_int = int(round(l_val))
+
+        def integrand(theta):
+            # Integrate in theta (not cos_theta) for better numerics near theta=0
+            # W_l = 2*pi * int_0^pi PSF(theta) * P_l(cos theta) * sin(theta) d(theta)
+            if theta < 1e-12:
+                return 0.0
+            cos_t = np.cos(theta)
+            return _king_psf(theta, sigma_king, gamma_king) * eval_legendre(l_int, cos_t) * np.sin(theta)
+
+        # PSF is concentrated near theta=0; integrate with appropriate limits
+        # King function drops to negligible beyond ~10*sigma_king
+        theta_max = min(50.0 * sigma_king, np.pi)
+        val, _ = quad(integrand, 0.0, theta_max, limit=300, epsrel=1e-7)
+        W_ell[i] = 2.0 * np.pi * val
+
+    return W_ell
+
+
+def beam_fermi_bin_averaged(ell, E_min, E_max, alpha=2.3, n_E=10):
+    """Energy-averaged beam window function per energy bin (Ammazzalorso Eq. 5).
+
+    <W_l^k> = integral_{E_min}^{E_max} W_l(E) E^{-alpha} dE
+              / integral_{E_min}^{E_max} E^{-alpha} dE
+
+    Parameters
+    ----------
+    ell : array-like
+        Multipoles.
+    E_min, E_max : float
+        Energy bin edges [GeV].
+    alpha : float
+        UGRB spectral index for weighting (default 2.3).
+    n_E : int
+        Number of energy points for numerical integration.
+    """
+    ell = np.asarray(ell, dtype=float)
+
+    # Energy grid (log-spaced within bin)
+    E_arr = np.logspace(np.log10(E_min), np.log10(E_max), n_E)
+
+    # Compute W_l(E) at each energy
+    W_arr = np.array([beam_fermi_exact(ell, E) for E in E_arr])  # shape (n_E, n_ell)
+
+    # E^{-alpha} weights
+    weights = E_arr**(-alpha)
+
+    # Trapezoidal integration in log(E)
+    dlogE = np.diff(np.log(E_arr))
+    # W_avg = integral W(E) * E^{-alpha} * E * d(logE) / integral E^{-alpha} * E * d(logE)
+    # = integral W(E) * E^{1-alpha} d(logE) / integral E^{1-alpha} d(logE)
+    w_E = E_arr**(1.0 - alpha)  # = E * E^{-alpha} (Jacobian for d(logE))
+
+    num = np.zeros_like(ell)
+    den = 0.0
+    for j in range(len(E_arr) - 1):
+        dlog = dlogE[j]
+        num += 0.5 * (W_arr[j] * w_E[j] + W_arr[j+1] * w_E[j+1]) * dlog
+        den += 0.5 * (w_E[j] + w_E[j+1]) * dlog
+
+    return num / den
+
+
+def ell_max_fermi(E_bin_idx, threshold=0.61):
+    """Energy-dependent maximum multipole from beam window threshold (Ammazzalorso Eq. 7).
+
+    Returns l_max where beam_fermi_exact drops to the threshold, or 1000 (whichever is smaller).
+
+    Uses Ammazzalorso bins.
+    """
+    return cfg.AMMAZZALORSO_ELL_MAX[E_bin_idx]
+
+
+def pixel_window(ell, nside=1024):
+    """HEALPix pixel window function (Gaussian approximation).
+
+    W_pix(l) ≈ exp(-l^2 * theta_pix^2 / 2)
+    where theta_pix ≈ sqrt(4*pi / (12 * nside^2)) is the pixel angular size.
+
+    For N_side=1024, theta_pix ≈ 0.001 rad — negligible for l < 1000.
+    """
+    ell = np.asarray(ell, dtype=float)
+    theta_pix = np.sqrt(4.0 * np.pi / (12.0 * nside**2))
+    return np.exp(-ell**2 * theta_pix**2 / 2.0)
 
 
 # ---------------------------------------------------------------------------

@@ -68,7 +68,8 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
 
 def compute_SNR(telescope, band_name, fermissimo=False,
                 ell_min=10, ell_max=1000, n_ell=100,
-                source_classes=None, n_z=100, n_M=60):
+                source_classes=None, n_z=100, n_M=60,
+                analysis_mode='forecast'):
     """Compute the total signal-to-noise ratio for detecting the cross-correlation.
 
     SNR^2 = sum over (l, E-bins) of [C_l^{HI x gamma_astro} / Delta C_l]^2
@@ -81,6 +82,9 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         Band name.
     fermissimo : bool
         Use Fermissimo specs instead of Fermi-LAT.
+    analysis_mode : str
+        'forecast': Pinetti+(2020) treatment (12 bins, Gaussian beam, no l cuts)
+        'data': Ammazzalorso+(2018) treatment (11 bins, exact beam, l cuts)
 
     Returns
     -------
@@ -95,7 +99,19 @@ def compute_SNR(telescope, band_name, fermissimo=False,
     z_max = band['z_max']
     z_mid = 0.5 * (z_min + z_max)
 
-    # Multipole grid
+    # Select energy bins based on analysis mode
+    if analysis_mode == 'data':
+        n_bins = cfg.AMMAZZALORSO_N_BINS
+        E_b_arr = cfg.AMMAZZALORSO_E_B
+        ell_min_arr = cfg.AMMAZZALORSO_ELL_MIN
+        ell_max_arr = cfg.AMMAZZALORSO_ELL_MAX
+    else:
+        n_bins = cfg.FERMI_N_BINS
+        E_b_arr = cfg.FERMI_E_B
+        ell_min_arr = np.full(n_bins, ell_min, dtype=int)
+        ell_max_arr = np.full(n_bins, ell_max, dtype=int)
+
+    # Full multipole grid (will be masked per energy bin in data mode)
     ell_arr = np.unique(np.logspace(
         np.log10(ell_min), np.log10(ell_max), n_ell
     ).astype(int)).astype(float)
@@ -108,28 +124,43 @@ def compute_SNR(telescope, band_name, fermissimo=False,
 
     SNR2_total = 0.0
 
-    for ie in range(cfg.FERMI_N_BINS):
-        E_b = cfg.FERMI_E_B[ie]
+    for ie in range(n_bins):
+        E_b = E_b_arr[ie]
+
+        # Apply energy-dependent l-range in data mode
+        l_lo = ell_min_arr[ie]
+        l_hi = ell_max_arr[ie]
+        ell_mask = (ell_arr >= l_lo) & (ell_arr <= l_hi)
+        if not np.any(ell_mask):
+            continue
+        ell_bin = ell_arr[ell_mask]
 
         # Fermi noise and beam
         if fermissimo:
             N_gamma = nm.noise_fermissimo(ie)
-            B_gamma = nm.beam_fermissimo(ell_arr, E_b)
+            B_gamma = nm.beam_fermissimo(ell_bin, E_b)
             f_sky = nm.f_sky_effective(telescope, band_name, ie, fermissimo=True)
+        elif analysis_mode == 'data':
+            # Data mode: use Pinetti noise (closest bin) with exact beam
+            ie_pinetti = _closest_pinetti_bin(E_b)
+            N_gamma = nm.noise_fermi(ie_pinetti)
+            B_gamma = nm.beam_fermi_exact(ell_bin, E_b)
+            f_sky = nm.f_sky_effective(telescope, band_name, ie_pinetti)
         else:
             N_gamma = nm.noise_fermi(ie)
-            B_gamma = nm.beam_fermi(ell_arr, E_b)
+            B_gamma = nm.beam_fermi(ell_bin, E_b)
             f_sky = nm.f_sky_effective(telescope, band_name, ie)
 
         # Radio beam (use dish diameter)
-        B_HI = nm.beam_radio(ell_arr, z_mid, tel['d_dish_m'])
+        B_HI = nm.beam_radio(ell_bin, z_mid, tel['d_dish_m'])
 
         # Variance
-        sigma_Cl = variance_Cl(ell_arr, C_HI, N_HI, B_HI, N_gamma, B_gamma, f_sky)
+        sigma_Cl = variance_Cl(ell_bin, C_HI[ell_mask], N_HI[ell_mask],
+                               B_HI, N_gamma, B_gamma, f_sky)
 
         # Signal: C_l from astrophysical sources only
         C_signal = ap.C_ell_HI_gamma(
-            ell_arr, E_b, z_min, z_max, telescope, band_name,
+            ell_bin, E_b, z_min, z_max, telescope, band_name,
             source_classes=source_classes, include_DM=False,
             n_z=n_z, n_k_M=n_M
         )
@@ -141,6 +172,11 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         SNR2_total += np.sum((C_astro[mask] / sigma_Cl[mask])**2)
 
     return np.sqrt(SNR2_total)
+
+
+def _closest_pinetti_bin(E_GeV):
+    """Find the closest Pinetti energy bin index for a given energy."""
+    return int(np.argmin(np.abs(cfg.FERMI_E_B - E_GeV)))
 
 
 # ---------------------------------------------------------------------------

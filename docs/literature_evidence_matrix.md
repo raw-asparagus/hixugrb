@@ -62,7 +62,7 @@ This matrix verifies every equation, parameter value, and factual claim in the 1
 | 5.8 | p₂ = −6.51 | −6.51 ± 1.97 | **Match** |
 | 5.9 | μ = 2.44 | 2.44 ± 0.01 | **Match** |
 | 5.10 | 186 sources | "ALL" row = 186 | **Match** |
-| 5.11 | ~~Piecewise LDDE evolution~~ | Eq. 15: smooth inverse-sum $[r^{p_1} + r^{p_2}]^{-1}$, NOT piecewise. Paper explicitly says "continuous around the redshift peak." | **MISMATCH** — pipeline uses `evolution_form='piecewise'` but paper uses smooth inverse-sum (same form as BL Lac). See pinetti2022_evidence_matrix D1. |
+| 5.11 | LDDE smooth inverse-sum evolution | Eq. 15: $[r^{p_1} + r^{p_2}]^{-1}$. Paper: "continuous around the redshift peak." | **Fixed** — pipeline now uses `evolution_form='ldde_inv'` for FSRQ (was incorrectly `piecewise`). Note: pipeline follows Pinetti sign convention (negative exponents). |
 
 ### 6. Ajello et al. (2014) — `ajello2014.md` vs `1310.0006v1.pdf`
 

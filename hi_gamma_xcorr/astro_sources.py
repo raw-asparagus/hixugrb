@@ -22,14 +22,49 @@ from . import cosmology as cosmo
 # Luminosity threshold from Fermi sensitivity
 # ---------------------------------------------------------------------------
 
-def L_sens(z):
+def L_sens(z, E_GeV=None):
     """Luminosity threshold [erg/s] for Fermi-LAT detection at redshift z.
 
-    L_sens = 4 pi d_L^2 * F_sens, where d_L is in cm.
+    L_sens = 4 pi d_L^2 * F_sens(E), where d_L is in cm.
+
+    Parameters
+    ----------
+    z : float
+        Redshift.
+    E_GeV : float, optional
+        Photon energy [GeV] for energy-dependent sensitivity.
+        If None, uses the constant F_SENS = 10^{-10} cm^{-2} s^{-1} (forecast mode).
+        If provided, scales F_SENS by the PSF area ratio (data-analysis mode):
+        F_sens(E) = F_SENS * [sigma_0(E) / sigma_0(E_ref)]^2
+        where E_ref = 5 GeV (near Fermi's optimal sensitivity).
     """
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
-    return 4.0 * np.pi * dL_cm**2 * cfg.F_SENS
+
+    if E_GeV is not None:
+        F_sens_E = F_sens_energy(E_GeV)
+    else:
+        F_sens_E = cfg.F_SENS
+
+    return 4.0 * np.pi * dL_cm**2 * F_sens_E
+
+
+def F_sens_energy(E_GeV):
+    """Energy-dependent Fermi-LAT flux sensitivity [cm^{-2} s^{-1}].
+
+    Scales the reference sensitivity F_SENS by the PSF solid angle ratio:
+        F_sens(E) = F_SENS * [sigma_0(E) / sigma_0(E_ref)]^2
+
+    At low energies (poor PSF), fewer sources are resolved → higher threshold.
+    At high energies (good PSF), more sources are resolved → lower threshold.
+
+    Reference energy E_ref = 5 GeV chosen near Fermi's optimal sensitivity.
+    """
+    from . import noise_model as nm
+    E_ref = 5.0  # GeV — near Fermi's optimal sensitivity
+    sigma_E = nm.sigma_psf_fermi(E_GeV)
+    sigma_ref = nm.sigma_psf_fermi(E_ref)
+    return cfg.F_SENS * (sigma_E / sigma_ref)**2
 
 
 # ---------------------------------------------------------------------------
@@ -379,18 +414,23 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     ratio = (1.0 + z) / (1.0 + z_c)
 
     if evolution_form == 'ldde_inv':
-        # Ajello+ (2014) Eq. C.4: smooth double power-law
+        # Pinetti (2022) Eq. C.4: smooth inverse-sum with negative exponents.
         # e = [r^{-p1} + r^{-p2}]^{-1}
+        # Note: Ajello+ (2012) Eq. 15 and Ajello+ (2014) Eq. 18 use positive
+        # exponents [r^{p1} + r^{p2}]^{-1}. The pipeline follows Pinetti's
+        # sign convention. See pinetti2022_evidence_matrix.md D12.
         e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
-    elif evolution_form == 'sum':
-        # Legacy sum form
-        e_z = ratio**p1 + ratio**p2
-    else:
-        # Standard piecewise LDDE (FSRQ)
+    elif evolution_form == 'piecewise':
+        # Piecewise LDDE (legacy, retained for comparison only)
         if z <= z_c:
             e_z = ratio**p1
         else:
             e_z = ratio**p2
+    elif evolution_form == 'sum':
+        # Legacy sum form
+        e_z = ratio**p1 + ratio**p2
+    else:
+        raise ValueError(f"Unknown evolution_form: {evolution_form}")
 
     return max(phi_L * e_z, 0.0)
 
@@ -401,8 +441,12 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
 # ---------------------------------------------------------------------------
 
 def _glf_FSRQ(L, z):
-    """FSRQ GLF from Ajello et al. (2012)."""
-    return _ldde_glf(L, z, _FSRQ_PARAMS, evolution_form='piecewise')
+    """FSRQ GLF from Ajello et al. (2012), LDDE inverse-sum evolution.
+
+    Both Ajello+ (2012) Eq. 15 and Pinetti (2022) Eq. C.4 use the smooth
+    inverse-sum form (continuous around the redshift peak), not piecewise.
+    """
+    return _ldde_glf(L, z, _FSRQ_PARAMS, evolution_form='ldde_inv')
 
 
 def _glf_BL_Lac(L, z):
@@ -438,7 +482,8 @@ def glf(L, z, source_class):
 # Astrophysical window function (Eq. 4.3)
 # ---------------------------------------------------------------------------
 
-def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True):
+def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
+                  unresolved_mode='forecast'):
     """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
     Per-chi convention: W(chi) = [d_L^2/(1+z)^2] * integral Phi * dF/dE dL
@@ -455,6 +500,11 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True):
         If True (default), integrate only up to L_sens (unresolved sources).
         If False, integrate over the full [L_min, L_max] range (total emission,
         survey-independent).
+    unresolved_mode : str
+        Controls how the unresolved threshold is computed (only used when
+        unresolved_only=True):
+        - 'forecast': constant F_sens = 10^{-10} cm^{-2} s^{-1} (Pinetti 2020)
+        - 'data': energy-dependent F_sens(E) scaled by PSF area (Ammazzalorso 2018)
     """
     if z <= 0:
         return 0.0
@@ -468,7 +518,10 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True):
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
 
     if unresolved_only:
-        L_thr = L_sens(z)
+        if unresolved_mode == 'data':
+            L_thr = L_sens(z, E_GeV=E_GeV)
+        else:
+            L_thr = L_sens(z)
         L_up = min(L_max, L_thr)
     else:
         L_up = L_max
