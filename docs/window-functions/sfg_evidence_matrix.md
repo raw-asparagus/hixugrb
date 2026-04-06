@@ -23,8 +23,8 @@ This document audits every equation, model choice, parameter value, and computat
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
 | Three components: spiral + starburst + SF-AGN | Gruppioni+ (2013); Pinetti Eq. C.22 | `_gruppioni_ir_lf` sums three components | Same | **Match** | |
-| Modified Schechter form | Gruppioni+ (2013) Eq. 8; Pinetti Eq. C.23 | `_gruppioni_component` lines 294-297 | Same | **Match** | |
-| Returns $d\Phi/d\log_{10}L_{\rm IR}$ [Mpc⁻³] | Gruppioni+ (2013) convention | Line 299 | Same | **Match** | |
+| Modified Schechter form | Gruppioni+ (2013) Eq. 8; Pinetti Eq. C.23 | `_gruppioni_component` | Same | **Match** | |
+| Returns $d\Phi/d\log_{10}L_{\rm IR}$ [Mpc⁻³] | Gruppioni+ (2013) convention | `_gruppioni_component` | Same | **Match** | |
 | $L_{\rm IR}$ in $L_\odot$ (8-1000 μm total IR) | Gruppioni+ (2013) | Arg convention | Same | **Match** | |
 
 ---
@@ -75,20 +75,20 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $L_0(z) = L_\star ((1+z)/1.15)^{k_L}$ | Gruppioni+ (2013); Pinetti Eq. C.24 | Line 276 | Same | **Match** | |
-| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | Line 275-278: applies to **ALL** components | Same | **Differs** (simplification) | **Pipeline applies $z=1.1$ break uniformly to all three components.** Paper only specifies this break for spiral. Starburst and SF-AGN in the paper have single power laws with no break. Effect is small since $z \gt 1.1$ contribution is heavily suppressed by cosmological dimming |
+| $L_0(z) = L_\star ((1+z)/1.15)^{k_L}$ | Gruppioni+ (2013); Pinetti Eq. C.24 | `_gruppioni_component` | Same | **Match** | |
+| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | `_gruppioni_component` applies the freeze to **ALL** components | Same | **Differs** (simplification) | **Pipeline applies $z=1.1$ break uniformly to all three components.** Paper only specifies this break for spiral. Starburst and SF-AGN in the paper have single power laws with no break. Effect is small relative to the larger GLF-evolution and unresolved-threshold changes across the same redshift range |
 | Reference normalization $(1+z)/1.15$ | Pipeline convention (z=0.15 first-bin midpoint) | `(1.0+z)/1.15` | Same | N/A | Equivalent to paper's bin-by-bin parameterization |
-| Frozen value $(2.1/1.15)^{k_L}$ at $z \gt 1.1$ | Standard freezing | Line 278 | Same | **Match** | |
+| Frozen value $(2.1/1.15)^{k_L}$ at $z \gt 1.1$ | Standard freezing | `_gruppioni_component` | Same | **Match** | |
 
 ### Density evolution $\Phi_0(z)$
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Spiral: break at $z=0.53$ | Gruppioni+ (2013); Pinetti Eq. C.25 | Lines 283-286 | Same | **Match** | |
-| Spiral: pre-break $((1+z)/1.15)^{k_{R1}}$ | Gruppioni+ (2013) | Line 284 | Same | **Match** | |
-| Spiral: post-break with pivot 1.53 | Gruppioni+ (2013) | Line 286: `(1.53/1.15)^k_R1 * ((1+z)/1.53)^k_R2` | Same | **Match** | |
-| Starburst & SF-AGN: break at $z=1.1$ | Gruppioni+ (2013); Pinetti Eq. C.26 | Lines 289-292 | Same | **Match** | |
-| Starburst & SF-AGN: post-break with pivot 2.1 | Gruppioni+ (2013) | Line 292: `(2.1/1.15)^k_R1 * ((1+z)/2.1)^k_R2` | Same | **Match** | |
+| Spiral: break at $z=0.53$ | Gruppioni+ (2013); Pinetti Eq. C.25 | `_gruppioni_component` spiral branch | Same | **Match** | |
+| Spiral: pre-break $((1+z)/1.15)^{k_{R1}}$ | Gruppioni+ (2013) | `_gruppioni_component` spiral branch | Same | **Match** | |
+| Spiral: post-break with pivot 1.53 | Gruppioni+ (2013) | `_gruppioni_component` spiral branch | Same | **Match** | |
+| Starburst & SF-AGN: break at $z=1.1$ | Gruppioni+ (2013); Pinetti Eq. C.26 | `_gruppioni_component` starburst/SF-AGN branches | Same | **Match** | |
+| Starburst & SF-AGN: post-break with pivot 2.1 | Gruppioni+ (2013) | `_gruppioni_component` starburst/SF-AGN branches | Same | **Match** | |
 
 ---
 
@@ -101,8 +101,8 @@ This document audits every equation, model choice, parameter value, and computat
 | $\beta_{\rm IR}=39.19$ | Ackermann+ (2012) | `ACKERMANN_BETA_IR=39.19` | Same | **Match** | |
 | $L_\gamma$ band: 0.1-100 GeV | Ackermann+ (2012) | Implicit | Same | **Match** | |
 | $L_{\rm IR}$ band: 8-1000 μm | Ackermann+ (2012) | Implicit | Same | **Match** | |
-| Inversion: $L_{\rm IR} = 10^{10}L_\odot \times 10^{(\log L_\gamma - \beta)/\alpha}$ | Algebra | Lines 333-336 | Same | **Match** | Code computes in erg/s then divides by L_SUN |
-| Jacobian $d\log L_{\rm IR}/d\log L_\gamma = 1/\alpha = 0.917$ | Algebra | Line 338 | Same | **Match** | |
+| Inversion: $L_{\rm IR} = 10^{10}L_\odot \times 10^{(\log L_\gamma - \beta)/\alpha}$ | Algebra | `_L_IR_from_Lgamma` | Same | **Match** | Code computes in erg/s then divides by `L_SUN` |
+| Jacobian $d\log L_{\rm IR}/d\log L_\gamma = 1/\alpha = 0.917$ | Algebra | `_L_IR_from_Lgamma` | Same | **Match** | |
 
 ---
 
@@ -110,10 +110,10 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $\Phi_\gamma = \Phi_{\rm IR}(L_{\rm IR}(L_\gamma),z) \lvert d\log L_{\rm IR}/d\log L_\gamma \rvert / (L_\gamma\ln 10)$ | Pinetti thesis Eq. C.28; Ackermann+ (2012) | `_glf_SFG` lines 361-364 | Same | **Match** | |
-| Conversion from $d\Phi/d\log L$ to $d\Phi/dL$: divide by $L\ln 10$ | Standard calculus | Line 364 | Same | **Match** | |
-| Jacobian appears as $\lvert d\log L_{\rm IR}/d\log L_\gamma \rvert$ (log-space) | Pinetti Eq. C.28 | Line 361 | Same | **Match** | |
-| Returns $d\Phi/dL_\gamma$ [Mpc⁻³ (erg/s)⁻¹] | Standard GLF units | Line 364 | Same | **Match** | |
+| $\Phi_\gamma = \Phi_{\rm IR}(L_{\rm IR}(L_\gamma),z) \lvert d\log L_{\rm IR}/d\log L_\gamma \rvert / (L_\gamma\ln 10)$ | Pinetti thesis Eq. C.28; Ackermann+ (2012) | `_glf_SFG` | Same | **Match** | |
+| Conversion from $d\Phi/d\log L$ to $d\Phi/dL$: divide by $L\ln 10$ | Standard calculus | `_glf_SFG` | Same | **Match** | |
+| Jacobian appears as $\lvert d\log L_{\rm IR}/d\log L_\gamma \rvert$ (log-space) | Pinetti Eq. C.28 | `_glf_SFG` | Same | **Match** | |
+| Returns $d\Phi/dL_\gamma$ [Mpc⁻³ (erg/s)⁻¹] | Standard GLF units | `_glf_SFG` | Same | **Match** | |
 
 ---
 
@@ -121,15 +121,15 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Formula $W = 1/(4\pi) \int \Phi (L/\epsilon I_\alpha) E_{\rm rest}^{-\alpha} dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure | `W_gamma_astro` | Same | **Differs** (implementation form) | The current implementation returns the photon-emissivity form without an explicit $(1+z)^{-2}$ prefactor |
+| Formula $W = 1/(4\pi h^3) \int \Phi (L/\epsilon I_\alpha) E_{\rm rest}^{-\alpha} dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure; the active pipeline makes the final h-dependent volume conversion explicit | `W_gamma_astro` | Same | **Differs** (implementation form) | The current implementation returns the photon-emissivity form with no explicit external $(1+z)^{-2}$ prefactor and a final `h^{-3}` conversion to `[(Mpc/h)^-3]` |
 | SFG spectral index $\alpha=2.7$ | Pinetti+ (2020) Table 3 | `ASTRO_SOURCES['SFG']['alpha']=2.7` | Same | **Match** | |
 | $L_{\min}=10^{37}$ erg/s | Pinetti thesis Table 3.1 | `L_min=1e37` | Same | **Match** | |
 | $L_{\max}=10^{42}$ erg/s | Pinetti thesis Table 3.1 | `L_max=1e42` | Same | **Match** | |
-| $E_{\rm rest} = E_{\rm obs}(1+z)$ | Standard | Line 549 | Same | **Match** | |
-| Energy normalization $I_\alpha$ over 0.1-100 GeV | Pinetti+ (2020) | Lines 538-546 | Same | **Match** | |
+| $E_{\rm rest} = E_{\rm obs}(1+z)$ | Standard | `W_gamma_astro` sets `E_rest = E_GeV * (1+z)` | Same | **Match** | |
+| Energy normalization $I_\alpha$ over 0.1-100 GeV | Pinetti+ (2020) | `W_gamma_astro` analytic `energy_integral` | Same | **Match** | |
 | Unresolved threshold $L_{\rm thr}=4\pi d_L^2 F_{\rm sens}$ | Pinetti+ (2020) | `L_sens(z)` | Same | **Match** | |
 | $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ | Pinetti+ (2020) | `F_SENS=1e-10` | Same | **Match** | |
-| Integration via `scipy.quad` in log-$L$, epsrel=1e-5 | — | Line 560 | Same | N/A | Numerical choice |
+| Integration via `scipy.quad` in log-$L$, epsrel=1e-5 | — | `W_gamma_astro` with `epsrel=1e-5` | Same | N/A | Numerical choice |
 
 ---
 
@@ -152,7 +152,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | # | Item | Nature | Severity | Notes |
 |---|------|--------|----------|-------|
-| T1 | $L_0$ frozen at $z=1.1$ for ALL components | Deliberate simplification | Minor | Paper only specifies break for spiral; starburst and SF-AGN have single power laws. Effect is small since $z \gt 1.1$ contribution is heavily suppressed by $(1+z)^{-2}$ cosmological dimming |
+| T1 | $L_0$ frozen at $z=1.1$ for ALL components | Deliberate simplification | Minor | Paper only specifies break for spiral; starburst and SF-AGN have single power laws. Effect is small relative to the larger GLF-evolution and unresolved-threshold changes across the same redshift range |
 | T2 | $(1+z)/1.15$ reference normalization | Pipeline convention | Low | Paper parameterizes per-bin; pipeline uses continuous $(1+z)/1.15$ normalization to $z=0.15$ midpoint. Mathematically equivalent |
 | T3 | SF-AGN $k_{R2}=-3.17$ (pipeline correct; thesis typo) | Correction | Low | Pinetti thesis Table C.2 shows $+3.17$ (typo); pipeline uses $-3.17$ from Gruppioni original. Thesis typo would cause unphysical density growth at $z \gt 1.1$ |
 | T4 | Fixed characteristic luminosity $L^{\rm char}=10^{39}$ erg/s for bias | Simplification | Minor | Not prescribed in literature; alternative would be luminosity-weighted effective bias integral |
@@ -169,7 +169,7 @@ This document audits every equation, model choice, parameter value, and computat
 | C1 | Gruppioni LF: direct function evaluation (no caching) | Per-call recomputation | Fine (cheap computation) |
 | C2 | Window integral via `scipy.quad` in log-$L$ | `epsrel=1e-5`, `limit=200` | High accuracy |
 | C3 | L_IR inversion done in log-space | Analytic inverse | Exact |
-| C4 | $d_L$ computed in physical Mpc | Line 517 | Explicit h-factor handling |
+| C4 | $d_L$ computed in physical Mpc | `L_sens` uses `cosmo.d_L(z) / cfg.h` before converting to cm | Explicit h-factor handling |
 | C5 | No analytic form for modified Schechter — direct evaluation | `_gruppioni_component()` | Fine |
 
 ---

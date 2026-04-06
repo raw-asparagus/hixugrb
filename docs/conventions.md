@@ -159,13 +159,17 @@ Both FSRQ and BL Lac use the smooth inverse-sum evolution with the Ajello sign c
 
 $$e(z, L) = \left[r^{p_1} + r^{p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}$$
 
-**Exponent sign convention:** The active pipeline follows [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18, which use the positive-exponent form ($r^{p_1}$). [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the inverse-sum with negative exponents, but the repository keeps the Ajello convention because the fitted $(p_1,p_2)$ values are taken from the Ajello papers. The implementation-facing equation record is in [`equations.md`](equations.md).
+**Exponent sign convention:** The active pipeline follows [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18, which use the positive-exponent form ($r^{p_1}$). [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the inverse-sum with negative exponents, but the repository keeps the Ajello convention because the fitted $(p_1,p_2)$ values are taken from the Ajello papers. The implementation-facing equation record is in [`equations.md`](equations.md).
 
 ### Willott cosmology correction
 
-The Willott (2001) RLF parameters are for **H₀=50, Ω_M=0** (Model C, Table 1). A volume correction factor η(z) converts densities to Planck 2018 cosmology:
+The Willott (2001) RLF parameters reused by the mAGN pipeline are for **H₀=50, Ω_M=0, Ω_Λ=0** (Model C, Table 1). A volume correction factor η(z) converts densities to Planck 2018 cosmology:
 
-$$\eta(z) = \left(\frac{d_C^\text{Willott}}{d_C^\text{Planck}}\right)^2 \frac{H^\text{Planck}}{H^\text{Willott}}$$
+$$\eta(z) = \frac{d^2V_\text{Willott}/dz\,d\Omega}{d^2V_\text{Planck}/dz\,d\Omega}$$
+
+with the Model C comoving volume element taken directly from [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. 18:
+
+$$\frac{d^2V_\text{Willott}}{dz\,d\Omega} = \frac{c^3 z^2 (2+z)^2}{4 H_{0,W}^3 (1+z)^3}, \qquad H_{0,W}=50\ \mathrm{km\,s^{-1}\,Mpc^{-1}}.$$
 
 ---
 
@@ -215,7 +219,7 @@ The pipeline makes several deliberate choices that differ from the primary liter
 | D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy |
 | D9 | T̄_b coefficient 188h vs 44 μK form | Equivalent, rounding difference |
 | ~~D11~~ | ~~Δ_vir = 200 fixed~~ | **Resolved:** Bryan & Norman z-dependent Δ_vir(z) now implemented |
-| D12 | BL Lac LDDE exponent signs | Follow Pinetti, not original paper |
+| D12 | BL Lac / FSRQ LDDE exponent signs | Follow Ajello, not the thesis sign flip |
 
 ---
 

@@ -2,11 +2,11 @@
 
 ## Target Quantity
 
-The star-forming galaxy (SFG) window function shares the generic astrophysical gamma-ray source form (Pinetti+ 2020, Eq. 4.3):
+The star-forming galaxy (SFG) window function shares the generic astrophysical gamma-ray source form (Pinetti+ 2020, Eq. 4.3). The implemented per-chi window makes the final comoving-unit conversion explicit:
 
-$$W_\gamma^{\rm SFG}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm SFG}(\chi) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
-with $\alpha = 2.7$ (Pinetti+ 2020 Table 3 SFG photon index — the softest UGRB component, reflecting pion-decay dominated emission), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
+with $\alpha = 2.7$ (Pinetti+ 2020 Table 3 SFG photon index — the softest UGRB component, reflecting pion-decay dominated emission), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$. Relative to the paper form, the implementation makes the physical-Mpc$^{-3}$ to $(\mathrm{Mpc}/h)^{-3}$ conversion explicit and keeps no separate external $(1+z)^{-2}$ prefactor.
 
 Unlike blazars (direct gamma-ray LDDE), SFGs derive their GLF from the well-constrained **infrared** luminosity function via an empirical calorimetric scaling: cosmic rays accelerated in supernova remnants lose energy primarily through pion production (gamma rays) and IR re-radiation of dust-reprocessed UV (thermal IR). Both scale with star formation rate, hence the near-linearity $L_\gamma\propto L_{\rm IR}^{1.09}$.
 
@@ -56,7 +56,7 @@ $$L_{0,i}(z) = L_{\star,i}\left(\frac{1+z}{1.15}\right)^{k_{L,i}}$$
 
 $$L_{0,i}(z>1.1) = L_{\star,i}\left(\frac{2.1}{1.15}\right)^{k_{L,i}}$$
 
-*Deviation note*: Gruppioni Table 8 only specifies a $z=1.1$ break for the spiral component ($z_{b,L}=1.1$, $k_{L,2}=0$). Starburst and SF-AGN in the paper have single power laws with no break. The pipeline applies the freeze uniformly as a deliberate simplification — the effect is small since the $z>1.1$ contribution to the cross-correlation is heavily suppressed by cosmological dimming.
+*Deviation note*: Gruppioni Table 8 only specifies a $z=1.1$ break for the spiral component ($z_{b,L}=1.1$, $k_{L,2}=0$). Starburst and SF-AGN in the paper have single power laws with no break. The pipeline applies the freeze uniformly as a deliberate simplification — the effect is small relative to the larger GLF-evolution, spectral, and unresolved-threshold changes across the same redshift range.
 
 ### Density evolution $\Phi_{0,i}(z)$ (Pinetti Eqs. C.25-C.26)
 
@@ -70,7 +70,7 @@ $$\Phi_{0,j}(z)=\Phi_{\star,j}\times\begin{cases}((1+z)/1.15)^{k_{R1}} & z\le 1.
 
 The reference $(1+z)/1.15$ normalization corresponds to the $z=0.15$ midpoint of Gruppioni's first redshift bin (a pipeline convention; the paper parameterizes evolution bin-by-bin).
 
-**Implementation:** embedded in `_gruppioni_component()` lines 274-292.
+**Implementation:** embedded in `astro_sources.py::_gruppioni_component()`.
 
 ---
 
@@ -110,9 +110,10 @@ The $1/(L_\gamma\ln 10)$ converts from $d\Phi/d\log_{10}L$ (Gruppioni's native f
 
 ## Layer 6: Window Function Assembly (Pinetti+ Eq. 4.3)
 
-Same generic form as all astrophysical sources:
+Same generic form as all astrophysical sources, with the implementation's final
+unit conversion made explicit:
 
-$$W_\gamma^{\rm SFG}(z) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm SFG}(z) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with:
 - $L_{\min}=10^{37}$ erg/s, $L_{\max}=10^{42}$ erg/s (Pinetti thesis Table 3.1)
@@ -122,7 +123,7 @@ with:
 
 The low $L_{\max}=10^{42}$ erg/s reflects that individual SFGs are much fainter than blazars (compared to $10^{50}$ erg/s for mAGN or $10^{52}$ erg/s for blazars).
 
-**Implementation:** `astro_sources.py:W_gamma_astro(E_GeV, z, 'SFG', ...)`.
+**Implementation:** `astro_sources.py::W_gamma_astro(..., source_class='SFG', ...)`.
 
 ---
 
@@ -136,38 +137,38 @@ Evaluated at a characteristic luminosity $L_\gamma^{\rm char}=10^{39}$ erg/s, th
 
 The strong redshift dependence $(1+z)^{-1.61}$ encodes **downsizing**: SFGs at higher redshifts live in lower-mass halos (less biased environments). This gives SFG the lowest effective bias among UGRB components.
 
-**Implementation:** `astro_sources.py:bias_astro(z, 'SFG')`; parameters in `config.py` (SFG_*).
+**Implementation:** `astro_sources.py::bias_astro(z, 'SFG')`; parameters in `config.py` (SFG_*).
 
 ---
 
 ## Complete Dependency Graph
 
-```
-W_gamma^SFG(E_GeV, z)                               [astro_sources.py:485] W_gamma_astro
-├── Phi_gamma^SFG(L, z)                              [astro_sources.py:343] _glf_SFG
-│   ├── _L_IR_from_Lgamma(L_gamma)                   [astro_sources.py:321]
+```text
+W_gamma^SFG(E_GeV, z)                               [astro_sources.py::W_gamma_astro]
+├── Phi_gamma^SFG(L, z)                             [astro_sources.py::_glf_SFG]
+│   ├── _L_IR_from_Lgamma(L_gamma)                  [astro_sources.py::_L_IR_from_Lgamma]
 │   │   ├── log_x = (log L_gamma - beta)/alpha
-│   │   ├── ACKERMANN_ALPHA_IR = 1.09                [config.py:190]
-│   │   └── ACKERMANN_BETA_IR = 39.19                [config.py:191]
-│   ├── _gruppioni_ir_lf(L_IR, z)                    [astro_sources.py:302]
+│   │   ├── ACKERMANN_ALPHA_IR = 1.09               [config.py]
+│   │   └── ACKERMANN_BETA_IR = 39.19               [config.py]
+│   ├── _gruppioni_ir_lf(L_IR, z)                   [astro_sources.py::_gruppioni_ir_lf]
 │   │   ├── spiral:    gamma=1.0, sigma=0.50, log_L*=9.78, log_phi*=-2.12
 │   │   │   └── k_L=4.49, k_R1=-0.54, k_R2=-7.13   [break phi at z=0.53]
 │   │   ├── starburst: gamma=1.0, sigma=0.35, log_L*=11.17, log_phi*=-4.46
-│   │   │   └── k_L=1.96, k_R1=3.79, k_R2=-1.06     [break phi at z=1.1]
+│   │   │   └── k_L=1.96, k_R1=3.79, k_R2=-1.06    [break phi at z=1.1]
 │   │   └── SF-AGN:    gamma=1.2, sigma=0.40, log_L*=10.80, log_phi*=-3.20
-│   │       └── k_L=3.17, k_R1=0.67, k_R2=-3.17     [break phi at z=1.1]
+│   │       └── k_L=3.17, k_R1=0.67, k_R2=-3.17    [break phi at z=1.1]
 │   └── Jacobian |dlog L_IR/dlog L_gamma| = 1/1.09 = 0.917
-├── alpha = 2.7                                      [config.py:102]
-├── L_min=1e37, L_max=1e42 erg/s                     [config.py:103-104]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                   [Fermi sensitivity]
-├── E_rest = E_obs * (1+z)                           [rest-frame energy]
+├── alpha = 2.7                                     [config.py]
+├── L_min=1e37, L_max=1e42 erg/s                    [config.py]
+├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.py::L_sens]
+├── E_rest = E_obs * (1+z)                          [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]
-└── (1+z)^{-2} / (4*pi)                              [cosmological dimming]
+└── final return = emissivity / (4*pi*h^3)          [physical Mpc^-3 -> (Mpc/h)^-3]
 
-bias_SFG(z)                                           [astro_sources.py:637]
-├── L_char = 1e39 erg/s                               [characteristic SFG L_gamma]
-├── M_halo = 1e12 / (1+z)^1.61 * (L/6.8e39)^0.92    [Pinetti Eq. C.29]
-└── b_ST(M_halo, z)                                   [Sheth-Tormen bias]
+bias_SFG(z)                                         [astro_sources.py::bias_astro]
+├── L_char = 1e39 erg/s                             [characteristic SFG L_gamma]
+├── M_halo = 1e12 / (1+z)^1.61 * (L/6.8e39)^0.92   [Pinetti Eq. C.29]
+└── b_ST(M_halo, z)                                 [Sheth-Tormen bias]
 ```
 
 ---

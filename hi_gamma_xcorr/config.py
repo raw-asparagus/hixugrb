@@ -125,7 +125,7 @@ L_SUN = 3.828e33
 
 # ---------------------------------------------------------------------------
 # mAGN: Willott et al. (2001) Radio Luminosity Function parameters
-# Two-component RLF at 151 MHz, H0=50 km/s/Mpc Einstein-de Sitter cosmology
+# Table 1 Model C at 151 MHz, H0=50 km/s/Mpc, Omega_M=0, Omega_Lambda=0
 # ---------------------------------------------------------------------------
 H0_WILLOTT = 50.0                   # km/s/Mpc
 WILLOTT_RHO_L_STAR = 10**(-7.523)   # Mpc^{-3} (Willott cosmology)

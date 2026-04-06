@@ -51,7 +51,7 @@ $$z_c(L) = z_\star\left(\frac{L}{10^{48}\,{\rm erg/s}}\right)^{\beta}$$
 
 ### 2d. Sign Convention Remark
 
-Ajello+ (2014) Eq. 18 writes the inverse-sum with **positive exponents** $[r^{p_1} + r^{p_2}]^{-1}$, and that is what the active implementation evaluates. [Pinetti (2022)](../literature/pinetti2022.md) Eq. C.4 rewrites the same inverse-sum with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. Because the BL Lac fit parameters are taken from Ajello+ (2014) Table 3, the repository intentionally keeps the Ajello sign convention rather than the thesis sign flip.
+Ajello+ (2014) Eq. 18 writes the inverse-sum with **positive exponents** $[r^{p_1} + r^{p_2}]^{-1}$, and that is what the active implementation evaluates. [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.4 rewrites the same inverse-sum with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. Because the BL Lac fit parameters are taken from Ajello+ (2014) Table 3, the repository intentionally keeps the Ajello sign convention rather than the thesis sign flip.
 
 **Implementation:** `astro_sources._glf_BL_Lac()` calls `astro_sources._ldde_glf(..., evolution_form='ldde_inv')`, and the current `ldde_inv` branch evaluates `1.0 / (ratio**p1 + ratio**p2)`.
 

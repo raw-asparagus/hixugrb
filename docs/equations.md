@@ -88,7 +88,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18. Current `_ldde_glf` intentionally follows this positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers; [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the inverse-sum with opposite exponent signs | `_ldde_glf` |
+| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18. Current `_ldde_glf` intentionally follows this positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers; [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the inverse-sum with opposite exponent signs | `_ldde_glf` |
 | 5.5 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi h^3}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.3 for the luminosity-function structure; current implementation uses the photon-number emissivity form returned by `W_gamma_astro()` and converts the physical GLF density to [(Mpc/h)$^{-3}$] | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
@@ -101,7 +101,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 
 *Note:* The $\alpha$ column is the luminosity dependence of $z_c$: $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$. Code uses `alpha` for both sources; [Ajello+ (2014)](literature/ajello2014.md) calls the BL Lac parameter $\beta$.
 
-*Implementation remark:* [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the blazar inverse-sum as $[r^{-p_1}+r^{-p_2}]^{-1}$. The active pipeline keeps the Ajello positive-exponent form above so the published Ajello fit parameters are used in the convention in which they were fitted.
+*Implementation remark:* [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the blazar inverse-sum as $[r^{-p_1}+r^{-p_2}]^{-1}$. The active pipeline keeps the Ajello positive-exponent form above so the published Ajello fit parameters are used in the convention in which they were fitted.
 
 ### mAGN GLF — Radio→Gamma Conversion Chain ([Di Mauro+ 2014](literature/dimauro2014.md))
 

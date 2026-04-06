@@ -2,11 +2,11 @@
 
 ## Target Quantity
 
-The misaligned AGN (mAGN) window function enters the Limber integral for the angular cross-power spectrum (Pinetti+ 2020, Eq. 2.1). It shares the generic astrophysical gamma-ray source form (Pinetti+ 2020 Eq. 4.3):
+The misaligned AGN (mAGN) window function enters the Limber integral for the angular cross-power spectrum (Pinetti+ 2020, Eq. 2.1). The implemented per-chi window follows the generic astrophysical gamma-ray source structure, with the final comoving-unit conversion made explicit:
 
-$$W_\gamma^{\rm mAGN}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm mAGN}(\chi) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
-with $\alpha=2.37$ (Pinetti+ 2020 Table 3 mAGN photon index), $E_{\rm rest}=(1+z)\,E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$ [GeV$^{2-\alpha}$], and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
+with $\alpha=2.37$ (Pinetti+ 2020 Table 3 mAGN photon index), $E_{\rm rest}=(1+z)\,E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$ [GeV$^{2-\alpha}$], and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$. Relative to the paper form, the implementation makes the physical-Mpc$^{-3}$ to $(\mathrm{Mpc}/h)^{-3}$ conversion explicit and keeps no separate external $(1+z)^{-2}$ prefactor; the observed/rest-frame redshift dependence enters through $E_{\rm rest}$.
 
 What makes mAGN unique is that $\Phi_\gamma^{\rm mAGN}$ is **not** fit directly to gamma-ray data (unlike BL Lac / FSRQ LDDE). Instead, it is derived from the much better-constrained 151 MHz **radio** luminosity function via a 3-step empirical conversion chain.
 
@@ -42,7 +42,7 @@ $$\rho_h = \rho_{h\star}\left(\frac{L_{151}}{L_{h\star}}\right)^{-\beta_h}\exp\!
 | $k_l$, $z_{l\star}$ | 3.48, 0.710 | — | — |
 | $z_{h\star}$, $z_{h0}$ | — | 2.03, 0.568/0.956 | — |
 
-Returns $d\Phi/d(\log_{10}L_{151})$ in Mpc⁻³. These parameters are from Willott (2001) Table 1, in the Willott reference cosmology ($H_0=50$ km/s/Mpc, Einstein–de Sitter).
+Returns $d\Phi/d(\log_{10}L_{151})$ in Mpc⁻³. These parameters are from Willott (2001) Table 1, Model C, in the Willott reference cosmology ($H_0=50$ km/s/Mpc, $\Omega_M=0$, $\Omega_\Lambda=0$).
 
 **Implementation:** `astro_sources.py:_willott_rlf()`; parameters in `config.py` (WILLOTT_*).
 
@@ -50,11 +50,13 @@ Returns $d\Phi/d(\log_{10}L_{151})$ in Mpc⁻³. These parameters are from Willo
 
 ## Layer 3: Cosmology Volume Correction — Willott → Planck
 
-The Willott RLF is defined in a reference cosmology with $H_0=50$ km/s/Mpc. To use it in Planck 2018, a comoving volume correction is applied:
+The Willott RLF is defined in the Model C reference cosmology with $H_0=50$ km/s/Mpc, $\Omega_M=0$, $\Omega_\Lambda=0$. To use it in Planck 2018, a comoving volume correction is applied:
 
-$$\eta(z) = \left(\frac{d_C^{\rm Willott}}{d_C^{\rm Planck}}\right)^2 \frac{H^{\rm Planck}(z)}{H^{\rm Willott}(z)}$$
+$$\eta(z) = \frac{d^2V_{\rm Willott}/dz\,d\Omega}{d^2V_{\rm Planck}/dz\,d\Omega}$$
 
-where $H^{\rm Willott}(z) = H_0^W(1+z)^{3/2}$ (Einstein–de Sitter) and $d_C^{\rm Willott}(z) = (c/H_0^W)\int_0^z dz'/(1+z')^{3/2}$.
+with the Willott-side volume element taken directly from Di Mauro+ (2014) Eq. 18:
+
+$$\frac{d^2V_{\rm Willott}}{dz\,d\Omega} = \frac{c^3 z^2 (2+z)^2}{4 H_{0,W}^3 (1+z)^3}.$$
 
 **Implementation:** `astro_sources.py:_willott_volume_correction(z)` (LRU-cached with maxsize=512).
 
@@ -109,9 +111,9 @@ $$\boxed{\Phi_\gamma^{\rm mAGN}(L_\gamma, z) = \frac{k\,\eta(z)}{(1+z)^{2-\Gamma
 
 ## Layer 6: Window Function Assembly (Pinetti+ Eq. 4.3)
 
-The per-chi astrophysical window function:
+The per-chi astrophysical window function returned by the implementation is:
 
-$$W_\gamma^{\rm mAGN}(z) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm mAGN}(z) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with:
 - $L_{\min}=10^{40}$ erg/s, $L_{\max}=10^{50}$ erg/s (Pinetti thesis Table 3.1)
@@ -119,7 +121,7 @@ with:
 - $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ (unresolved sources only)
 - Adaptive `scipy.quad` in log-$L$ space
 
-**Implementation:** `astro_sources.py:W_gamma_astro(E_GeV, z, 'mAGN', ...)`.
+**Implementation:** `astro_sources.py::W_gamma_astro(..., source_class='mAGN', ...)`.
 
 ---
 
@@ -133,44 +135,44 @@ $$M_{\rm halo} = 10^{13}\,M_\odot\left(\frac{M_\star}{10^{8.8}(1+z)^{1.4}}\right
 
 Then $b_{\rm mAGN}(z) = b_{\rm ST}(M_{\rm halo}(z), z)$ using the Sheth-Tormen bias.
 
-**Implementation:** `astro_sources.py:bias_astro(z, 'mAGN')`; parameters in `config.py` (MAGN_*).
+**Implementation:** `astro_sources.py::bias_astro(z, 'mAGN')`; parameters in `config.py` (MAGN_*).
 
 ---
 
 ## Complete Dependency Graph
 
-```
-W_gamma^mAGN(E_GeV, z)                              [astro_sources.py:485] W_gamma_astro
-├── Phi_gamma^mAGN(L, z)                            [astro_sources.py:219] _glf_mAGN
-│   ├── _L151_from_Lgamma(L_gamma)                  [astro_sources.py:172]
-│   │   ├── Di Mauro Eq. C.13: L_gamma[erg/s] → nuL_nu_core[erg/s]
-│   │   │   ├── DIMAURO_A = 2.0                     [config.py:154]
-│   │   │   └── DIMAURO_B = 1.008                   [config.py:155]
-│   │   ├── Unit: nuL_nu[erg/s] → L_core[W/Hz] at 5 GHz
-│   │   ├── Lara Eq. C.14: L_core[W/Hz] → L_tot^1.4GHz[W/Hz]
-│   │   │   ├── LARA_A = 4.2                        [config.py:147]
-│   │   │   └── LARA_B = 0.77                       [config.py:148]
-│   │   └── Inoue freq scaling: L_1.4GHz → L_151
-│   │       └── RADIO_ALPHA = 0.80                  [config.py:157]
-│   ├── _willott_rlf(L_151, z)                      [astro_sources.py:111]
+```text
+W_gamma^mAGN(E_GeV, z)                              [astro_sources.py::W_gamma_astro]
+├── Phi_gamma^mAGN(L, z)                            [astro_sources.py::_glf_mAGN]
+│   ├── _L151_from_Lgamma(L_gamma)                  [astro_sources.py::_L151_from_Lgamma]
+│   │   ├── Di Mauro Eq. C.13: L_gamma[erg/s] -> nuL_nu_core[erg/s]
+│   │   │   ├── DIMAURO_A = 2.0                     [config.py]
+│   │   │   └── DIMAURO_B = 1.008                   [config.py]
+│   │   ├── Unit: nuL_nu[erg/s] -> L_core[W/Hz] at 5 GHz
+│   │   ├── Lara Eq. C.14: L_core[W/Hz] -> L_tot^1.4GHz[W/Hz]
+│   │   │   ├── LARA_A = 4.2                        [config.py]
+│   │   │   └── LARA_B = 0.77                       [config.py]
+│   │   └── Inoue freq scaling: L_1.4GHz -> L_151
+│   │       └── RADIO_ALPHA = 0.80                  [config.py]
+│   ├── _willott_rlf(L_151, z)                      [astro_sources.py::_willott_rlf]
 │   │   ├── Low-power (FRI): rho_l with freeze at z_l*=0.710
 │   │   └── High-power (FRII): rho_h Gaussian peak at z_h*=2.03
-│   ├── _willott_volume_correction(z)               [astro_sources.py:145]
-│   │   └── eta(z) = (d_C^W / d_C)^2 × (H / H_W)   [EdS H_W = H0*(1+z)^(3/2)]
+│   ├── _willott_volume_correction(z)               [astro_sources.py::_willott_volume_correction]
+│   │   └── eta(z) = [d^2V_W/dz/dOmega] / [d^2V/dz/dOmega]  [Model C volume element]
 │   ├── K-correction: (1+z)^{-(2-Gamma)} with Gamma=2.37
-│   └── DIMAURO_K = 3.05                            [config.py:156]
-├── alpha = 2.37 (photon index)                     [config.py:96]
-├── L_min=1e40, L_max=1e50 erg/s                    [config.py:97-98]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.py:25]
+│   └── DIMAURO_K = 3.05                            [config.py]
+├── alpha = 2.37 (photon index)                     [config.py]
+├── L_min=1e40, L_max=1e50 erg/s                    [config.py]
+├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.py::L_sens]
 ├── E_rest = E_obs*(1+z)                            [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV] [energy normalization]
-└── (1+z)^{-2} / (4*pi)                             [cosmological dimming]
+└── final return = emissivity / (4*pi*h^3)          [physical Mpc^-3 -> (Mpc/h)^-3]
 
-bias_mAGN(z)                                         [astro_sources.py:630]
-├── L_char = 1e44 erg/s                              [characteristic luminosity]
+bias_mAGN(z)                                        [astro_sources.py::bias_astro]
+├── L_char = 1e44 erg/s                             [characteristic luminosity]
 ├── M_star = 1e9 * (L/1e48)^0.36                    [Di Mauro Eq. C.21]
 ├── M_halo = 1e13 * (M_star / (10^8.8*(1+z)^1.4))^0.645 [Di Mauro Eq. C.20]
-└── b_ST(M_halo, z)                                  [Sheth-Tormen bias]
+└── b_ST(M_halo, z)                                 [Sheth-Tormen bias]
 ```
 
 ---

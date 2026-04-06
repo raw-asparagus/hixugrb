@@ -66,7 +66,7 @@ $$e(z,L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{p_1} + \left(\frac{1+z}{1+z_
 
 with $r=(1+z)/(1+z_c(L))$.
 
-**Implementation remark:** [Pinetti (2022)](../literature/pinetti2022.md) Eq. C.4 writes the same inverse-sum structure with negative exponents, $[r^{-p_1}+r^{-p_2}]^{-1}$. The repository intentionally keeps the Ajello sign convention because the published FSRQ fit parameters $(p_1,p_2)$ were calibrated in that convention.
+**Implementation remark:** [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.4 writes the same inverse-sum structure with negative exponents, $[r^{-p_1}+r^{-p_2}]^{-1}$. The repository intentionally keeps the Ajello sign convention because the published FSRQ fit parameters $(p_1,p_2)$ were calibrated in that convention.
 
 | Parameter | Value | Role |
 |-----------|-------|------|

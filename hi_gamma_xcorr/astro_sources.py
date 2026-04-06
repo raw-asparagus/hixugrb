@@ -111,7 +111,8 @@ _BL_LAC_PARAMS = {
 def _willott_rlf(L_151, z):
     """Willott et al. (2001) two-component radio luminosity function.
 
-    Returns dPhi/d(log10 L_151) [Mpc^{-3}] in the Willott cosmology (H0=50).
+    Returns dPhi/d(log10 L_151) [Mpc^{-3}] in the Willott Model C cosmology
+    (H0=50 km/s/Mpc, Omega_M=0, Omega_Lambda=0).
 
     Parameters
     ----------
@@ -143,30 +144,37 @@ def _willott_rlf(L_151, z):
 
 @functools.lru_cache(maxsize=512)
 def _willott_volume_correction(z):
-    """Comoving volume ratio eta(z) = (d_C^W / d_C)^2 * (H / H_W).
+    """Comoving-volume ratio eta(z) = [d^2V_W/dz/dOmega] / [d^2V/dz/dOmega].
 
-    Converts Willott (H0=50, Omega_M=1) Mpc^{-3} to Planck cosmology Mpc^{-3}.
+    Uses the Willott et al. (2001) Table 1 Model C background adopted by
+    Di Mauro et al. (2014): H0_W = 50 km/s/Mpc, Omega_M = 0, Omega_Lambda = 0.
+    In that empty/open cosmology the comoving volume element per steradian is
+
+        d^2V_W / dz dOmega = c^3 z^2 (2 + z)^2 / [4 H0_W^3 (1 + z)^3]
+
+    (Di Mauro et al. 2014 Eq. 18). The Planck-path volume element is computed
+    from the repository cosmology via d^2V/dz/dOmega = c * d_L^2 / [H(z)(1+z)^2].
     """
     if z <= 0:
         return 1.0
 
-    # Willott cosmology: Einstein-de Sitter (H0=50, Omega_M=1)
-    def _inv_H_W(zp):
-        return 1.0 / (cfg.H0_WILLOTT * np.sqrt((1.0 + zp)**3))
+    # Willott Model C / Di Mauro Eq. 18 volume element [Mpc^3 sr^-1].
+    dV_W = (
+        cfg.C_LIGHT_KM_S**3
+        * z**2
+        * (2.0 + z)**2
+        / (4.0 * cfg.H0_WILLOTT**3 * (1.0 + z)**3)
+    )
 
-    d_C_W, _ = quad(_inv_H_W, 0, z, limit=100)
-    d_C_W *= cfg.C_LIGHT_KM_S  # [Mpc]
-    H_W = cfg.H0_WILLOTT * np.sqrt((1.0 + z)**3)  # [km/s/Mpc]
+    # Repository Planck cosmology volume element [Mpc^3 sr^-1].
+    dL = cosmo.d_L(z) / cfg.h  # physical Mpc
+    H_pipeline = cosmo.H(z)    # [km/s/Mpc]
+    dV = cfg.C_LIGHT_KM_S * dL**2 / (H_pipeline * (1.0 + z)**2)
 
-    # Pipeline cosmology
-    d_C = cosmo.chi(z) / cfg.h  # chi is in Mpc/h → physical Mpc
-    H_pipeline = cosmo.H(z)     # [km/s/Mpc]
-
-    if d_C <= 0 or d_C_W <= 0:
+    if dV <= 0 or dV_W <= 0:
         return 1.0
 
-    eta = (d_C_W / d_C)**2 * (H_pipeline / H_W)
-    return eta
+    return dV_W / dV
 
 
 def _L151_from_Lgamma(L_gamma):
