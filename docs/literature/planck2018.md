@@ -15,7 +15,7 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 - 6-parameter base LCDM model
 - Complementary data: Type Ia SNe, BAO
 
-## Parameters Used in This Pipeline
+## Key Parameters
 
 ### Primary (from TT,TE,EE+lowE+lensing)
 
@@ -38,7 +38,7 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 | Omega_Lambda | 0.6847 |
 | Omega_B | 0.0493 |
 | Omega_CDM | 0.2644 (= Omega_c h^2 / h^2, cold DM only) |
-| Omega_DM | 0.2660 (= Omega_M - Omega_B, total DM incl. neutrinos; used by pipeline) |
+| Omega_DM | 0.2660 (= Omega_M - Omega_B, total DM incl. neutrinos) |
 | T_CMB | 2.7255 K |
 | rho_crit | 2.775 × 10^{11} M_sun/h / (Mpc/h)^3 |
 
@@ -49,6 +49,6 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 - DM = 26%, baryons = 5%, dark energy = 68% of universe
 - Power-law primordial spectrum consistent with inflation
 
-## Implementation
+## Repository Use
 
-**Module:** `config.py` — All Planck 2018 parameters defined as constants (`H0`, `OMEGA_M`, `SIGMA_8`, etc.). Used by `cosmology.py` for CAMB initialization, E(z), H(z), chi(z), and by `hmf_interface.py` for mass function computation.
+Used by the repository as the cosmological-parameter source for `config.py`, `cosmology.py`, and the mass-function backend.

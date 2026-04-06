@@ -53,11 +53,6 @@ $$M_\star = 10^9\,M_\odot\left(\frac{L_\gamma}{10^{48}\,\text{erg/s}}\right)^{0.
 
 $$M_\text{halo} = 10^{13}\,M_\odot\left(\frac{M_\star}{10^{8.8}\,(1+z)^{1.4}}\right)^{0.645}$$
 
-## Implementation
+## Repository Use
 
-**Module:** `astro_sources.py` — `_willott_rlf()`, `_willott_volume_correction()`, `_L151_from_Lgamma()`, `_glf_mAGN()`
-
-**Upstream references:**
-- [Willott+ (2001)](willott2001.md) — Radio LF
-- [Lara+ (2004)](lara2004.md) — Core-total radio relation
-- [Inoue (2011)](inoue2011.md) — Radio frequency scaling
+Used by the repository as the main mAGN gamma-ray luminosity-function reference in `astro_sources.py`, together with the Willott, Lara, and Inoue radio relations it builds on.

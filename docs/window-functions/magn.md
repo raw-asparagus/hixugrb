@@ -4,7 +4,7 @@
 
 The misaligned AGN (mAGN) window function enters the Limber integral for the angular cross-power spectrum (Pinetti+ 2020, Eq. 2.1). It shares the generic astrophysical gamma-ray source form (Pinetti+ 2020 Eq. 4.3):
 
-$$W_\gamma^{\rm mAGN}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm mAGN}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with $\alpha=2.37$ (Pinetti+ 2020 Table 3 mAGN photon index), $E_{\rm rest}=(1+z)\,E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$ [GeV$^{2-\alpha}$], and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
 
@@ -111,7 +111,7 @@ $$\boxed{\Phi_\gamma^{\rm mAGN}(L_\gamma, z) = \frac{k\,\eta(z)}{(1+z)^{2-\Gamma
 
 The per-chi astrophysical window function:
 
-$$W_\gamma^{\rm mAGN}(z) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm mAGN}(z) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm mAGN}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with:
 - $L_{\min}=10^{40}$ erg/s, $L_{\max}=10^{50}$ erg/s (Pinetti thesis Table 3.1)

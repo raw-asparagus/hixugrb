@@ -28,7 +28,7 @@ Cross-correlates 9 years of Fermi-LAT gamma-ray data (0.631–1000 GeV, Pass 8 U
 
 ## Fermi-LAT Data Specifications
 
-These specifications define the data-analysis-grade treatment for an actual cross-correlation measurement (as opposed to the forecasting approach in Pinetti+(2020)).
+These specifications describe the Fermi-LAT data-analysis setup used in the measurement.
 
 | Parameter | Value | Reference |
 |-----------|-------|-----------|
@@ -114,39 +114,6 @@ $$P_{gg}^\mathrm{1h}(k, z) = \int \frac{dn}{dM} \frac{2\langle N_\mathrm{cen}\ra
 
 $$P_{gg}^\mathrm{2h}(k, z) = \left[\int \frac{dn}{dM} b_h(M) \frac{\langle N_g \rangle}{\bar{n}_g} \tilde{v}_g(k|M) \, dM\right]^2 P_\mathrm{lin}(k)$$
 
-## Pipeline Mapping
+## Repository Use
 
-Comparison of the pipeline's current implementation against this paper:
-
-| Pipeline Element | This Paper | Status | Action |
-|---|---|---|---|
-| Fermi PSF: σ₀(E) parametric Gaussian (`noise_model.py`) | Eq. 4: Legendre transform of actual PSF | **Upgrade needed** | Implement exact beam from King function PSF |
-| Beam B_ℓ^γ: modified Gaussian (`noise_model.py`) | Eq. 5–6: energy-averaged W_ℓ per bin | **Upgrade needed** | Add `beam_fermi_exact()` |
-| Energy bins: 12 bins, 0.5–1000 GeV (`config.py`) | Table I: 11 bins, 0.631–1000 GeV | **Upgrade needed** | Add alternate bin config |
-| No ℓ-range cuts | ℓ_min = 40, ℓ_max from Eq. 7 per bin | **Missing** | Add energy-dependent ℓ cuts |
-| No pixel window | Eq. 6: W_pix correction | **Missing** | Add `pixel_window(ℓ, N_side)` |
-| f_sky tabulated per bin | Derived from actual mask | **Upgrade needed** | Add mask-based f_sky computation |
-| F_sens = 10⁻¹⁰ cm⁻²s⁻¹ constant | FL8Y catalog masking (energy-dependent) | **Different approach** | Add energy-dependent threshold |
-| Gaussian variance (Eq. 10.1) | Eq. A1 | **Consistent** | — |
-| Limber C_ℓ (Eq. 9.1) | Eq. 2–3 (APS definition) | **Consistent** | — |
-| Halo model (NFW, bias, concentration) | Appendix B (same framework) | **Consistent** | — |
-| mAGN/SFG source models | Same references (Di Mauro+2014, Ackermann+2012) | **Consistent** | — |
-| DM window W_γ^DM | Same formalism (Regis+2015) | **Consistent** | — |
-| HI window W_HI, radio noise model | Not in paper (uses galaxy HOD, not 21-cm) | **N/A** | — |
-
-## Key Differences from Pinetti+(2020)
-
-1. **Observational vs forecasting:** This paper performs an actual measurement on data; Pinetti+(2020) produces SNR forecasts
-2. **Galaxy tracer vs HI:** Cross-correlates with 2MPZ galaxy catalog (HOD formalism), not HI 21-cm intensity mapping
-3. **Beam treatment:** Exact Legendre transform of Fermi-LAT PSF (Eq. 4) vs parametric Gaussian approximation
-4. **Energy bins:** 11 bins starting at 0.631 GeV vs 12 bins starting at 0.5 GeV — lowest bin excluded due to poor angular resolution
-5. **Multipole range:** Energy-dependent ℓ_max from beam window threshold (Eq. 7) vs no ℓ cut
-6. **Masking:** Energy-dependent point source masking (Eq. 1) vs single flux threshold F_sens
-7. **Pixel window:** Applied (Eq. 6) vs not applied
-8. **Foreground:** Galactic template subtraction with free normalization vs not modeled
-
-## Implementation
-
-**Primary use:** Reference for upgrading the Fermi-LAT treatment from forecasting-grade to data-analysis-grade. Key upgrades: exact beam window function, energy-dependent multipole cuts, pixel window correction.
-
-**Modules affected:** `noise_model.py` (beam), `config.py` (energy bins, PSF parameters), `astro_sources.py` (energy-dependent sensitivity), `statistics.py` (ℓ-range cuts)
+Relevant to the repository as the main data-analysis reference for Fermi-LAT beam treatment, multipole cuts, pixel-window correction, and energy-dependent source masking.

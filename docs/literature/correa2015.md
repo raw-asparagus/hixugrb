@@ -14,9 +14,9 @@ Presents a semi-analytic, physically motivated model for dark matter halo concen
 - Valid down to microhalo masses (10⁻² M☉) — critical for DM annihilation boost
 - Predicts slope change at ~10¹¹ M☉ from MAH transition (exponential → power-law growth)
 - No artificial upturn at high masses (only relaxed halos)
-- Explicit Planck 2013 cosmology fitting functions (Appendix B1; Ω_m=0.317, h=0.67, σ_8=0.834, n_s=0.962 — note: NOT Planck 2018 as used by the pipeline, but the difference is small)
+- Explicit Planck 2013 cosmology fitting functions (Appendix B1; Ω_m=0.317, h=0.67, σ_8=0.834, n_s=0.962)
 
-## Equations Used in This Pipeline (Appendix B1, Planck cosmology)
+## Key Equations (Appendix B1, Planck cosmology)
 
 ### Low-redshift regime (z ≤ 4, all halo masses)
 
@@ -41,8 +41,6 @@ $$\beta = 0.0223 - 0.0944(1+z)^{-0.3907}$$
 | 10¹² | ~8 | ~5 | ~4 |
 | 10¹⁵ | ~4 | ~3 | ~2.5 |
 
-## Implementation
+## Repository Use
 
-**Module:** `halo_model.py` — `concentration_correa(M, z)`. Default (and only) concentration for DM halos (`halo_model.concentration`).
-
-**Software:** Authors provide the `commah` Python package (pip installable) for computing concentrations and MAHs at any cosmology. This pipeline uses the Appendix B1 fitting functions directly for performance.
+Used by the repository as the concentration-mass relation for dark-matter halos in `halo_model.py`.

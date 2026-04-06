@@ -28,10 +28,6 @@ $$L_{0,\text{sp}}(z) = L_{\star,\text{sp}}\left(\frac{1+z}{1.15}\right)^{k_{L}} 
 
 $$L_{0,j}(z) = L_{\star,j}\left(\frac{1+z}{1.15}\right)^{k_{L,j}}$$
 
-*Note: The paper (Table 8) gives a luminosity break only for spiral ($z_{b,L} = 1.1$, $k_{L,2} = 0$). Starburst and SF-AGN have a single $k_L$ with no break. The pipeline applies the z=1.1 break to all components as a simplification; this has negligible effect since k_L values are modest and the z>1.1 contribution to the cross-correlation is small.*
-
-*Note: The $(1+z)/1.15$ normalization (reference point at the z=0.15 bin midpoint) is a pipeline convention. The paper parameterizes evolution as $(1+z)^k$ with a reference value at each redshift bin center.*
-
 ### Density evolution $\phi_{0,i}(z)$
 
 **Spiral** (break at $z = 0.53$):
@@ -46,7 +42,7 @@ $$\phi_{0,j}(z) = \phi_{\star,j}\left(\frac{1+z}{1.15}\right)^{k_{R1,j}} \quad (
 
 $$\phi_{0,j}(z) = \phi_{\star,j}\left(\frac{2.1}{1.15}\right)^{k_{R1,j}}\left(\frac{1+z}{2.1}\right)^{k_{R2,j}} \quad (z > 1.1)$$
 
-### Parameters (Table 8 in paper; labeled "Table C.2" in Pinetti 2022 thesis)
+### Parameters (Table 8 in the paper)
 
 | Component | $\gamma$ | $\sigma$ | $\log_{10}(L_\star/L_\odot)$ | $\log_{10}(\phi_\star/\text{Mpc}^{-3})$ | $k_L$ | $k_{R1}$ | $k_{R2}$ |
 |-----------|---------|---------|------|------|------|-------|-------|
@@ -54,20 +50,10 @@ $$\phi_{0,j}(z) = \phi_{\star,j}\left(\frac{2.1}{1.15}\right)^{k_{R1,j}}\left(\f
 | starburst | 1.0 | 0.35 | 11.17 | −4.46 | 1.96 | 3.79 | −1.06 |
 | SF-AGN | 1.2 | 0.40 | 10.80 | −3.20 | 3.17 | 0.67 | −3.17 |
 
-## Gamma-Ray Conversion
-
-The IR LF is converted to a gamma-ray LF using the [Ackermann+ (2012)](ackermann2012_sfg.md) L_γ–L_IR scaling:
-
-$$\phi_\gamma(L_\gamma, z) = \phi_\text{IR}\!\left(L_\text{IR}(L_\gamma),\, z\right)\,\frac{d\log_{10} L_\text{IR}}{d\log_{10} L_\gamma}$$
-
-### Mass-to-luminosity for halo bias (Pinetti thesis Eq. C.29; not in this paper)
-
-$$M(L) = \frac{10^{12}\,M_\odot}{(1+z)^{1.61}}\left(\frac{L}{6.8\times10^{39}\,\text{erg/s}}\right)^{0.92}$$
-
 ## Erratum
 
 **MNRAS 436(3), 2875–2876 (December 2013)** — Correction to Figure 8 scaling. Does not affect luminosity function parameters.
 
-## Implementation
+## Repository Use
 
-**Module:** `astro_sources.py` — `_gruppioni_component()`, `_gruppioni_ir_lf()`, `_L_IR_from_Lgamma()`, `_glf_SFG()`
+Used by the repository for the three-component infrared luminosity function that underlies the SFG source model.

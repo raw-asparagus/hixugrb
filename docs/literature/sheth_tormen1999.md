@@ -32,6 +32,6 @@ $$b(\nu) = 1 + \frac{q\nu - 1}{\delta_c} + \frac{2p}{\delta_c(1 + (q\nu)^p)}$$
 | delta_c | 1.686 |
 | nu | delta_c^2 / sigma^2(M,z) |
 
-## Implementation
+## Repository Use
 
-**Module:** `halo_model.py` — `bias(M, z)`. Parameters in `config.py`: `SMT_Q`, `SMT_P`, `DELTA_C`.
+Used by the repository as the halo-bias reference implemented in `halo_model.py`.

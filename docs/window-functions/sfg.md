@@ -4,7 +4,7 @@
 
 The star-forming galaxy (SFG) window function shares the generic astrophysical gamma-ray source form (Pinetti+ 2020, Eq. 4.3):
 
-$$W_\gamma^{\rm SFG}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm SFG}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with $\alpha = 2.7$ (Pinetti+ 2020 Table 3 SFG photon index — the softest UGRB component, reflecting pion-decay dominated emission), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
 
@@ -112,7 +112,7 @@ The $1/(L_\gamma\ln 10)$ converts from $d\Phi/d\log_{10}L$ (Gruppioni's native f
 
 Same generic form as all astrophysical sources:
 
-$$W_\gamma^{\rm SFG}(z) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm SFG}(z) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm SFG}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with:
 - $L_{\min}=10^{37}$ erg/s, $L_{\max}=10^{42}$ erg/s (Pinetti thesis Table 3.1)

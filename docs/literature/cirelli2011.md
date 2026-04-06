@@ -35,6 +35,6 @@ $$\frac{dN}{dE} = \frac{dN}{dx} \cdot \frac{1}{m_\chi}$$
 
 **Channel mapping:** bb → 'b', tautau → '\[Tau\]', WW → 'W'
 
-## Implementation
+## Repository Use
 
-**Module:** `pppc4dmid.py` — `dNdx()`, `dNdE()`, `total_multiplicity()`. Table loaded from `data/pppc4dmid/AtProduction_gammas.dat`. 2D `RectBivariateSpline` interpolation in (log10 m_DM, log10 x). Analytic fallback for when tables unavailable.
+Used by the repository as the source for the PPPC4DMID prompt-photon yield tables consumed by `pppc4dmid.py`.

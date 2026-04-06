@@ -8,9 +8,9 @@ $$C_\ell^{ij} = \int \frac{d\chi}{\chi^2}\, W_{\rm HI}(\chi)\, W_j(\chi)\, P_{ij
 
 The window function itself (Eqs. 3.15–3.16) is:
 
-$$W_{\rm HI}(\chi) = \bar{T}_b(z)\; b_{\rm HI}(z)\; \phi(z)\; \frac{H(z)}{c}$$
+$$W_{\rm HI}(\chi) = \bar{T}_b(z)\; \phi(z)\; \frac{H(z)}{c\,h}$$
 
-where $\phi(z) = 1/(z_{\max} - z_{\min})$ is a top-hat redshift selection function for the radio survey band. This requires three physically non-trivial ingredients: the mean brightness temperature $\bar{T}_b$, the effective HI bias $b_{\rm HI}$, and the cosmological Jacobian $H(z)/c$.
+where $\phi(z) = 1/(z_{\max} - z_{\min})$ is a top-hat redshift selection function for the radio survey band. In the current implementation, `W_HI()` contains the mean brightness temperature and the per-$\chi$ Jacobian; the effective HI bias is computed separately and enters the HI power spectra.
 
 ---
 
@@ -57,9 +57,9 @@ Same $q=0.707$, $p=0.3$, $\delta_c=1.686$.
 
 ### 2c. Virial quantities
 
-Using $\Delta_{\rm vir}=200$ (M200c convention):
+Using the Bryan & Norman (1998) redshift-dependent virial overdensity:
 
-$$R_{\rm vir} = \left(\frac{3M}{4\pi \cdot 200 \cdot \rho_c(z)}\right)^{1/3}, \qquad v_c = \sqrt{\frac{GM}{R_{\rm vir}}}$$
+$$R_{\rm vir} = \left(\frac{3M}{4\pi \cdot \Delta_{\rm vir}(z) \cdot \rho_c(z)}\right)^{1/3}, \qquad v_c = \sqrt{\frac{GM}{R_{\rm vir}}}$$
 
 The circular velocity $v_c(M,z)$ is critical because it enters the M_HI exponential cutoff.
 
@@ -152,9 +152,9 @@ HI-mass-weighted average of the Sheth-Tormen halo bias. Since HI lives preferent
 
 Combining everything (Pinetti+ Eqs. 3.15–3.16):
 
-$$W_{\rm HI}(z) = \underbrace{188\,h\;\Omega_{\rm HI}(z)\;\frac{(1+z)^2}{E(z)}}_{\bar{T}_b(z)} \;\times\; \underbrace{\frac{\int (dn/dM)\,M_{\rm HI}\,b\,dM}{\int (dn/dM)\,M_{\rm HI}\,dM}}_{b_{\rm HI}(z)} \;\times\; \underbrace{\frac{1}{z_{\max}-z_{\min}}}_{\phi(z)} \;\times\; \underbrace{\frac{H(z)}{c}}_{\text{Jacobian}}$$
+$$W_{\rm HI}(z) = \underbrace{188\,h\;\Omega_{\rm HI}(z)\;\frac{(1+z)^2}{E(z)}}_{\bar{T}_b(z)} \;\times\; \underbrace{\frac{1}{z_{\max}-z_{\min}}}_{\phi(z)} \;\times\; \underbrace{\frac{H(z)}{c\,h}}_{\text{Jacobian}}$$
 
-The $\phi(z)$ factor is a top-hat in redshift determined by the radio survey band (e.g., MeerKAT UHF band $\to$ $z \in [0.4, 1.45]$). The $H(z)/c$ is a geometric Jacobian converting per-redshift into per-comoving-distance units. In the Limber integrand, $d\chi/dz = c/H(z)$, so the $H(z)/c$ in $W_{\rm HI}$ cancels against the integration measure: $W_{\rm HI} \cdot d\chi = \bar{T}_b \cdot b_{\rm HI} \cdot \phi \cdot dz$.
+The $\phi(z)$ factor is a top-hat in redshift determined by the radio survey band (e.g., MeerKAT UHF band $\to$ $z \in [0.4, 1.45]$). The $H(z)/(c\,h)$ factor is the geometric Jacobian converting the paper's per-$z$ form into the repository's per-$\chi$ convention. The HI bias is applied in the HI power spectra, not inside `W_HI()`.
 
 **Implementation:** `hi_model.py:W_HI(z, z_min, z_max)`.
 
@@ -184,17 +184,17 @@ W_HI(z, z_min, z_max)                           [hi_model.py:281]
 │   ├── Omega_HI(z)                              [hi_model.py:168]  Pinetti+ Eq. 3.3
 │   │   ├── rho_HI_mean(z)                       [hi_model.py:143]  Pinetti+ Eq. 3.2
 │   │   │   ├── dn/dM(M,z)                       [hmf_interface.py] SMT 2001 via hmf
-│   │   │   │   ├── sigma(M,z)                    [hmf_interface.py] from P_lin via EH transfer
+│   │   │   │   ├── sigma(M,z)                    [hmf_interface.py] from CAMB-backed hmf transfer
 │   │   │   │   └── delta_c = 1.686               [config.py:61]    spherical collapse
 │   │   │   └── M_HI(M,z)                        [hi_model.py:21]   Padmanabhan+ 2017 Eq. 1
 │   │   │       ├── alpha=0.176, beta=-0.69       [config.py:71-72]  Table A1
 │   │   │       ├── v_c0=40.7 km/s                [config.py:73]     Table A1
 │   │   │       ├── f_Hc = (1-Y_P)*Omega_B/Omega_M [config.py:77]
-│   │   │       └── v_circ(M,z)                   [halo_model.py:40] from R_vir, Delta=200
+│   │   │       └── v_circ(M,z)                   [halo_model.py:40] from R_vir, Delta_vir(z)
 │   │   └── rho_crit                              [config.py:55]     Planck 2018
 │   ├── h = 0.6736                                [config.py:36]     Planck 2018
 │   └── E(z)                                      [cosmology.py:99]  flat LCDM
-├── b_HI(z)                                       [hi_model.py:188]  Pinetti+ Eq. 3.6
+├── b_HI(z)                                       [hi_model.py:188]  used by P_HI(k,z), not by W_HI()
 │   ├── rho_HI_mean(z)                            (same as above)
 │   ├── dn/dM(M,z)                                (same as above)
 │   ├── M_HI(M,z)                                 (same as above)

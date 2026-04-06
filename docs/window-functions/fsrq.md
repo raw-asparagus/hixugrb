@@ -4,7 +4,7 @@
 
 The Flat-Spectrum Radio Quasar (FSRQ) window function shares the generic astrophysical gamma-ray source form (Pinetti+ 2020, Eq. 4.3):
 
-$$W_\gamma^{\rm FSRQ}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm FSRQ}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm FSRQ}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm FSRQ}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with $\alpha=2.44$ (Pinetti+ 2020 Table 3 FSRQ photon index — the softest blazar spectrum, reflecting external Compton scattering off broad-line-region photons), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
 
@@ -35,7 +35,7 @@ This smoothly interpolates between a faint-end slope $\gamma_1$ and a bright-end
 | $\gamma_1$ | $0.21$ | Faint-end slope (very shallow) |
 | $\gamma_2$ | $1.58$ | Bright-end slope |
 
-**Implementation:** `astro_sources.py:_FSRQ_PARAMS` (lines 79-89), `_ldde_glf()` lines 402-407.
+**Implementation:** `astro_sources._FSRQ_PARAMS` and `astro_sources._ldde_glf()`.
 
 ---
 
@@ -54,21 +54,19 @@ with $L_{\rm ref}=10^{48}$ erg/s (Ajello convention).
 
 Numerically: for $L=10^{46}$ erg/s (faint FSRQ), $z_c \approx 0.56$; for $L=10^{50}$ erg/s (bright), $z_c\approx 3.88$. The pipeline floors $z_c$ at 0.01 to avoid divergences.
 
-**Implementation:** `_ldde_glf()` line 410: `z_c = z_c_star * (L/L_ref)**alpha`.
+**Implementation:** `_ldde_glf()` evaluates `z_c = z_c_star * (L/L_ref)**alpha`.
 
 ---
 
 ## Layer 4: Smooth Inverse-Sum Redshift Evolution
 
-The FSRQ density evolution $e(z,L)$ is continuous around the peak. The **pipeline** uses the Pinetti (2022) thesis Eq. C.4 form with **negative exponents**:
+The FSRQ density evolution $e(z,L)$ is continuous around the peak. The active implementation follows [Ajello+ (2012)](../literature/ajello2012.md) Eq. 15:
 
-$$e(z,L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{-p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{-p_2}\right]^{-1}$$
+$$e(z,L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{p_2}\right]^{-1}$$
 
-The **original Ajello+ (2012) Eq. 15** uses the complementary **positive-exponent** form:
+with $r=(1+z)/(1+z_c(L))$.
 
-$$e(z,L)_{\rm Ajello} = \left[r^{p_1} + r^{p_2}\right]^{-1}, \quad r=\frac{1+z}{1+z_c(L)}$$
-
-These two forms produce **different numerical values** when evaluated with the same $(p_1,p_2)$ parameters — see `pinetti2022_evidence_matrix.md` D12. The pipeline follows Pinetti's convention.
+**Implementation remark:** [Pinetti (2022)](../literature/pinetti2022.md) Eq. C.4 writes the same inverse-sum structure with negative exponents, $[r^{-p_1}+r^{-p_2}]^{-1}$. The repository intentionally keeps the Ajello sign convention because the published FSRQ fit parameters $(p_1,p_2)$ were calibrated in that convention.
 
 | Parameter | Value | Role |
 |-----------|-------|------|
@@ -77,9 +75,9 @@ These two forms produce **different numerical values** when evaluated with the s
 
 The GLF is then $\Phi(L,z) = (d\Phi/dL)_{z=0} \times e(z,L)$, peaking at $z=z_c(L)$ where $r=1$ and $e=1/2$.
 
-**Implementation:** `_ldde_glf()` line 422 with `evolution_form='ldde_inv'`:
+**Implementation:** `_glf_FSRQ()` dispatches to `_ldde_glf(..., evolution_form='ldde_inv')`, and the current `ldde_inv` branch evaluates:
 ```python
-e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
+e_z = 1.0 / (ratio**(p1) + ratio**(p2))
 ```
 
 ---
@@ -88,11 +86,11 @@ e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
 
 Combining the double-power-law intrinsic shape with the LDDE evolution:
 
-$$\boxed{\Phi_\gamma^{\rm FSRQ}(L,z) = \frac{1}{L\ln 10}\cdot\frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}\cdot\frac{1}{r^{-p_1}+r^{-p_2}}}$$
+$$\boxed{\Phi_\gamma^{\rm FSRQ}(L,z) = \frac{1}{L\ln 10}\cdot\frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}\cdot\frac{1}{r^{p_1}+r^{p_2}}}$$
 
 with $r = (1+z)/(1+z_c^\star (L/10^{48})^{0.21})$. Units: $d\Phi/dL$ in Mpc⁻³ (erg/s)⁻¹.
 
-**Implementation:** `astro_sources.py:_glf_FSRQ()` (line 443) dispatches to `_ldde_glf()` with `evolution_form='ldde_inv'`.
+**Implementation:** `astro_sources._glf_FSRQ()` dispatches to `astro_sources._ldde_glf()` with `evolution_form='ldde_inv'`.
 
 ---
 
@@ -100,7 +98,7 @@ with $r = (1+z)/(1+z_c^\star (L/10^{48})^{0.21})$. Units: $d\Phi/dL$ in Mpc⁻³
 
 Same generic astrophysical window formula:
 
-$$W_\gamma^{\rm FSRQ}(z) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm FSRQ}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm FSRQ}(z) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}} \Phi_\gamma^{\rm FSRQ}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with:
 - $L_{\min}=10^{44}$ erg/s, $L_{\max}=10^{52}$ erg/s (Pinetti thesis Table 3.1 — note the high $L_{\max}$ reflects FSRQs being among the most luminous gamma-ray sources)
@@ -109,9 +107,9 @@ with:
 - $L_{\rm thr}(z) = 4\pi d_L^2\,F_{\rm sens}$; $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ (forecast mode) or energy-dependent (data mode)
 - $L_{\rm up} = \min(L_{\max}, L_{\rm thr}(z))$ — unresolved sources only (resolved FSRQs excluded)
 
-The $(1+z)^{-2}$ provides cosmological dimming. Integration via `scipy.quad` in log-$L$ with `epsrel=1e-5`.
+The current implementation uses the photon-number emissivity form, so the explicit redshift dependence enters through $E_{\rm rest}=(1+z)E_{\rm obs}$ and the luminosity-function factors rather than an additional $(1+z)^{-2}$ prefactor. After the emissivity integral is evaluated in physical Mpc$^{-3}$ units, the code converts it to the pipeline's h-dependent convention by returning `val / (4\pi h^3)`. Integration uses `scipy.quad` in log-$L$ with `epsrel=1e-5`.
 
-**Implementation:** `astro_sources.py:W_gamma_astro(E_GeV, z, 'FSRQ', ...)` (line 485).
+**Implementation:** `astro_sources.W_gamma_astro(E_GeV, z, 'FSRQ', ...)`.
 
 ---
 
@@ -119,44 +117,37 @@ The $(1+z)^{-2}$ provides cosmological dimming. Integration via `scipy.quad` in 
 
 For HI × FSRQ 2-halo cross-power, the FSRQ effective halo bias uses the **blazar convention**: a fixed characteristic halo mass:
 
-$$b_{\rm FSRQ}(z) = b_{\rm ST}(M_{\rm halo}=10^{13}\,M_\odot,\, z)$$
+$$b_{\rm FSRQ}(z) = b_{\rm ST}(M_{\rm halo}=10^{13}\,M_\odot/h,\, z)$$
 
 This is motivated by the observation that blazars live in massive elliptical hosts ($M_\star\sim 10^{11}-10^{12}\,M_\odot$) residing in group-scale halos. Unlike mAGN/SFG (where $M_{\rm halo}(L)$ is derived via stellar mass or direct scaling), FSRQ bias ignores the luminosity dependence — a deliberate simplification standard in the UGRB literature.
 
-**Implementation:** `astro_sources.py:bias_astro(z, 'FSRQ')` (line 628): `return hm.bias(1e13, z)`.
+**Implementation:** `astro_sources.bias_astro(z, 'FSRQ')` returns `hm.bias(1e13, z)`.
 
 ---
 
 ## Complete Dependency Graph
 
-```
-W_gamma^FSRQ(E_GeV, z)                              [astro_sources.py:485]  W_gamma_astro
-├── Phi_gamma^FSRQ(L, z)                             [astro_sources.py:443]  _glf_FSRQ
-│   └── _ldde_glf(L, z, _FSRQ_PARAMS, 'ldde_inv')    [astro_sources.py:373]
-│       ├── d(Phi)/d(log L) = A / [(L/L_c)^g1 + (L/L_c)^g2]     [line 404]
-│       │   ├── A = 3.06e-9 Mpc^-3                   [Ajello Table 3]
-│       │   ├── L_c = 0.84e48 erg/s                  [Ajello Table 3]
-│       │   ├── gamma1 = 0.21                        [Ajello Table 3]
-│       │   └── gamma2 = 1.58                        [Ajello Table 3]
-│       ├── d(Phi)/dL = d(Phi)/d(logL) / (L * ln10)  [line 407]
-│       ├── z_c(L) = z_c* * (L/L_ref)^alpha          [line 410]
-│       │   ├── z_c_star = 1.47                      [Ajello Table 3]
-│       │   ├── alpha_LDDE = 0.21                    [Ajello Table 3]
-│       │   └── L_ref = 1e48 erg/s                   [Ajello convention]
-│       └── e(z,L) = 1 / (r^(-p1) + r^(-p2))         [line 422, 'ldde_inv']
+```text
+W_gamma^FSRQ(E_GeV, z)                              [astro_sources.W_gamma_astro]
+├── Phi_gamma^FSRQ(L, z)                            [astro_sources._glf_FSRQ]
+│   └── _ldde_glf(L, z, _FSRQ_PARAMS, 'ldde_inv')
+│       ├── d(Phi)/d(log L) = A / [(L/L_c)^g1 + (L/L_c)^g2]
+│       ├── d(Phi)/dL = d(Phi)/d(logL) / (L * ln10)
+│       ├── z_c(L) = z_c* * (L/L_ref)^alpha
+│       └── e(z,L) = 1 / (r^p1 + r^p2)
 │           ├── r = (1+z) / (1+z_c(L))
-│           ├── p1 = 7.35                            [Ajello Table 3]
-│           └── p2 = -6.51                           [Ajello Table 3]
-├── alpha_spectral = 2.44                            [config.py: ASTRO_SOURCES['FSRQ']['alpha']]
-├── L_min = 1e44 erg/s                               [config.py]
-├── L_max = 1e52 erg/s                               [config.py]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                   [astro_sources.py:25, L_sens]
-├── E_rest = E_obs * (1+z)                           [rest-frame energy]
-├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]  [analytic closed form]
-└── (1+z)^{-2} / (4*pi)                              [cosmological dimming]
+│           ├── p1 = 7.35
+│           └── p2 = -6.51
+├── alpha_spectral = 2.44                           [config.ASTRO_SOURCES['FSRQ']['alpha']]
+├── L_min = 1e44 erg/s                              [config.ASTRO_SOURCES['FSRQ']['L_min']]
+├── L_max = 1e52 erg/s                              [config.ASTRO_SOURCES['FSRQ']['L_max']]
+├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.L_sens]
+├── E_rest = E_obs * (1+z)                          [rest-frame energy]
+├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]
+└── 1 / (4*pi*h^3)                                  [photon-emissivity prefactor after d_L^2 cancellation and Mpc^-3 -> (Mpc/h)^-3 conversion]
 
-bias_FSRQ(z)                                          [astro_sources.py:628]
-└── b_ST(M_halo = 1e13 M_sun, z)                     [fixed blazar halo mass]
+bias_FSRQ(z)                                        [astro_sources.bias_astro]
+└── b_ST(M_halo = 1e13 M_sun/h, z)                  [fixed blazar halo mass]
 ```
 
 ---
@@ -167,10 +158,10 @@ bias_FSRQ(z)                                          [astro_sources.py:628]
 |-----------|---------------|-------------------|
 | FSRQ GLF form (LDDE double power-law) | Ajello+ (2012) ApJ 751, 108 | 186 first-year Fermi-LAT sources, ML fitting |
 | All 8 LDDE parameters | Ajello+ (2012) Table 3 | Sub-percent agreement with subsequent catalogs |
-| LDDE inverse-sum evolution form | Ajello+ (2012) Eq. 15 (positive exps) | Pinetti (2022) Eq. C.4 (negative exps — pipeline uses this) |
+| LDDE inverse-sum evolution form | Ajello+ (2012) Eq. 15 (positive exps; pipeline uses this) | Pinetti (2022) Eq. C.4 writes the inverse-sum with negative exponents; the active implementation intentionally keeps the Ajello convention |
 | Window function formula | Pinetti+ (2020) Eq. 4.3 | Generic astro window |
 | Spectral index $\alpha=2.44$ | Pinetti+ (2020) Table 3 | Ajello+ (2012) $\mu=2.44\pm 0.01$ |
-| Blazar halo mass $M=10^{13}\,M_\odot$ | Pinetti+ (2020); standard convention | |
+| Blazar halo mass $M=10^{13}\,M_\odot/h$ | Pinetti+ (2020); standard convention | |
 | Fermi sensitivity $F_{\rm sens}$ | Pinetti+ (2020) | |
 
 **Updated reference (not yet adopted):** Rajguru+ (2025, arXiv:2510.05515) provides an updated FSRQ GLF using 519 sources from the 4LAC catalog. The LDDE form is confirmed; parameters are refined. Pipeline retains Ajello+ (2012) for consistency with Pinetti+ (2020).

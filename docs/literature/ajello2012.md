@@ -46,12 +46,6 @@ $$e(z,L) = \left[\left(\frac{1+z}{1+z_c}\right)^{p_1} + \left(\frac{1+z}{1+z_c}\
 | p_2 | −6.51 ± 1.97 | — |
 | mu (photon index) | 2.44 ± 0.01 | — |
 
-## Superseding Work
+## Repository Use
 
-**Rajguru et al. (2025, arXiv:2510.05515)** updated the FSRQ GLF using 519 sources from the 4LAC catalog (vs 186 from the first-year catalog). The LDDE form is confirmed; parameters are refined but broadly consistent with Ajello+(2012). Our pipeline retains the Ajello+(2012) values for consistency with Pinetti+(2020).
-
-## Implementation
-
-**Module:** `astro_sources.py` — `_FSRQ_PARAMS`, `_glf_FSRQ()`. Parameters taken directly from Table 3.
-
-**Pipeline discrepancy:** The pipeline uses `evolution_form='piecewise'` for FSRQ, but the paper's Eq. 15 is a smooth inverse-sum — the same form as Ajello+(2014) for BL Lacs. Pinetti (2022) Eq. C.4 also uses the smooth form for both. The pipeline's piecewise form is incorrect relative to both sources.
+Used by the repository as the primary source for the FSRQ luminosity-function parameters in `astro_sources.py`.

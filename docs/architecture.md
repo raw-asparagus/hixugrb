@@ -63,12 +63,14 @@
         ┌─────────────────────────────┐
         │notebooks/                   │
         │  pipeline_validation.ipynb  │
-        │  8 figures, inline plots    │
+        │  validation plots           │
         │  SNR table, exclusion curves│
         └─────────────────────────────┘
 ```
 
 **Summary:** Config → Cosmology + Tables → Halo model (via hmf) → HI / DM / Astro tracers → 3D power spectra → Limber C_ℓ → Statistics (SNR, exclusion) → Plots / Validation
+
+For the equation-level implementation reference, see [`equations.md`](equations.md). For paper summaries and source-specific provenance, see [`literature/`](literature/).
 
 ## Module Descriptions
 
@@ -86,7 +88,7 @@
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs |
 | `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
-| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with 9 inline figures: HI model, UGRB spectrum, EBL/PPPC, noise/beam, C_ℓ, windows (survey-independent, forecast, data-analysis), SNR table, exclusion curves |
+| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with validation plots, window-function comparisons, SNR tables, and exclusion-curve outputs |
 
 ## Window Function Pipeline
 
@@ -107,11 +109,11 @@ hi_model.py:
     ├─ Omega_HI(z)     ← rho_HI / rho_crit
     ├─ T_bar_b(z)      ← Pinetti Eq. 3.4
     ├─ b_HI(z)         ← mass-weighted bias, Eq. 3.6
-    └─ W_HI(z)         ← T_bar_b × b_HI × φ(z) × H/(ch)  [Eq. 3.15]
+    └─ W_HI(z)         ← T_bar_b × φ(z) × H/(ch)  [pipeline form]
                            └─ φ(z) = 1/Δz (top-hat from radio band)
 ```
 
-**Survey-dependent:** φ(z) set by telescope band (MeerKAT UHF: z=0.4–1.45, L: z=0–0.58, etc.)
+**Survey-dependent:** φ(z) set by telescope band (MeerKAT UHF: z=0.4–1.45, L: z=0–0.58, etc.). The HI bias is computed separately and enters the 3D HI power spectra, not `W_HI()` itself.
 
 ### W_γ^BL_Lac, W_γ^FSRQ, W_γ^mAGN, W_γ^SFG — Astrophysical gamma-ray sources
 
@@ -124,7 +126,7 @@ astro_sources.py:
     ├─ L_sens(z)           ← 4π d_L² F_sens
     ├─ glf(L, z, source)   ← dispatches to source-specific GLF
     │   ├─ _FSRQ_PARAMS    ← LDDE, [Ajello+ (2012)](literature/ajello2012.md) Table 3
-    │   ├─ _BL_LAC_PARAMS  ← LDDE inverse-sum, [Ajello+ (2014)](literature/ajello2014.md) Table C.1
+    │   ├─ _BL_LAC_PARAMS  ← LDDE inverse-sum, [Ajello+ (2014)](literature/ajello2014.md) Table 3 (LDDE1)
     │   ├─ _glf_mAGN       ← Radio→Gamma chain (Eq. 5.11):
     │   │   [Willott (2001)](literature/willott2001.md) RLF
     │   │   → [Inoue (2011)](literature/inoue2011.md) freq scaling
@@ -134,8 +136,8 @@ astro_sources.py:
     │       [Gruppioni (2013)](literature/gruppioni2013.md) 3-component IR LF
     │       → [Ackermann (2012)](literature/ackermann2012_sfg.md) L_γ-L_IR
     │
-    └─ W_gamma_astro(E, z) ← 1/(4π(1+z)²) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
-                               [Pinetti Eq. 4.3 after d_L² cancellation]
+    └─ W_gamma_astro(E, z) ← 1/(4π h³) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
+                               [pipeline photon-emissivity form in (Mpc/h)^-3]
 ```
 
 **Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Two modes:
@@ -158,8 +160,8 @@ dm_model.py:
     ├─ boost_moline(M,z)     ← [Moliné+ (2017)](literature/moline2017.md)
     ├─ clumping_factor(z)    ← Δ²(z) = ∫ dndM × (1+B) × ∫ρ² d³x dM / ρ̄²
     │                           [Pinetti Eq. 4.2]
-    └─ W_gamma_DM(E, z)     ← (σv/8π)(ρ_DM/m_χ)²(1+z)³/H × Δ² × dN/dE × e^{-τ}
-                                [Pinetti Eq. 4.1]
+    └─ W_gamma_DM(E, z)     ← (σv/8π)(ρ_DM/m_χ)²(1+z)³ × Δ² × dN/dE × e^{-τ}
+                                [pipeline per-χ form; no baked-in 1/H]
 ```
 
 **Survey-independent:** No instrument parameters. Depends only on DM physics (m_χ, σv, channel) and cosmology.

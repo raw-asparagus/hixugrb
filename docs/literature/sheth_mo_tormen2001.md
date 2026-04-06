@@ -13,7 +13,7 @@ Improves Press-Schechter predictions by accounting for ellipsoidal (rather than 
 - Excursion set formalism with ellipsoidal collapse criterion (moving barrier)
 - Ellipsoidal barrier shape introduces mass-dependent collapse threshold (Eq. 3–4)
 - GIF simulation mass function (Eq. 6) fitted with parameters a=0.707, q=0.3 (paper notation)
-- Universal in peak height ν = δ_sc / σ(M) (paper convention; pipeline uses ν = δ_c² / σ²)
+- Universal in peak height ν = δ_sc / σ(M) (paper convention)
 
 ## Key Results
 
@@ -26,21 +26,14 @@ Improves Press-Schechter predictions by accounting for ellipsoidal (rather than 
 **SMT multiplicity function (Eq. 6, GIF simulation fit):**
 $$\nu f(\nu) = 2A \left[1 + \frac{1}{(a\nu^2)^p}\right] \sqrt{\frac{a\nu^2}{2\pi}} \exp\left(-\frac{a\nu^2}{2}\right)$$
 
-where ν = δ_sc/σ (paper convention). The pipeline uses ν = δ_c²/σ² (i.e., ν_pipeline = ν_paper²), with the factor of 2 absorbed into A:
-
-| Paper parameter | Pipeline parameter | Value |
-|---|---|---|
-| a | SMT_Q (= q) | 0.707 |
-| q | SMT_P (= p) | 0.3 |
-| 2A | — | 2 × 0.322 ≈ 0.644 |
-| — | SMT_A (includes factor 2) | 0.3222 |
+where ν = δ_sc/σ in the paper's notation, with best-fit parameters $a = 0.707$, $p = 0.3$, and $A \approx 0.322$.
 
 **Halo bias (Eq. 8, with barrier parameters a=0.707, b=0.5, c=0.6):**
 
-The paper also derives the large-scale bias relation from the moving barrier. The pipeline uses the simpler [Sheth & Tormen (1999)](sheth_tormen1999.md) bias formula which is equivalent for practical purposes.
+The paper also derives the large-scale bias relation from the moving barrier.
 
 The mass function: $dn/dM = (\bar\rho/M^2) \, f(\sigma) \, |d\ln\sigma/d\ln M|$.
 
-## Implementation
+## Repository Use
 
-**Module:** `hmf_interface.py` — delegates to `hmf.MassFunction` with `hmf_model='SMT'`. Parameters in `config.py`: `SMT_A`, `SMT_Q`, `SMT_P`.
+Used by the repository as the SMT halo-mass-function reference through the `hmf` backend in `hmf_interface.py`.

@@ -36,12 +36,12 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $R_{\rm vir} = (3M/4\pi\Delta_{\rm vir}\rho_c(z))^{1/3}$, $\Delta_{\rm vir}=200$ | Thesis Eqs. 3.26–3.28: z-dependent $\Delta_{\rm vir}$ from Bryan & Norman | `halo_model.py:R_vir(M,z)` with fixed $\Delta_{\rm vir}=200$ | Same | **Differs** | Thesis uses $\Delta_{\rm vir}(z)$; $\Delta_{\rm vir}(z{=}0)\approx337$ for Planck. Propagates into $v_c$ and hence $M_{\rm HI}$ cutoff. ~10% effect on $v_c$ at $z=0$ for halos near the cutoff mass |
+| $R_{\rm vir} = (3M/4\pi\Delta_{\rm vir}(z)\rho_c(z))^{1/3}$ | Thesis Eqs. 3.26–3.28: z-dependent $\Delta_{\rm vir}$ from Bryan & Norman | `halo_model.py:R_vir(M,z)` with Bryan & Norman $\Delta_{\rm vir}(z)$ | Same | **Match** | Repository now matches the thesis choice for the virial definition |
 | $v_c = \sqrt{GM/R_{\rm vir}}$ | Thesis Eq. 4.4 | `halo_model.py:v_circ(M,z)` | Same | **Match** | Unit handling: M_phys=M/h, R_phys=Rv/h, verified correct |
 | $\nu = \delta_c^2/\sigma^2(M,z)$, $\delta_c=1.686$ | Thesis Eq. 3.30 | `hmf_interface.py:nu(M,z)` | Same | **Match** | $(1+z)$ absorbed into $\sigma(M,z)$ via growth factor |
 | $\nu f(\nu) = A[1+(q\nu)^{-p}]\sqrt{q\nu/2\pi}\exp(-q\nu/2)$; $A=0.3222$, $q=0.707$, $p=0.3$ | SMT (2001) Eq. 6; thesis Eq. 3.33 uses $q=0.75$ | `hmf_interface.py`: hmf `SMT` model with $q=0.707$ | $q=0.75$ via `pinetti2022.bias_pinetti()` | **Differs** | Pipeline: $q=0.707$ (original SMT 1999/2001). Thesis: $q=0.75$ (ST 2002 update). ~5% effect on mass function tails |
 | $b(\nu) = 1 + (q\nu-1)/\delta_c + 2p/[\delta_c(1+(q\nu)^p)]$ | Sheth & Tormen (1999); thesis Eq. 3.51 | `halo_model.py:bias(M,z)` | Same | **Match** | Inherits $q$ difference from mass function |
-| hmf transfer function | CAMB (implicit in thesis) | `hmf_interface.py`: `transfer_model='EH'` | Same | **Differs** | hmf uses Eisenstein-Hu no-wiggle for $\sigma(M)$ and $dn/dM$; `cosmology.py` uses CAMB for $P_{\rm lin}(k,z)$ in 2-halo term. Two different $P(k)$ sources. ~2–3% effect on $\sigma(M)$ at HI-relevant masses |
+| hmf transfer function | CAMB (implicit in thesis) | `hmf_interface.py`: `transfer_model='CAMB'` | Same | **Match** | The mass-function backend now uses CAMB-backed transfer functions |
 
 ---
 
@@ -63,7 +63,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $c_{\rm HI} = c_{HI,0}(M/10^{11}M_\odot)^{-0.109} \times 4/(1+z)^\gamma$ | Padmanabhan+ Eq. 3; thesis Eq. 4.10 | `hi_model.py:c_HI(M,z)` line 46 | Same | **Investigate** | Literature writes pivot as $10^{11}M_\odot$ (no $h^{-1}$), while M is in $M_\odot/h$. Code uses `M / 1e11`. If Padmanabhan means $M_\odot$ (not $M_\odot/h$), should be `(M * h / 1e11)`. Error would be $h^{-0.109} = 0.6736^{-0.109} \approx 1.043$ — systematic ~4% overestimate of $c_{\rm HI}$. Padmanabhan may use $h$-dependent masses throughout (common in HI literature), which would make the code correct. **Requires verification against original paper.** |
+| $c_{\rm HI} = c_{HI,0}(M/10^{11}M_\odot)^{-0.109} \times 4/(1+z)^\gamma$ | Padmanabhan+ Eq. 3; thesis Eq. 4.10 | `hi_model.py:c_HI(M,z)` line 46 with `M * h / 1e11` | Same | **Match** | The current implementation converts the repository mass variable from $M_\odot/h$ to $M_\odot$ before applying the Padmanabhan pivot |
 | $c_{HI,0} = 139$ | Padmanabhan+ Table A1 | `config.py:HI_C0 = 139.0` | Same | **Match** | |
 | $\gamma = 0.13$ | Padmanabhan+ Table A1 | `config.py:HI_GAMMA_CONC = 0.13` | Same | **Match** | |
 | Exponent $-0.109$ | Padmanabhan+ Eq. 3 | Hardcoded in `hi_model.py:46` | Same | **Match** | |
@@ -120,7 +120,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $W_{\rm HI}(\chi) = \bar{T}_b\,b_{\rm HI}\,\phi(z)\,H(z)/(c\cdot h)$ | Thesis Eqs. 5.11–5.12 | `hi_model.py:W_HI(z,z_min,z_max)` | `pinetti2022.W_HI_pinetti()` | **Match** | $\phi(z) = 1/(z_{\max}-z_{\min})$ top-hat; $H/(c\cdot h)$ Jacobian converts per-$z$ to per-Mpc/$h$ |
+| $W_{\rm HI}(\chi) = \bar{T}_b\,\phi(z)\,H(z)/(c\cdot h)$ | Thesis Eqs. 5.11–5.12 for the per-$z$ window; repository keeps $b_{\rm HI}$ in $P_{\rm HI}$ rather than in `W_HI()` | `hi_model.py:W_HI(z,z_min,z_max)` | `pinetti2022.W_HI_pinetti()` | **Match** | $\phi(z) = 1/(z_{\max}-z_{\min})$ top-hat; $H/(c\cdot h)$ Jacobian converts per-$z$ to per-Mpc/$h$ |
 | Returns 0 outside $[z_{\min}, z_{\max}]$ | Top-hat selection | `hi_model.py:292-293` | Same | **Match** | |
 
 ---
@@ -146,7 +146,7 @@ This document audits every equation, model choice, parameter value, and computat
 | C3 | $\bar\rho_{\rm HI}$, $b_{\rm HI}$ mass integrals | Adaptive quadrature (`scipy.quad`, epsrel=1e-5) | Same | High accuracy |
 | C4 | $C_\ell$ Limber redshift integral | Rectangle rule, uniform grid ($n_z=200$) | Same | Sub-percent accuracy |
 | C5 | Cross/auto power spectra | 2-halo term only (1-halo omitted) | Same | Justified at $\ell \lt 1000$ |
-| C6 | hmf transfer function | Eisenstein-Hu (no-wiggle) vs CAMB for $P_{\rm lin}$ | Same | ~2–3% inconsistency in $\sigma(M)$. BAO wiggles absent but smoothed out by $\sigma$ integration |
+| C6 | hmf transfer function | CAMB-backed in both `hmf_interface.py` and `cosmology.py` | Same | Consistent transfer-function choice across the repository |
 
 ---
 

@@ -48,11 +48,15 @@ dχ/dz [Mpc/h]     = (c/H) × h                 (angular_power.py Limber integra
 M [M_sun]          = M [M_sun/h] × h           (halo_model.concentration_correa)
 R [Mpc]            = R [Mpc/h] / h              (halo_model.v_circ)
 N^γ [(Mpc/h)⁻⁴]   = N^γ [cm⁻⁴] × (Mpc_h_cm)⁴ (statistics.variance_Cl)
+j_γ [(Mpc/h)⁻³]   = j_γ [Mpc⁻³] / h³          (astro_sources.W_gamma_astro)
 ```
 
-### Known h-factor mixing
+### Astro h-conversion
 
-The astrophysical window function `W_gamma_astro` returns values in **physical Mpc⁻³** (because the GLFs from the literature are in physical Mpc⁻³), while `W_HI` is in **h-dependent (Mpc/h)⁻¹** units. These h factors cancel in the SNR ratio C_ℓ/σ(C_ℓ) but affect the absolute C_ℓ normalization. For data analysis against measured angular power spectra, this needs to be resolved by converting W_astro to (Mpc/h)⁻³.
+The astrophysical GLFs are defined in physical Mpc⁻³, but `W_gamma_astro()` converts the
+resulting emissivity to **h-dependent [(Mpc/h)⁻³]** before returning. `mean_intensity()`
+then integrates that h-based per-χ window with $d\chi/dz = c h / H$ and converts the
+final area from $(\mathrm{Mpc}/h)^2$ to cm² at the module boundary.
 
 ---
 
@@ -109,13 +113,13 @@ This differs from papers that define window functions per unit redshift (per-z).
 
 $$W^{(\chi)}(\chi) = W^{(z)}(z) \times \frac{H(z)}{c \cdot h}$$
 
-| Window | Pipeline (per-χ) | Paper (per-z, Pinetti) |
-|--------|-----------------|----------------------|
-| W_HI | T̄_b × b_HI × φ(z) × H/(c·h) | T̄_b × φ(z) (Eqs. 3.15–3.16; bias enters via P_cross) |
-| W_γ^DM | includes 1/H factor from per-χ absorption | (σv/8π)(ρ/m_χ)²(1+z)³Δ² dN/dE e^{-τ} (Eq. 4.1; no 1/H) |
-| W_γ^astro | val / (4π(1+z)²) | same (Eq. 4.3) |
+| Window | Pipeline (per-χ) | Paper / literature form |
+|--------|-----------------|-------------------------|
+| W_HI | T̄_b × φ(z) × H/(c·h) | T̄_b × φ(z) (Pinetti 2020 Eqs. 3.15–3.16) |
+| W_γ^DM | (σv/8π)(ρ/m_χ)²(1+z)³Δ² dN/dE e^{-τ} | Same emissivity factors; the Limber measure supplies $d\chi/dz = c h/H$ |
+| W_γ^astro | val / (4π h³) | Pinetti 2020 Eq. 4.3 motivates the luminosity-function integral; the implementation uses the photon-number emissivity form and converts the GLF density from Mpc⁻³ to (Mpc/h)⁻³ |
 
-**Important:** The per-z forms in the Pinetti paper do NOT include 1/H(z). The pipeline's per-χ forms absorb the H/(c·h) Jacobian from dχ/dz into the window functions for W_HI and absorb 1/H into W_DM. The astrophysical window W_astro does NOT absorb this factor (it remains in the Limber weight).
+**Important:** In the current implementation, `W_HI()` carries the $H/(c\cdot h)$ Jacobian but not $b_\text{HI}$, `W_gamma_DM()` does not include a baked-in $1/H(z)$ factor, and `W_gamma_astro()` returns the photon-emissivity form without the older $(1+z)^{-2}$ prefactor while converting the GLF density to h-dependent units. See [`equations.md`](equations.md) for the implementation-vs-literature mapping.
 
 ### Limber k-substitution
 
@@ -143,7 +147,7 @@ $\Delta_\text{vir}(z)$ from Bryan & Norman (1998): $\Delta_c = 18\pi^2 + 82x - 3
 
 ### Concentration
 
-Correa et al. (2015) Appendix B1 fitting functions for $c_{200}$, calibrated for Planck 2013 cosmology (Ω_m=0.317, h=0.67). Converted to $c_\text{vir}$ via `halo_model.c200_to_cvir()` using the Bryan & Norman $\Delta_\text{vir}(z)$. The Pinetti thesis uses different Correa coefficients from a different cosmology fit. See `pinetti2022_evidence_matrix.md` D2.
+Correa et al. (2015) Appendix B1 fitting functions for $c_{200}$, calibrated for Planck 2013 cosmology (Ω_m=0.317, h=0.67). Converted to $c_\text{vir}$ via `halo_model.c200_to_cvir()` using the Bryan & Norman $\Delta_\text{vir}(z)`. Thesis-specific differences are documented in [`equations.md`](equations.md).
 
 ---
 
@@ -151,11 +155,11 @@ Correa et al. (2015) Appendix B1 fitting functions for $c_{200}$, calibrated for
 
 ### LDDE inverse-sum form
 
-Both FSRQ and BL Lac use the smooth inverse-sum evolution (Pinetti 2022 Eq. C.4):
+Both FSRQ and BL Lac use the smooth inverse-sum evolution with the Ajello sign convention:
 
-$$e(z, L) = \left[r^{-p_1} + r^{-p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}$$
+$$e(z, L) = \left[r^{p_1} + r^{p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}$$
 
-**Exponent sign convention:** The pipeline follows Pinetti (2022) with **negative exponents** ($r^{-p_1}$). The original papers (Ajello+ 2012 Eq. 15, Ajello+ 2014 Eq. 18) use **positive exponents** ($r^{p_1}$). These produce different evolution shapes around the redshift peak $z_c$. See `pinetti2022_evidence_matrix.md` D12.
+**Exponent sign convention:** The active pipeline follows [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18, which use the positive-exponent form ($r^{p_1}$). [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the inverse-sum with negative exponents, but the repository keeps the Ajello convention because the fitted $(p_1,p_2)$ values are taken from the Ajello papers. The implementation-facing equation record is in [`equations.md`](equations.md).
 
 ### Willott cosmology correction
 
@@ -198,7 +202,7 @@ The coefficient 188 is from standard 21-cm references. The Pinetti paper's Eq. 3
 
 ## 7. Deliberate Deviations from Literature
 
-The pipeline makes several deliberate choices that differ from the primary reference (Pinetti 2022 thesis). These are fully documented in `pinetti2022_evidence_matrix.md`:
+The pipeline makes several deliberate choices that differ from the primary literature. The implementation-facing summary lives in [`equations.md`](equations.md):
 
 | # | Deviation | Nature |
 |---|-----------|--------|
@@ -224,5 +228,5 @@ The pipeline makes several deliberate choices that differ from the primary refer
 | Module data flow | `architecture.md` |
 | Paper-by-paper claims | `literature/*.md` |
 | Literature vs pipeline comparison | `literature_evidence_matrix.md` |
-| Thesis vs pipeline comparison | `pinetti2022_evidence_matrix.md` |
+| Implementation deviations from literature | `equations.md` |
 | Pipeline conventions (this file) | `conventions.md` |

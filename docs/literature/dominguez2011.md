@@ -37,15 +37,6 @@ Gamma-ray pair production on EBL photons: $\gamma_\text{HE} + \gamma_\text{EBL} 
 
 tau(E,z) provided as 2D tabulated grid (energy vs redshift) via the `ebltable` Python package.
 
-**Analytic fallback approximation (pipeline-derived, not from this paper):**
-$$\tau(E,z) \approx 2.5 \left(\frac{E}{100\text{ GeV}}\right)^{1.0} \left(\frac{z}{1.0}\right)^{1.3} \times \left[1 + \left(\frac{20\text{ GeV}}{E}\right)^4\right]^{-1}$$
+## Repository Use
 
-Calibrated to match Dominguez et al. tabulated results at a few anchor points. Used only when `ebltable` is unavailable.
-
-## Implementation
-
-**Module:** `ebl.py` — `tau(E_GeV, z, model='dominguez')`, `attenuation(E_GeV, z)`. Uses `ebltable.tau_from_model.OptDepth` when available. Also supports models: `franceschini`, `finke`, `saldana-lopez21`.
-
-## Superseding Work
-
-**Saldana-Lopez et al. (2021, MNRAS 507, 5144)** provides an updated EBL determination using ~150,000 galaxies from HST/CANDELS (vs ~6,000 from AEGIS). Available in our pipeline via `ebl.tau(E, z, model='saldana-lopez21')`. The Dominguez model remains the default for consistency with Pinetti+(2020).
+Used by `ebl.py` as the default tabulated EBL attenuation model.

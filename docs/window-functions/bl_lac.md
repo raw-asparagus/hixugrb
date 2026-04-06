@@ -4,7 +4,7 @@
 
 The BL Lac window function shares the generic astrophysical gamma-ray source form (Pinetti+ 2020, Eq. 4.3):
 
-$$W_\gamma^{\rm BL\,Lac}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm BL\,Lac}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
+$$W_\gamma^{\rm BL\,Lac}(\chi) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm BL\,Lac}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
 with $\alpha = 2.11$ (Pinetti+ 2020 Table 3 BL Lac photon index — hardest among UGRB astrophysical components, reflecting Doppler-boosted inverse-Compton emission from the relativistic jet), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z,E))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z,E)=4\pi d_L^2(z)\,F_{\rm sens}(E)$.
 
@@ -28,15 +28,15 @@ $$\frac{d\Phi}{d\log_{10}L}\bigg|_{z=0} = \frac{A}{(L/L_c)^{\gamma_1} + (L/L_c)^
 
 Gives the local LF in $d\Phi/d\log_{10}L$ [Mpc$^{-3}$]. Converted to $d\Phi/dL$ [Mpc$^{-3}$ (erg/s)$^{-1}$] via division by $L\ln 10$.
 
-### 2b. Luminosity-Dependent Density Evolution (LDDE inverse-sum, Pinetti thesis Eq. C.4)
+### 2b. Luminosity-Dependent Density Evolution (LDDE inverse-sum, Ajello+ 2014 Eq. 18)
 
-$$e(z, L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{-p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{-p_2}\right]^{-1}$$
+$$e(z, L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{p_2}\right]^{-1}$$
 
 with luminosity-dependent peak redshift:
 
 $$z_c(L) = z_\star\left(\frac{L}{10^{48}\,{\rm erg/s}}\right)^{\beta}$$
 
-### 2c. Parameters (Pinetti thesis Table C.1, from Ajello+ 2014)
+### 2c. Parameters (Ajello+ 2014 Table 3, LDDE1)
 
 | Parameter | Value | Meaning |
 |-----------|-------|---------|
@@ -44,16 +44,16 @@ $$z_c(L) = z_\star\left(\frac{L}{10^{48}\,{\rm erg/s}}\right)^{\beta}$$
 | $L_c$ | $2.43\times10^{48}$ erg/s | Break luminosity $L_\star$ |
 | $\gamma_1$ | 1.12 | Faint-end slope |
 | $\gamma_2$ | 3.71 | Bright-end slope |
-| $p_1$ | 4.50 | Low-$z$ evolution (negative-exponent form) |
+| $p_1$ | 4.50 | Low-$z$ evolution exponent |
 | $p_2$ | $-12.88$ | Steep high-$z$ decline |
 | $z_\star$ | 1.67 | Peak redshift at $L = 10^{48}$ erg/s |
 | $\beta$ | $4.46\times10^{-2}$ | Luminosity dependence of $z_c$ |
 
-### 2d. Sign Convention (Deviation D12)
+### 2d. Sign Convention Remark
 
-Ajello+ (2014) Eq. 18 writes evolution with **positive exponents** $[r^{p_1} + r^{p_2}]^{-1}$. The pipeline follows the Pinetti (2022) convention with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. These forms produce different evolution shapes around the redshift peak $z_c$ — the inverse-sum form is smooth (continuous) while a piecewise implementation would be non-smooth at $z_c$. The pipeline's `_ldde_glf` supports all three forms via the `evolution_form` argument; BL Lac uses `'ldde_inv'` to match Pinetti's convention.
+Ajello+ (2014) Eq. 18 writes the inverse-sum with **positive exponents** $[r^{p_1} + r^{p_2}]^{-1}$, and that is what the active implementation evaluates. [Pinetti (2022)](../literature/pinetti2022.md) Eq. C.4 rewrites the same inverse-sum with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. Because the BL Lac fit parameters are taken from Ajello+ (2014) Table 3, the repository intentionally keeps the Ajello sign convention rather than the thesis sign flip.
 
-**Implementation:** `astro_sources.py:_glf_BL_Lac()` calls `_ldde_glf(..., evolution_form='ldde_inv')`; parameters in `astro_sources.py:_BL_LAC_PARAMS` (lines 94-104).
+**Implementation:** `astro_sources._glf_BL_Lac()` calls `astro_sources._ldde_glf(..., evolution_form='ldde_inv')`, and the current `ldde_inv` branch evaluates `1.0 / (ratio**p1 + ratio**p2)`.
 
 ---
 
@@ -71,7 +71,7 @@ where:
 
 This is a **single fixed index for the entire population** (no scatter in $\alpha$, no luminosity-dependence, no log-parabola curvature, no exponential cutoff). Real BL Lac SEDs show synchrotron + inverse-Compton double-hump structure with HSP/ISP/LSP peaks varying by population, but the population-averaged GLF-weighted SED is adequately described by a single power law within Fermi's 0.1-100 GeV band.
 
-**Implementation:** embedded in `W_gamma_astro` lines 534-557.
+**Implementation:** embedded in `astro_sources.W_gamma_astro()`.
 
 ---
 
@@ -92,7 +92,7 @@ where $d_L$ is the physical luminosity distance (code converts internal Mpc/h $\
 
 In **data mode**, worse PSF at low energies means fewer sources can be resolved → higher threshold flux → more sources remain "unresolved" and contribute to the diffuse window. Reference energy $E_{\rm ref} = 5$ GeV near Fermi's optimal sensitivity.
 
-**Implementation:** `astro_sources.py:L_sens()` (line 25), `F_sens_energy()` (line 52); $F_{\rm sens}$ value in `config.py:F_SENS`.
+**Implementation:** `astro_sources.L_sens()`, `astro_sources.F_sens_energy()`, and `config.F_SENS`.
 
 ---
 
@@ -100,7 +100,7 @@ In **data mode**, worse PSF at low energies means fewer sources can be resolved 
 
 Putting Layers 2-4 together:
 
-$$\boxed{W_\gamma^{\rm BL\,Lac}(E_\gamma, z) = \frac{1}{4\pi(1+z)^2}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm BL\,Lac}(L, z)\;\frac{L\,[(1+z)E_\gamma]^{-\alpha}}{{\rm GeV}_{\rm erg}\,I_\alpha}\;dL}$$
+$$\boxed{W_\gamma^{\rm BL\,Lac}(E_\gamma, z) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm BL\,Lac}(L, z)\;\frac{L\,[(1+z)E_\gamma]^{-\alpha}}{{\rm GeV}_{\rm erg}\,I_\alpha}\;dL}$$
 
 with:
 - $L_{\min} = 7\times 10^{43}$ erg/s, $L_{\max} = 10^{52}$ erg/s (Pinetti+ 2020 Table 3)
@@ -108,11 +108,11 @@ with:
 - $\alpha = 2.11$
 - $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}\,dE$ (energy normalization, 0.1-100 GeV band)
 
-**Derivation of the $d_L^2$ cancellation:** Pinetti Eq. 4.3 literally reads $W = (d_L^2/(1+z)^2)\int\Phi\,(dF/dE)\,dL$. The observed flux per source is $dF/dE = L\,E_{\rm rest}^{-\alpha}/(4\pi d_L^2\,{\rm GeV}_{\rm erg}\,I_\alpha)$, so $d_L^2$ cancels exactly, leaving the $1/(4\pi(1+z)^2)$ prefactor. The $(1+z)^{-2}$ factor encodes cosmological dimming of the photon rate from redshift $z$.
+**Derivation of the $d_L^2$ cancellation:** in the current implementation, the per-source photon spectrum is evaluated as a rest-frame photon-emission rate at $E_{\rm rest}=(1+z)E_{\rm obs}$. After the $d_L^2$ cancellation, the repository keeps the photon-number emissivity form and then converts the physical GLF density to the pipeline's h-dependent convention, yielding the overall $1/(4\pi h^3)$ prefactor.
 
-**Integration:** `scipy.quad` in $\log L$, `epsrel=1e-5`, `limit=200`. Returns units of $[{\rm Mpc}^{-3}\,{\rm ph}\,{\rm s}^{-1}\,{\rm GeV}^{-1}\,{\rm sr}^{-1}]$ (per-$\chi$ convention; physical Mpc).
+**Integration:** `scipy.quad` in $\log L$, `epsrel=1e-5`, `limit=200`. Returns units of $[(\mathrm{Mpc}/h)^{-3}\,{\rm ph}\,{\rm s}^{-1}\,{\rm GeV}^{-1}\,{\rm sr}^{-1}]$ after the final `h^{-3}` conversion.
 
-**Implementation:** `astro_sources.py:W_gamma_astro(E_GeV, z, 'BL_Lac', ...)` (line 485).
+**Implementation:** `astro_sources.W_gamma_astro(E_GeV, z, 'BL_Lac', ...)`.
 
 ---
 
@@ -126,39 +126,35 @@ via the standard Sheth-Tormen bias formula. This is a **simplification**: blazar
 
 **Limitation:** No luminosity dependence, no redshift-scaling of the host mass, no scatter. Impact is $\sim 10$--$20\%$ on the clustering amplitude of the cross-correlation. Pinetti (2022) thesis uses the same approximation.
 
-**Implementation:** `astro_sources.py:bias_astro(z, 'BL_Lac')` (line 619, returns `hm.bias(1e13, z)`).
+**Implementation:** `astro_sources.bias_astro(z, 'BL_Lac')` returns `hm.bias(1e13, z)`.
 
 ---
 
 ## Complete Dependency Graph
 
-```
-W_gamma^BL_Lac(E_GeV, z)                             [astro_sources.py:485] W_gamma_astro
-├── Phi_gamma^BL_Lac(L, z)                            [astro_sources.py:452] _glf_BL_Lac
-│   └── _ldde_glf(L, z, _BL_LAC_PARAMS, 'ldde_inv')  [astro_sources.py:373]
+```text
+W_gamma^BL_Lac(E_GeV, z)                             [astro_sources.W_gamma_astro]
+├── Phi_gamma^BL_Lac(L, z)                           [astro_sources._glf_BL_Lac]
+│   └── _ldde_glf(L, z, _BL_LAC_PARAMS, 'ldde_inv')
 │       ├── Local: A / [(L/L_c)^g1 + (L/L_c)^g2] / (L ln10)
-│       │   ├── A = 9.20e-11 Mpc^{-3}                 [_BL_LAC_PARAMS]
-│       │   ├── L_c = 2.43e48 erg/s
-│       │   ├── gamma1 = 1.12
-│       │   └── gamma2 = 3.71
-│       └── Evolution: e(z,L) = [r^{-p1} + r^{-p2}]^{-1}
+│       └── Evolution: e(z,L) = [r^p1 + r^p2]^{-1}
 │           ├── r = (1+z)/(1+z_c)
 │           ├── z_c = z_star * (L/L_ref)^beta
 │           ├── z_star = 1.67, beta = 4.46e-2
 │           ├── p1 = 4.50, p2 = -12.88
 │           └── L_ref = 1e48 erg/s
-├── alpha = 2.11                                       [ASTRO_SOURCES['BL_Lac']]
-├── L_min = 7e43, L_max = 1e52 erg/s                  [ASTRO_SOURCES['BL_Lac']]
-├── L_thr(z,E) = 4*pi*d_L^2 * F_sens(E)               [L_sens, line 25]
-│   ├── forecast mode: F_sens = F_SENS = 1e-10        [config.py:F_SENS]
-│   └── data mode:     F_sens ∝ [sigma_0(E)]^2        [F_sens_energy, line 52]
-├── E_rest = E_obs * (1+z)                             [rest-frame energy]
-├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]   [lines 543-546]
-└── (1+z)^{-2} / (4*pi)                                [cosmological dimming]
+├── alpha = 2.11                                     [config.ASTRO_SOURCES['BL_Lac']['alpha']]
+├── L_min = 7e43, L_max = 1e52 erg/s                [config.ASTRO_SOURCES['BL_Lac']]
+├── L_thr(z,E) = 4*pi*d_L^2 * F_sens(E)             [astro_sources.L_sens]
+│   ├── forecast mode: F_sens = F_SENS = 1e-10      [config.F_SENS]
+│   └── data mode:     F_sens ∝ [sigma_0(E)]^2      [astro_sources.F_sens_energy]
+├── E_rest = E_obs * (1+z)                           [rest-frame energy]
+├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]
+└── 1 / (4*pi*h^3)                                  [photon-emissivity prefactor after d_L^2 cancellation and Mpc^-3 -> (Mpc/h)^-3 conversion]
 
-bias_BL_Lac(z)                                         [astro_sources.py:619]
-├── M_halo = 1e13 M_sun/h                              [fixed]
-└── b_ST(1e13, z)                                       [halo_model.bias]
+bias_BL_Lac(z)                                       [astro_sources.bias_astro]
+├── M_halo = 1e13 M_sun/h                            [fixed]
+└── b_ST(1e13, z)                                    [halo_model.bias]
 ```
 
 ---
@@ -168,9 +164,9 @@ bias_BL_Lac(z)                                         [astro_sources.py:619]
 | Component | Primary Source | Supporting Sources |
 |-----------|---------------|-------------------|
 | BL Lac GLF structure | Ajello+ (2014) ApJ 780, 73 | LAT 2FGL sample, LDDE fit |
-| LDDE functional form | Ajello+ (2014) Eq. C.2-C.4 | Pinetti (2022) thesis Eq. C.4 |
-| Parameter values | Pinetti thesis Table C.1 | Ajello+ 2014 Table 3 (LDDE1) |
-| Sign convention (inverse-sum negative exponents) | Pinetti (2022) thesis Eq. C.4 | Deviates from Ajello+ positive-exponent form |
+| LDDE functional form | Ajello+ (2014) Eq. 18 | Pinetti (2022) thesis Eq. C.4 writes the inverse-sum with opposite exponent signs |
+| Parameter values | Ajello+ (2014) Table 3 (LDDE1) | Pinetti thesis Table C.1 reproduces the same LDDE1 values |
+| Sign convention remark | Active pipeline follows Ajello+ positive exponents | Thesis Eq. C.4 uses negative exponents; the repository intentionally does not adopt that sign flip |
 | Photon index $\alpha = 2.11$ | Pinetti+ (2020) Table 3 | Ajello+ 2014 LDDE1 $\mu_\star = 2.12 \pm 0.03$ |
 | Window function formula | Pinetti+ (2020) Eq. 4.3 | Generic astro window |
 | Halo mass assumption | Standard blazar clustering | Pinetti (2022) thesis; no explicit M-L relation |
@@ -197,7 +193,7 @@ The BL Lac window function has distinctive features relative to other UGRB compo
 
 ## Pipeline (Pinetti 2022) Parallel
 
-The Pinetti 2022 parallel implementation (`pinetti2022.py`) provides **no BL Lac-specific overrides**. The GLF, parameters, and window function formula are identical between the two pipelines. Differences enter only through the shared halo model infrastructure used in the 2-halo cross-power:
+The `pinetti2022.py` parallel module provides **no BL Lac-specific GLF or window override**. For BL Lac, the implemented source of truth is the main `astro_sources.py` path. Relative to the thesis text, the active pipeline makes one explicit blazar-specific choice: it keeps Ajello+ (2014) Eq. 18 with positive exponents rather than the sign-flipped thesis Eq. C.4. Other differences enter only through the shared halo-model infrastructure used in the 2-halo cross-power:
 
 - **Halo bias**: Pinetti 2022 uses $q=0.75$ (thesis) via `pinetti2022.bias_pinetti()` vs pipeline's $q=0.707$. Affects the Sheth-Tormen bias evaluated at $M_{\rm halo} = 10^{13}\,M_\odot/h$.
 - **Limber $k$-substitution**: Pinetti 2022 uses $k=\ell/\chi$ (thesis) vs pipeline's $k=(\ell+1/2)/\chi$.

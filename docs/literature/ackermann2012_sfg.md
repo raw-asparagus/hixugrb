@@ -8,7 +8,7 @@
 
 Examines 69 dwarf, spiral, and luminous/ultraluminous infrared galaxies using three years of Fermi-LAT data. Establishes scaling relations between gamma-ray luminosity and both radio continuum and total infrared luminosity, demonstrating that gamma-ray emission is a reliable tracer of star formation.
 
-## Key Result Used in This Pipeline
+## Key Result
 
 ### L_γ – L_IR scaling relation
 
@@ -22,6 +22,6 @@ $$\phi_\gamma(L_\gamma, z) = \phi_\text{IR}(L_\text{IR}(L_\gamma), z)\,\frac{d\l
 
 where $d\log_{10} L_\text{IR} / d\log_{10} L_\gamma = 1/\alpha_\text{IR} \approx 0.917$.
 
-## Implementation
+## Repository Use
 
-Used by: `astro_sources.py:_L_IR_from_Lgamma()`, `_glf_SFG()`
+Used by the repository to convert the Gruppioni infrared luminosity function into the SFG gamma-ray luminosity function in `astro_sources.py`.

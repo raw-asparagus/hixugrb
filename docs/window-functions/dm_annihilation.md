@@ -252,9 +252,9 @@ $$W_\gamma^{\rm DM}(z) = \frac{(\Omega_{\rm DM}\rho_c)^2}{4\pi} \cdot \frac{\lan
 
 ### 8b. Pipeline equation (per-$\chi$ form)
 
-The pipeline absorbs the $1/H(z)$ Jacobian from $d\chi/dz = c/H(z)$:
+The current implementation does **not** bake the Limber Jacobian into `W_gamma_DM()`:
 
-$$W_\gamma^{\rm DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_{\rm DM}}{m_\chi}\right)^2 (1+z)^3 \frac{1}{H(z)} \Delta^2(z) \frac{dN}{dE'} e^{-\tau}$$
+$$W_\gamma^{\rm DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_{\rm DM}}{m_\chi}\right)^2 (1+z)^3 \Delta^2(z) \frac{dN}{dE'} e^{-\tau}$$
 
 Note: $1/(4\pi) \times 1/2 = 1/(8\pi)$. The factor of $1/2$ accounts for identical (Majorana) particles.
 

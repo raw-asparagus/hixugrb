@@ -25,22 +25,18 @@ Derives the first theoretical prediction of the cross-correlation signal between
 - SKA2 + next-gen gamma-ray telescope can probe thermal relic cross-section to ~TeV scale
 - Cross-correlation naturally suppresses uncorrelated foregrounds
 
-## Equations Used in This Pipeline
+## Key Equations
 
 **Limber integral (Eq. 2.1):**
 $$C_\ell^{ij} = \int \frac{d\chi}{\chi^2} W_i(\chi) W_j(\chi) P_{ij}\left(k = \frac{\ell}{\chi}, z\right)$$
 
-*Note: The paper uses k = ℓ/χ. The pipeline uses k = (ℓ+1/2)/χ (LoVerde & Afshordi 2008 improvement for low-ℓ accuracy). See pinetti2022_evidence_matrix D8.*
-
 **HI window function (Eqs. 3.15–3.16, per-z convention):**
 $$W_\text{HI}^{(z)} = \bar{T}_b(z) \, \phi(z)$$
 
-where φ(z) is a top-hat selection function over the radio band. The pipeline's effective per-χ window combines this with b_HI and the H/(c·h) Jacobian: $W_\text{HI}^{(\chi)} = \bar{T}_b \, b_\text{HI} \, \phi(z) \, H/(c \cdot h)$. The bias enters through the halo model power spectrum in the paper's formulation.
+where φ(z) is a top-hat selection function over the radio band.
 
-**DM window function (Eq. 4.1, per-z convention):**
+**DM window function (Eq. 4.1):**
 $$W_\gamma^\text{DM} = \frac{(\Omega_\text{DM}\rho_c)^2}{4\pi} \frac{\langle\sigma v\rangle}{2m_\chi^2} (1+z)^3 \Delta^2(z) \frac{dN_\gamma}{dE'} e^{-\tau}$$
-
-*Note: The paper's Eq. 4.1 does NOT include 1/H(z). That factor arises from the Limber measure dχ/dz = c/H(z). The pipeline's per-χ window absorbs the 1/H factor for consistency with the integration convention.*
 
 **Astrophysical window function (Eq. 4.3):**
 $$W_\gamma^\text{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\text{thr}} \Phi(L,z) \frac{dF}{dE} dL$$
@@ -48,7 +44,7 @@ $$W_\gamma^\text{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\text{thr}} \Phi(L,z) 
 **Brightness temperature (Eq. 3.4):**
 $$\bar{T}_b(z) = 44\,\mu\text{K} \, \frac{\Omega_\text{HI}(z)\,h}{2.45\times10^{-4}} \frac{(1+z)^2}{E(z)}$$
 
-which is equivalent to $\bar{T}_b \approx 180\,\Omega_\text{HI}\,h\,(1+z)^2/E(z)$ mK. The pipeline uses the coefficient 188h mK from standard 21-cm references — a ~4% difference from rounding conventions, within the systematic uncertainty on Ω_HI.
+which is equivalent to $\bar{T}_b \approx 180\,\Omega_\text{HI}\,h\,(1+z)^2/E(z)$ mK.
 
 **Clumping factor (Eq. 4.2):**
 $$\Delta^2(z) = \frac{1}{\bar\rho^2} \int \frac{dn}{dM} \int \rho^2 d^3x \, dM$$
@@ -71,8 +67,6 @@ $$(\Delta C_\ell)^2 = \frac{1}{(2\ell+1)f_\text{sky}} \frac{N^\gamma}{(B_\ell^\g
 
 **Source spectral indices (Table 3):** BL Lac α=2.11, FSRQ α=2.44, mAGN α=2.37, SFG α=2.7
 
-## Implementation
+## Repository Use
 
-Primary reference for: `angular_power.py`, `statistics.py`, `noise_model.py`, `config.py` (instrument specs and energy bins)
-
-**Extended reference:** Pinetti (2022) PhD thesis, [arXiv:2212.00125](https://arxiv.org/abs/2212.00125) (Part I, Chapters 3–5, Appendices B–E). Same formalism with full derivations and explicit parameter tables. Local copy: `docs/2212.00125v1.pdf`. Claim-by-claim comparison: `docs/pinetti2022_evidence_matrix.md`.
+Primary theoretical reference for the repository's HI×UGRB forecast formalism, instrument setup, and validation targets.

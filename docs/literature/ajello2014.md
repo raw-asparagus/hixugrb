@@ -10,19 +10,19 @@ Constructs the gamma-ray luminosity function of BL Lac objects using 211 sources
 
 ## GLF Parameterization
 
-### Local luminosity function (Eq. C.2, with Γ = μ★ = 2.11)
+### Local luminosity function (Eq. C.2, with Γ = μ★ = 2.12)
 
 $$\frac{d\Phi}{d\log_{10}L} = \frac{A}{\left(\frac{L}{L_\star}\right)^{\gamma_1} + \left(\frac{L}{L_\star}\right)^{\gamma_2}}$$
 
-### LDDE evolution (Eq. C.4)
+### LDDE evolution (paper form)
 
-$$e(z, L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{-p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{-p_2}\right]^{-1}$$
+$$e(z, L) = \left[\left(\frac{1+z}{1+z_c(L)}\right)^{p_1} + \left(\frac{1+z}{1+z_c(L)}\right)^{p_2}\right]^{-1}$$
 
 where $z_c(L) = z_\star\,(L / 10^{48}\,\text{erg/s})^\beta$.
 
 This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll z_c$, peaks near $z_c$, then falls as $(1+z)^{p_2}$ for $z \gg z_c$.
 
-### Parameters (Thesis Table C.1, from Ajello+ 2014)
+### Parameters (Table 3, LDDE1)
 
 | Parameter | Value | Unit |
 |-----------|-------|------|
@@ -35,14 +35,6 @@ This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll
 | $z_\star$ | 1.67 | — |
 | $\beta$ | $4.46 \times 10^{-2}$ | — |
 
-### Mass-to-luminosity for halo bias (Eqs. C.5–C.6)
-
-$$M(L) = 10^{13}\,M_\odot\left(\frac{M_\star}{10^{8.8}(1+z)^{1.4}}\right)^{0.645}$$
-
-$$M_\star = 10^9\left(\frac{L}{10^{48}\,\text{erg/s}}\right)^{0.36}$$
-
-(Same relation as for [Di Mauro+ (2014)](dimauro2014.md) mAGN.)
-
 ## Key Results
 
 - LDDE provides best fit among PDE, PLE, LDDE models
@@ -50,10 +42,8 @@ $$M_\star = 10^9\left(\frac{L}{10^{48}\,\text{erg/s}}\right)^{0.36}$$
 - LISP (ISP+LSP): positive evolution peaking at $z \sim 1.2$
 - Combined BL Lac population: peaks at $z \sim 1.2$–$1.7$ (luminosity-dependent)
 - BL Lacs contribute ~10–15% of the isotropic gamma-ray background
-- Spectral index: μ★ = 2.12 ± 0.03 (LDDE1, Table 3); pipeline uses 2.11 following Pinetti (2022) rounding
+- Spectral index: μ★ = 2.12 ± 0.03 (LDDE1, Table 3)
 
-**Exponent sign discrepancy:** The paper's Eq. 18 uses positive exponents $[r^{p_1} + r^{p_2}]^{-1}$, while Pinetti (2022) Eq. C.4 uses negative exponents $[r^{-p_1} + r^{-p_2}]^{-1}$. The pipeline follows Pinetti's convention. These produce different evolution shapes around the redshift peak.
+## Repository Use
 
-## Implementation
-
-**Module:** `astro_sources.py` — `_BL_LAC_PARAMS`, `_glf_BL_Lac()`, LDDE inverse-sum evolution form.
+Used by the repository as the primary source for the BL Lac luminosity-function parameters in `astro_sources.py`.

@@ -507,7 +507,12 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
                   unresolved_mode='forecast'):
     """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
-    Per-chi convention: W(chi) = [d_L^2/(1+z)^2] * integral Phi * dF/dE dL
+    Per-chi convention: W(chi) is returned in the pipeline's h-dependent
+    comoving units [photons s^-1 sr^-1 GeV^-1 (Mpc/h)^-3].
+
+    The luminosity functions in this module are defined in physical
+    [Mpc^-3 (erg/s)^-1], so the final emissivity is converted to
+    [(Mpc/h)^-3] before returning.
 
     Parameters
     ----------
@@ -535,9 +540,6 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     L_min = params['L_min']
     L_max = params['L_max']
 
-    dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
-    dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
-
     if unresolved_only:
         if unresolved_mode == 'data':
             L_thr = L_sens(z, E_GeV=E_GeV)
@@ -550,7 +552,8 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     if L_up <= L_min:
         return 0.0
 
-    # Compute the comoving volume emissivity j(E_rest, z) [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}]
+    # Compute the physical comoving emissivity j(E_rest, z)
+    # [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}].
     #
     # Each source emits: dn/dE_rest = L / (GeV_to_erg * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
     # where L [erg/s] is the rest-frame 0.1-100 GeV energy luminosity.
@@ -558,7 +561,7 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     # The emissivity is: j = (1/4pi) integral phi(L) * dn/dE_rest dL
     E_min_band = 0.1     # 100 MeV [GeV]
     E_max_band = 100.0   # 100 GeV [GeV]
-    GeV_to_erg = 1.602e-3  # 1 GeV in erg
+    GeV_to_erg = cfg.GEV_TO_ERG
 
     # Energy integral: integral E^{1-alpha} dE [GeV^{2-alpha}]
     if abs(alpha - 2.0) > 0.01:
@@ -581,7 +584,8 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     val, _ = quad(integrand, np.log(L_min), np.log(L_up), limit=200, epsrel=1e-5)
 
     # val = integral phi * dn/dE dL has units:
-    # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s] = [Mpc^{-3} ph s^{-1} GeV^{-1}]
+    # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s]
+    # = [Mpc^{-3} ph s^{-1} GeV^{-1}]
     #
     # Per-chi photon intensity window from a population of sources at comoving
     # distance chi: the photon-number flux from each source is
@@ -593,7 +597,11 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     # with NO (1+z)^{-2} prefactor. The K-correction enters naturally through
     # E_rest = (1+z)*E_obs in the spectral factor. See Ando & Komatsu 2006
     # (PRD 73:023521) Eqs. 1-3 and Ando & Pavlidou 2009 (MNRAS 400:2122) Eq. 6.
-    return val / (4.0 * np.pi)
+    #
+    # Convert the GLF/emissivity density from physical [Mpc^-3] to the
+    # pipeline's h-dependent [(Mpc/h)^-3] convention so the Limber integral and
+    # gamma-noise model share the same area/volume basis.
+    return val / (4.0 * np.pi * cfg.h**3)
 
 
 # ---------------------------------------------------------------------------
@@ -603,37 +611,25 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
 def mean_intensity(E_GeV, source_class, z_max=5.0, n_z=300):
     """Mean unresolved gamma-ray intensity from a source class.
 
-    <I>(E) = integral dz (c/H(z)) * j(E*(1+z), z) / (1+z)
+    <I>(E) = integral dz (c*h/H(z)) * W_gamma_astro(E, z)
 
-    where j is the comoving emissivity [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}]
-    returned by W_gamma_astro, and the 1/(1+z) accounts for cosmological
-    energy loss and time dilation.
+    where W_gamma_astro is the h-dependent per-chi window returned in
+    [(Mpc/h)^-3]. The observed-energy dependence already enters through
+    E_rest = (1+z) * E_obs inside W_gamma_astro, so no extra /(1+z) factor is
+    applied here.
 
     Returns intensity in [photons cm^{-2} s^{-1} GeV^{-1} sr^{-1}].
     """
     z_arr = np.linspace(0.01, z_max, n_z)
-    # W_gamma_astro already computes j at E_rest = E_obs*(1+z)
-    j_arr = np.array([W_gamma_astro(E_GeV, z, source_class) for z in z_arr])
+    W_arr = np.array([W_gamma_astro(E_GeV, z, source_class) for z in z_arr])
 
-    # c/H(z) in Mpc (physical): this cancels the Mpc^{-3} in j
-    # Then convert from Mpc^{-2} to cm^{-2}: (1 Mpc = 3.086e24 cm)
     H_arr = np.array([cosmo.H(z) for z in z_arr])
-    c_over_H_Mpc = cfg.C_LIGHT_KM_S / H_arr  # [Mpc] (physical)
-    Mpc_to_cm = cfg.MPC_TO_M * 100.0          # [cm/Mpc]
+    dchi_dz = cfg.C_LIGHT_KM_S * cfg.h / H_arr  # [Mpc/h]
+    Mpc_h_cm = cfg.MPC_TO_M * 100.0 / cfg.h     # [cm / (Mpc/h)]
 
-    # Cosmological dimming: 1/(1+z)
-    dimming = 1.0 / (1.0 + z_arr)
-
-    # Integrand: j [ph/s/Mpc^3/GeV/sr] * c/H [Mpc] * 1/(1+z) → [ph/s/Mpc^2/GeV/sr]
-    # Convert Mpc^2 → cm^2: divide by Mpc_to_cm^2 → [ph/s/cm^2/GeV/sr] = [ph/cm^2/s/GeV/sr]
-    # Wait: j * c/H has units ph/s/Mpc^2/GeV/sr. We need ph/cm^2/s/GeV/sr.
-    # Since 1 Mpc^{-2} = 1/(Mpc_cm)^2 cm^{-2}, the integral already works
-    # if we express distances consistently.
-    #
-    # Actually: j [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}] * c/H [Mpc] = [ph s^{-1} Mpc^{-2} GeV^{-1} sr^{-1}]
-    # Convert to cm^{-2}: multiply by 1/Mpc_cm^2... no, [Mpc^{-2}] = [1/(Mpc_cm)^2 cm^{-2}]
-    # So value in cm^{-2} = value_in_Mpc^{-2} / Mpc_cm^2
-    integrand = j_arr * c_over_H_Mpc * dimming / Mpc_to_cm**2
+    # W_arr * dchi/dz gives an intensity in [(Mpc/h)^-2]. Convert the final
+    # area unit to cm^-2 at the module boundary.
+    integrand = W_arr * dchi_dz / Mpc_h_cm**2
 
     dz = z_arr[1] - z_arr[0]
     return np.sum(integrand) * dz
@@ -648,6 +644,8 @@ def bias_astro(z, source_class):
 
     Blazars use fixed halo mass. mAGN and SFG use mass-luminosity relations
     evaluated at characteristic luminosities (Di Mauro Eqs. C.20-C.21, Eq. C.29).
+    Those literature relations are written in physical M_sun, so masses are
+    converted to the code's M_sun/h convention before calling hm.bias().
     """
     from . import halo_model as hm
 
@@ -657,14 +655,20 @@ def bias_astro(z, source_class):
     if source_class == 'mAGN':
         L_char = 1e44  # characteristic mAGN L_gamma [erg/s]
         M_star = cfg.MAGN_MSTAR_NORM * (L_char / cfg.MAGN_MSTAR_LNORM)**cfg.MAGN_MSTAR_SLOPE
-        M_halo = 1e13 * (M_star / (cfg.MAGN_MHALO_PIVOT * (1.0 + z)**cfg.MAGN_MHALO_Z_EXP))**cfg.MAGN_MHALO_SLOPE
-        M_halo = max(M_halo, 1e10)
-        return hm.bias(M_halo, z)
+        M_halo_phys = 1e13 * (
+            M_star / (cfg.MAGN_MHALO_PIVOT * (1.0 + z)**cfg.MAGN_MHALO_Z_EXP)
+        )**cfg.MAGN_MHALO_SLOPE
+        M_halo_phys = max(M_halo_phys, 1e10)
+        return hm.bias(M_halo_phys / cfg.h, z)
 
     if source_class == 'SFG':
         L_char = 1e39  # characteristic SFG L_gamma [erg/s]
-        M_halo = cfg.SFG_MHALO_NORM / (1.0 + z)**cfg.SFG_MHALO_Z_EXP * (L_char / cfg.SFG_MHALO_LNORM)**cfg.SFG_MHALO_SLOPE
-        M_halo = max(M_halo, 1e10)
-        return hm.bias(M_halo, z)
+        M_halo_phys = (
+            cfg.SFG_MHALO_NORM
+            / (1.0 + z)**cfg.SFG_MHALO_Z_EXP
+            * (L_char / cfg.SFG_MHALO_LNORM)**cfg.SFG_MHALO_SLOPE
+        )
+        M_halo_phys = max(M_halo_phys, 1e10)
+        return hm.bias(M_halo_phys / cfg.h, z)
 
     return hm.bias(1e12, z)

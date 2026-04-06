@@ -1,6 +1,6 @@
 # Equation Reference
 
-Every equation, empirical relation, and scholarly result used in the pipeline, organized by module.
+Every equation, empirical relation, and scholarly result used in the pipeline, organized by module. Each source link points to the paper summary under [`docs/literature`](literature/), while implementation-specific choices and deviations from those papers are recorded here.
 
 ---
 
@@ -28,7 +28,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 2.1 | $R_\text{vir} = \left(\frac{3M}{4\pi\Delta_\text{vir}\rho_c(z)}\right)^{1/3}$, $\Delta_\text{vir}=200$ | M₂₀₀c definition; $\rho_c(z)=\rho_c(0)E^2(z)$ | `R_vir(M, z)` |
+| 2.1 | $R_\text{vir} = \left(\frac{3M}{4\pi\Delta_\text{vir}(z)\rho_c(z)}\right)^{1/3}$ | [Pinetti+ (2020)](literature/pinetti2020.md) halo-model setup; implemented with Bryan & Norman (1998) $\Delta_\text{vir}(z)$ in `halo_model.py` | `R_vir(M, z)` |
 | 2.2 | $v_c = \sqrt{GM/R_\text{vir}}$ | Dynamical | `v_circ(M, z)` |
 | 2.3 | $\nu = \delta_c^2/\sigma^2(M,z)$, $\delta_c=1.686$ | Spherical collapse | `nu(M, z)` |
 | 2.4 | $\nu f(\nu) = A\left[1+(q\nu)^{-p}\right]\sqrt{\frac{q\nu}{2\pi}}\exp\left(-\frac{q\nu}{2}\right)$ | [Sheth, Mo & Tormen (2001)](literature/sheth_mo_tormen2001.md) | hmf `SMT` model |
@@ -53,12 +53,12 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{HI}\,dr = M_\text{HI}$ | Mass normalization | `rho0_HI` |
 | 3.5 | $\tilde u_\text{HI}(k \mid M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.2 | `rho_HI_mean(z)` |
-| 3.7 | $\Omega_\text{HI}(z) = (1+z)^{-3}\bar\rho_\text{HI}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 | `Omega_HI(z)` |
+| 3.7 | $\Omega_\text{HI}(z) = \bar\rho_\text{HI}^\text{com}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 motivates the density ratio; the implementation uses the halo integral's comoving density directly | `Omega_HI(z)` |
 | 3.8 | $\bar T_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)}$ mK | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.4 | `T_bar_b(z)` |
 | 3.9 | $b_\text{HI}(z) = \frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,M_\text{HI}\,b(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.6 | `b_HI(z)` |
 | 3.10 | $P_\text{HI}^\text{1h}(k,z) = \frac{1}{\bar\rho_\text{HI}^2}\int\frac{dn}{dM}\,M_\text{HI}^2\,\tilde u_\text{HI}^2\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.12 | `P_HI_1h` |
 | 3.11 | $P_\text{HI}^\text{2h}(k,z) = \left[\frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,b\,M_\text{HI}\,\tilde u_\text{HI}\,dM\right]^2 P_\text{lin}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.13 | `P_HI_2h` |
-| 3.12 | $W_\text{HI}(\chi) = \bar T_b(z)\,b_\text{HI}(z)\,\phi(z)\,\frac{H(z)}{ch}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eqs. 3.15–3.16 | `W_HI(z, z_min, z_max)` |
+| 3.12 | $W_\text{HI}(\chi) = \bar T_b(z)\,\phi(z)\,\frac{H(z)}{ch}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eqs. 3.15–3.16 for the paper form; current implementation keeps $b_\text{HI}$ in $P_\text{HI}$ rather than in `W_HI()` | `W_HI(z, z_min, z_max)` |
 |   | $\phi(z) = 1/(z_\text{max}-z_\text{min})$ (top-hat selection) | | |
 
 ---
@@ -73,7 +73,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 4.4a | $\log_{10}B(M,z{=}0) = \sum_{i=0}^{5}b_i[\log_{10}(M/M_\odot)]^i$ | [Moliné et al. (2017)](literature/moline2017.md) Eq. 18, Table 3 ($\alpha{=}2$) | `boost_moline` |
 | 4.4b | $B(M,z) = B(M,z{=}0)/(1+z)$ | Thesis Eq. 3.48 | `boost_moline` |
 | 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
-| 4.6 | $W_\gamma^\text{DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_\text{DM}}{m_\chi}\right)^2(1+z)^3\frac{1}{H(z)}\Delta^2\frac{dN}{dE'}e^{-\tau}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.1 | `W_gamma_DM` |
+| 4.6 | $W_\gamma^\text{DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_\text{DM}}{m_\chi}\right)^2(1+z)^3\Delta^2\frac{dN}{dE'}e^{-\tau}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.1 for the emissivity factors; current implementation does **not** bake a $1/H(z)$ factor into `W_gamma_DM()` | `W_gamma_DM` |
 |   | $E'=(1+z)E_\gamma$; $\langle\sigma v\rangle_\text{thermal}=3\times10^{-26}$ cm³/s | | |
 | 4.7 | $P_\text{DM}^\text{1h} = \int\frac{dn}{dM}[\tilde v/\Delta^2]^2\,dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.4 | (not needed; pipeline uses cross-power only) |
 | 4.8 | $P_\text{DM}^\text{2h} = [\int\frac{dn}{dM}\,b\,\tilde v/\Delta^2\,dM]^2\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.5 | (not needed; pipeline uses cross-power only) |
@@ -88,19 +88,20 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | Piecewise evolution: $e(z) = [(1+z)/(1+z_c)]^{p_1}$ for $z \le z_c$, $^{p_2}$ for $z \gt z_c$ | FSRQ | `_ldde_glf` |
-| 5.5 | LDDE inverse-sum: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | BL Lac ([Ajello+ 2014](literature/ajello2014.md) Eq. C.4) | `_ldde_glf` |
-| 5.6 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi(1+z)^2}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.3 (after $d_L^2$ cancellation) | `W_gamma_astro` |
+| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18. Current `_ldde_glf` intentionally follows this positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers; [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the inverse-sum with opposite exponent signs | `_ldde_glf` |
+| 5.5 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi h^3}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.3 for the luminosity-function structure; current implementation uses the photon-number emissivity form returned by `W_gamma_astro()` and converts the physical GLF density to [(Mpc/h)$^{-3}$] | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
 ### LDDE GLF Parameters (FSRQ, BL Lac only)
 
 | Source | $A$ (Mpc⁻³) | $L_c$ (erg/s) | $\gamma_1$ | $\gamma_2$ | $z_c^*$ | $\alpha$ | $p_1$ | $p_2$ | Evolution | Reference |
 |--------|-------------|---------------|-----------|-----------|---------|---------|-------|-------|-----------|-----------|
-| FSRQ | $3.06\times10^{-9}$ | $8.4\times10^{47}$ | 0.21 | 1.58 | 1.47 | 0.21 | 7.35 | −6.51 | piecewise | [Ajello+ (2012)](literature/ajello2012.md) Table 3 |
-| BL Lac | $9.20\times10^{-11}$ | $2.43\times10^{48}$ | 1.12 | 3.71 | 1.67 | 0.0446 | 4.50 | −12.88 | ldde_inv | [Ajello+ (2014)](literature/ajello2014.md) Table C.1 |
+| FSRQ | $3.06\times10^{-9}$ | $8.4\times10^{47}$ | 0.21 | 1.58 | 1.47 | 0.21 | 7.35 | −6.51 | ldde_inv | [Ajello+ (2012)](literature/ajello2012.md) Table 3 |
+| BL Lac | $9.20\times10^{-11}$ | $2.43\times10^{48}$ | 1.12 | 3.71 | 1.67 | 0.0446 | 4.50 | −12.88 | ldde_inv | [Ajello+ (2014)](literature/ajello2014.md) Table 3 (LDDE1) |
 
 *Note:* The $\alpha$ column is the luminosity dependence of $z_c$: $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$. Code uses `alpha` for both sources; [Ajello+ (2014)](literature/ajello2014.md) calls the BL Lac parameter $\beta$.
+
+*Implementation remark:* [Pinetti (2022)](literature/pinetti2022.md) Eq. C.4 writes the blazar inverse-sum as $[r^{-p_1}+r^{-p_2}]^{-1}$. The active pipeline keeps the Ajello positive-exponent form above so the published Ajello fit parameters are used in the convention in which they were fitted.
 
 ### mAGN GLF — Radio→Gamma Conversion Chain ([Di Mauro+ 2014](literature/dimauro2014.md))
 

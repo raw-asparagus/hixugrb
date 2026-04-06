@@ -236,16 +236,16 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
                        unresolved_only=True, include_DM=True):
     r"""Compute uniformly normalized window functions for all tracers.
 
-    Returns $\hat{W}_i(z) = \frac{c}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
+    Returns $\hat{W}_i(z) = \frac{c\,h}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
 
     for each tracer i. This strips the per-chi Jacobian and absolute amplitude,
     leaving a dimensionless kernel that integrates to unity over redshift:
     $\int \hat{W}_i(z)\,dz = 1$.
 
     The mean intensity $\langle I_i \rangle$ is tracer-specific:
-    - HI: $\langle I_\mathrm{HI} \rangle = \int dz\,(c/H)\,W_\mathrm{HI}^{(\chi)}$
-    - Astro: $\langle I_S \rangle = \int dz\,(c/H)\,W_\gamma^{S,(\chi)}$
-    - DM: $\langle I_\mathrm{DM} \rangle = \int dz\,(c/H)\,W_\gamma^{\mathrm{DM},(\chi)}$
+    - HI: $\langle I_\mathrm{HI} \rangle = \int dz\,(c\,h/H)\,W_\mathrm{HI}^{(\chi)}$
+    - Astro: $\langle I_S \rangle = \int dz\,(c\,h/H)\,W_\gamma^{S,(\chi)}$
+    - DM: $\langle I_\mathrm{DM} \rangle = \int dz\,(c\,h/H)\,W_\gamma^{\mathrm{DM},(\chi)}$
 
     Parameters
     ----------
@@ -315,7 +315,9 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
 
     # --- DM ---
     if include_DM:
-        # W_DM^(chi) absorbs 1/H, so per-z = W_DM^(chi) * c*h/H
+        # W_DM^(chi) follows the same per-chi convention as the other tracers,
+        # so converting to a per-z kernel requires dchi/dz = c*h/H. The DM
+        # window itself does not bake in an extra 1/H factor.
         W_dm_perz = np.array([
             dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
             for z in z_arr

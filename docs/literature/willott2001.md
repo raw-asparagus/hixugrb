@@ -12,9 +12,9 @@ Derives the radio luminosity function (RLF) from the combined 3CRR, 6CE, and 7CR
 
 - 151 MHz steep-spectrum radio luminosity function
 - Two-component model: low-power (FRI-like) + high-power (FRII/quasar-like)
-- Assumes **H₀ = 50 km/s/Mpc, Ω_M = 0, Ω_Λ = 0** (open/empty cosmology). Note: the pipeline uses Model C with Ω_M = 0 (Table 1, second row), not the Ω_M = 1 (Einstein–de Sitter) row, following [Di Mauro+ (2014)](dimauro2014.md).
+- Assumes **H₀ = 50 km/s/Mpc, Ω_M = 0, Ω_Λ = 0** (open/empty cosmology) for the Model C parameter set later reused by [Di Mauro+ (2014)](dimauro2014.md)
 
-## Key Results Used in This Pipeline
+## Key Results
 
 The RLF is the sum of two populations (used via [Di Mauro+ (2014)](dimauro2014.md) Eq. C.19):
 
@@ -54,6 +54,6 @@ where:
 
 **Important:** All densities are in the Willott cosmology (H₀ = 50, Ω_M = 0). A comoving volume correction factor η(z) = (d_C^W/d_C)² × (H/H_W) is required to convert to Planck 2018 cosmology.
 
-## Implementation
+## Repository Use
 
-Used by: `astro_sources.py:_willott_rlf()`
+Used by the repository as the underlying 151 MHz radio luminosity function in the mAGN source model.

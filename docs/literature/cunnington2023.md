@@ -102,7 +102,7 @@ Model convolved with survey window functions (Eq. 14) and corrected by transfer 
 - Null tests (redshift shuffling, random mocks) consistent with zero
 - Detection achieved even WITHOUT transfer function correction (> 4 sigma)
 
-## Key Specifications for Pipeline Implementation
+## Key Observational Specifications
 
 | Parameter | Value | Reference |
 |-----------|-------|-----------|
@@ -110,7 +110,7 @@ Model convolved with survey window functions (Eq. 14) and corrected by transfer 
 | Number of dishes | 64 (avg ~60 usable per time block) | Sec. 2 |
 | L-band frequency range | 900–1670 MHz (full); 973–1015 MHz (used) | Sec. 2 |
 | UHF-band frequency range | 580–1015 MHz | Sec. 2 |
-| Beam FWHM | 1.16 c/(nu D_dish) | Sec. 2; cf. pipeline's 1.22 coefficient |
+| Beam FWHM | 1.16 c/(nu D_dish) | Sec. 2 |
 | Beam after reconvolution | 1.82 deg (= 1.2 * theta_FWHM(nu_min)) | Sec. 4.1 |
 | R_beam (comoving) | 13.3 Mpc/h | Sec. 3.2 |
 | Survey area | ~200 deg^2 | Sec. 2 |
@@ -121,43 +121,10 @@ Model convolved with survey window functions (Eq. 14) and corrected by transfer 
 | PCA modes removed | N_fg = 30 (optimal) | Sec. 5.2 |
 | Transfer function | T(k) from 100 lognormal mocks | Sec. 4.3 |
 | Resmoothing parameter | gamma = 1.2 | Sec. 4.1 |
-| T_HI coefficient | 180 mK (cf. pipeline's 188 mK) | Eq. 15 |
+| T_HI coefficient | 180 mK | Eq. 15 |
 | Scan speed | 5 arcmin/s along azimuth | Sec. 2 |
 | Noise diode period | 20 s | Sec. 2 |
 
-## Beam Coefficient: 1.16 vs 1.22
+## Repository Use
 
-The paper uses theta_FWHM = 1.16 c/(nu D_dish) (Matshawule et al. 2021) rather than the standard diffraction limit 1.22 lambda/D. The 1.16 coefficient is specific to the MeerKAT dish illumination pattern. The pipeline currently uses 1.22 — this should be updated for MeerKAT-specific analysis.
-
-## Brightness Temperature Coefficient: 180 vs 188
-
-Eq. 15 uses 180 mK while the pipeline uses 188 h mK. The difference arises from rounding conventions: 180 Omega_HI h = 180 * h * Omega_HI = 121.2 * Omega_HI, while 188 h * Omega_HI = 126.6 * Omega_HI. This ~4% difference is within the ~15% systematic uncertainty on Omega_HI. The pipeline's 188h value follows Pinetti+(2020) and standard 21-cm references.
-
-## Pipeline Implications — Data-Analysis-Grade HI Treatment
-
-This paper is the primary reference for upgrading the pipeline's MeerKAT treatment from forecasting to data-analysis grade. Key upgrades identified:
-
-1. **Reconvolution**: Frequency-dependent beam must be homogenised before foreground cleaning. Implement Eqs. 16–18 for weighted reconvolution to common resolution.
-
-2. **Foreground transfer function**: PCA cleaning causes scale-dependent signal loss T(k). Implement Eqs. 19–20 for mock-injection-based transfer function estimation.
-
-3. **Beam coefficient**: Update from 1.22 to 1.16 for MeerKAT illumination pattern.
-
-4. **RFI flagging**: Model frequency channels lost to RFI (32/199 channels = 16% loss in this dataset). This modifies the effective band selection function phi(z).
-
-5. **Survey window convolution**: Model must be convolved with survey window functions (Eq. 14) before comparison to data.
-
-6. **1/f noise**: Noise diode calibration removes long-timescale gain variations; residual 1/f noise is subdominant to thermal noise for scan times < 20 s.
-
-7. **Single-dish vs interferometer**: This paper uses single-dish mode only (no baselines). The pipeline's interferometer noise model (Eq. 8.4) does not apply; only the single-dish noise formula is relevant.
-
-## Implementation
-
-**Primary use:** Reference for data-analysis-grade MeerKAT HI intensity mapping treatment. Defines the foreground cleaning, transfer function, reconvolution, and power spectrum estimation methodology that the pipeline must implement for actual MeerKAT data.
-
-**Modules affected:** `noise_model.py` (beam coefficient, reconvolution), `hi_model.py` (transfer function, band selection with RFI gaps), `angular_power.py` (survey window convolution), `config.py` (MeerKAT beam coefficient)
-
-**Upstream references:**
-- Wang et al. (2021) — MeerKAT calibration and first sky maps
-- Matshawule et al. (2021) — MeerKAT beam characterisation (1.16 coefficient)
-- Wolz et al. (2022) — HI intensity mapping cross-correlation formalism
+Relevant to the repository as the main observational reference for data-analysis-grade MeerKAT single-dish treatment: reconvolution, PCA foreground cleaning, transfer-function correction, and the MeerKAT-specific beam coefficient.

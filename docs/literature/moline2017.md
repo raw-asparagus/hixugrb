@@ -15,9 +15,9 @@ Refines predictions for substructure enhancement of dark matter annihilation sig
 - B(M) ~ 10–20 for Milky Way-scale halos with M_min = 10⁻⁶ M☉
 - Valid for 10⁻⁶ < M₂₀₀ [M☉] < 10¹⁵, accuracy < 5%
 
-## Equations Used in This Pipeline
+## Key Equations
 
-### Polynomial boost at z=0 (Eq. 18 / Thesis Eq. 3.47)
+### Polynomial boost at z=0 (Eq. 18)
 
 $$\log_{10} B(M, z{=}0) = \sum_{i=0}^{5} b_i \left[\log_{10}\left(\frac{M}{M_\odot}\right)\right]^i$$
 
@@ -34,20 +34,6 @@ $$\log_{10} B(M, z{=}0) = \sum_{i=0}^{5} b_i \left[\log_{10}\left(\frac{M}{M_\od
 
 These coefficients use the c₂₀₀(m₂₀₀, x_sub) concentration-mass relation with tidal stripping. Subhalo mass function slope α = 2, normalization A = 0.012. M_min = 10⁻⁶ M☉ is built into the fit.
 
-### Redshift evolution (Thesis Eq. 3.48)
+## Repository Use
 
-$$B(M, z) = \frac{B(M, z{=}0)}{1 + z}$$
-
-This approximation follows from the concentration scaling c ∝ (1+z)⁻¹ at fixed mass, giving the boost luminosity ∝ c³ ∝ (1+z)⁻³ while the smooth halo luminosity scales similarly, so the ratio B scales as (1+z)⁻¹. Equivalently, this is $(H/H_0)^{-2/3}$ in the matter-dominated regime.
-
-### Boost scenarios
-
-| Scenario | Description | Notes |
-|----------|------------|-------|
-| None | B = 0 | No substructure |
-| Conservative | B = 0 for M < 10⁷ M☉ | Only resolved subhalos |
-| Intermediate | Full polynomial, M_min = 10⁻⁶ M☉ | Standard WIMP scenario |
-
-## Implementation
-
-**Module:** `dm_model.py` — `boost_moline(M, z, M_min_sub)`. Applied multiplicatively to ρ² integral in `clumping_factor()`: $\rho^2_\text{eff} = (1 + B) \times \rho^2_\text{smooth}$.
+Used by the repository as the source for the substructure boost prescription in `dm_model.py`.

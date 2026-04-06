@@ -80,7 +80,7 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 - SMT mass function ($q=0.707$ vs thesis $q=0.75$) -- **Differs**; Pinetti 2022 overrides bias only via `bias_pinetti()`
 - Halo bias -- Pipeline $q=0.707$; Pinetti 2022 $q=0.75$
 - $\Delta_{\rm vir}(z)$ Bryan & Norman -- **Match** (both pipelines)
-- Transfer function -- **Differs** (hmf EH vs CAMB); same in both pipelines
+- Transfer function -- **Match** (shared hmf backend now uses CAMB in both paths)
 
 ### DM-specific mass range
 
@@ -172,7 +172,7 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | $M_{\odot,\rm GeV} = 1.116\times10^{57}$ | Standard conversion | line 248 | Same | **Match** | |
 | $h^2$ in density conversion | Unit identity | line 251 | Same | **Match** | **Verified numerically**: $\rho_{\rm DM} = 1.27\times10^{-6}$ GeV/cm$^3$ |
 | $(1+z)^3$ cosmological factor | Pinetti Eq. 4.1 | line 260 | Same | **Match** | |
-| $1/H(z)$ per-$\chi$ Jacobian | Limber: $d\chi/dz = c/H(z)$ | lines 263--264 | Same | **Match** | |
+| No baked-in $1/H(z)$ factor in `W_gamma_DM()` | Limber: $d\chi/dz = c/H(z)$ is supplied by the integration measure | `dm_model.py:W_gamma_DM` docstring and return expression | Same | **Match** | Current implementation keeps the emissivity factors in `W_gamma_DM()` and leaves the Jacobian to the Limber measure |
 | $\sigma_v$ default: $3\times10^{-26}$ cm$^3$/s | Thermal relic | `cfg.SIGMA_V_THERMAL` | Same | **Match** | |
 | Final unit conversion to $({\rm Mpc}/h)^{-3}$ | Per-$\chi$ convention | `W_cgs * Mpc_h_cm**3` line 271 | Same | **Match** | |
 | $dN/dE$ at rest-frame energy | Pinetti Eq. 4.1 | `E_emit = E_GeV * (1+z)` line 229 | Same | **Match** | |

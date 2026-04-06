@@ -87,7 +87,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Formula $W = (1/(4\pi(1+z)^2))\int\Phi\,(L/\epsilon\,I_\alpha)\,E_{\rm rest}^{-\alpha}\,dL$ | Pinetti+ (2020) Eq. 4.3 | `W_gamma_astro` lines 509-569 | Same | **Match** | $d_L^2$ cancels against $dF/dE$'s $1/(4\pi d_L^2)$ factor |
+| Formula $W = (1/(4\pi))\int\Phi\,(L/\epsilon\,I_\alpha)\,E_{\rm rest}^{-\alpha}\,dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure | `W_gamma_astro` lines 509-569 | Same | **Differs** (implementation form) | The current implementation returns `val / (4\pi)` rather than retaining an explicit $(1+z)^{-2}$ prefactor |
 | $E_{\rm rest} = E_{\rm obs}(1+z)$ | Standard | Line 549 | Same | **Match** | |
 | Energy normalization $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}dE$ [GeV² band] | Pinetti+ (2020) | Lines 543-546 | Same | **Match** | Analytic form for $\alpha\ne 2$ |
 | 0.1–100 GeV band for $I_\alpha$ | Ackermann/Di Mauro convention | Lines 538-539 | Same | **Match** | |

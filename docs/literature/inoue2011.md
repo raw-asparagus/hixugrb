@@ -8,7 +8,7 @@
 
 Establishes the contribution of gamma-ray loud radio galaxy core emissions to the cosmic MeV/GeV background using Fermi-LAT detections. Finds gamma-ray loud radio galaxies contribute ~25% of the unresolved extragalactic gamma-ray background above 100 MeV.
 
-## Key Results Used in This Pipeline
+## Key Results
 
 ### Radio spectral index for frequency scaling
 
@@ -22,6 +22,6 @@ $$L_r^{1.4\,\text{GHz}} = L_r^{151\,\text{MHz}} \times \left(\frac{1400}{151}\ri
 
 Partial correlation analysis gives $\log_{10} L_\gamma = (-3.90 \pm 0.61) + (1.16 \pm 0.02) \log_{10} L_{5\,\text{GHz}}$ for gamma-ray luminosity in the **0.1–10 GeV** band (Eq. 5). Note: [Di Mauro+ (2014)](dimauro2014.md) extends this to 0.1–100 GeV.
 
-## Implementation
+## Repository Use
 
-Used by: `astro_sources.py:_L151_from_Lgamma()` (frequency scaling between 151 MHz and 1.4 GHz)
+Used by the repository for the radio-frequency scaling between the 151 MHz Willott luminosity function and 1.4 GHz total radio luminosity.
