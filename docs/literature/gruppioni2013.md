@@ -6,54 +6,75 @@
 
 ## Abstract
 
-Derives the infrared luminosity function evolution of star-forming galaxies to z ~ 4 using deep Herschel PACS (70, 100, 160 μm) and HerMES (250, 350, 500 μm) data from the PEP survey. Identifies three sub-populations with distinct evolutionary behavior.
+Derives the infrared luminosity function evolution of Herschel-selected galaxies out to $z \sim 4$ using PEP and HerMES data. The paper does **not** model only three star-forming populations: it fits the total IR LF and then decomposes it into **five main SED classes**: spiral, starburst, SF-AGN, AGN2, and AGN1. For interpretation, SF-AGN is further divided into SF-AGN(SB) and SF-AGN(Spiral).
 
-## Three-Component IR Luminosity Function
+## Data and Scope
 
-$$\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$$
+- PEP + HerMES coverage in GOODS-S, GOODS-N, ECDFS, and COSMOS
+- PACS-selected samples at 70, 100, and 160 $\mu$m, supported by SPIRE data at 250, 350, and 500 $\mu$m
+- Rest-frame luminosity functions at 35, 60, and 90 $\mu$m
+- Total IR luminosity function integrated over $8$–$1000\,\mu$m
+- Redshift coverage from the local Universe to $z \sim 4$
 
-### Modified Schechter form (each component)
+## Luminosity-Function Form
 
-$$\phi_i = \phi_{0,i}(z)\left(\frac{L_\text{IR}}{L_{0,i}(z)}\right)^{1-\gamma_i}\exp\left[-\frac{1}{2\sigma_i^2}\log_{10}^2\!\left(1 + \frac{L_\text{IR}}{L_{0,i}(z)}\right)\right]$$
+For both the total IR LF and the individual SED populations, the paper uses a modified Schechter form:
 
-where $\phi_i$ returns dΦ/d log₁₀ L_IR in Mpc⁻³.
+$$
+\phi(L) = \phi^\star \left(\frac{L}{L^\star}\right)^{1-\alpha}
+\exp\!\left[
+-\frac{1}{2\sigma^2}
+\log_{10}^2\!\left(1+\frac{L}{L^\star}\right)
+\right]
+$$
 
-### Luminosity evolution $L_{0,i}(z)$
+where $\phi(L)$ is $d\Phi/d\log_{10}L$.
 
-**Spiral** (break at $z = 1.1$, frozen above with $k_{L,2} = 0$):
+## Five Main SED Populations
 
-$$L_{0,\text{sp}}(z) = L_{\star,\text{sp}}\left(\frac{1+z}{1.15}\right)^{k_{L}} \quad (z \le 1.1); \qquad L_{0,\text{sp}}(z > 1.1) = L_{0,\text{sp}}(1.1)$$
+The paper classifies sources into the following five main populations:
 
-**Starburst and SF-AGN** (single power law, no luminosity break):
+- `spiral`
+- `starburst`
+- `SF-AGN`
+- `AGN2`
+- `AGN1`
 
-$$L_{0,j}(z) = L_{\star,j}\left(\frac{1+z}{1.15}\right)^{k_{L,j}}$$
+For interpretation of the star-forming / AGN-mixed class, `SF-AGN` is also split into:
 
-### Density evolution $\phi_{0,i}(z)$
+- `SF-AGN(SB)`
+- `SF-AGN(Spiral)`
 
-**Spiral** (break at $z = 0.53$):
+### Local LF parameters from Table 8
 
-$$\phi_{0,\text{sp}}(z) = \phi_{\star,\text{sp}}\left(\frac{1+z}{1.15}\right)^{k_{R1,\text{sp}}} \quad (z \le 0.53)$$
+| Population | $\alpha$ | $\sigma$ | $\log_{10}(L^\star/L_\odot)$ | $\log_{10}(\Phi^\star/\mathrm{Mpc}^{-3}\,\mathrm{dex}^{-1})$ |
+|-----------|---------|---------|-------------------------------|--------------------------------------------------------------|
+| spiral | $1.00 \pm 0.05$ | $0.50 \pm 0.01$ | $9.78 \pm 0.04$ | $-2.12 \pm 0.01$ |
+| starburst | $1.00 \pm 0.20$ | $0.35 \pm 0.10$ | $11.17 \pm 0.16$ | $-4.46 \pm 0.06$ |
+| SF-AGN | $1.20 \pm 0.02$ | $0.40 \pm 0.10$ | $10.80 \pm 0.02$ | $-3.20 \pm 0.01$ |
+| AGN2 | $1.20 \pm 0.20$ | $0.70 \pm 0.20$ | $10.80 \pm 0.20$ | $-5.14 \pm 0.17$ |
+| AGN1 | $1.40 \pm 0.30$ | $0.70 \pm 0.20$ | $10.50 \pm 0.20$ | $-5.21 \pm 0.11$ |
 
-$$\phi_{0,\text{sp}}(z) = \phi_{\star,\text{sp}}\left(\frac{1.53}{1.15}\right)^{k_{R1,\text{sp}}}\left(\frac{1+z}{1.53}\right)^{k_{R2,\text{sp}}} \quad (z > 0.53)$$
+Table 8 also gives the redshift evolution parameters for each class. In particular, the spiral population has explicit breaks at $z_{b,L}=1.1$ and $z_{b,\rho}=0.53$, while the starburst and SF-AGN fits use breaks at $z=1.1$.
 
-**Starburst and SF-AGN** (break at $z = 1.1$):
+## Key Results
 
-$$\phi_{0,j}(z) = \phi_{\star,j}\left(\frac{1+z}{1.15}\right)^{k_{R1,j}} \quad (z \le 1.1)$$
-
-$$\phi_{0,j}(z) = \phi_{\star,j}\left(\frac{2.1}{1.15}\right)^{k_{R1,j}}\left(\frac{1+z}{2.1}\right)^{k_{R2,j}} \quad (z > 1.1)$$
-
-### Parameters (Table 8 in the paper)
-
-| Component | $\gamma$ | $\sigma$ | $\log_{10}(L_\star/L_\odot)$ | $\log_{10}(\phi_\star/\text{Mpc}^{-3})$ | $k_L$ | $k_{R1}$ | $k_{R2}$ |
-|-----------|---------|---------|------|------|------|-------|-------|
-| spiral | 1.0 | 0.50 | 9.78 | −2.12 | 4.49 | −0.54 | −7.13 |
-| starburst | 1.0 | 0.35 | 11.17 | −4.46 | 1.96 | 3.79 | −1.06 |
-| SF-AGN | 1.2 | 0.40 | 10.80 | −3.20 | 3.17 | 0.67 | −3.17 |
+- The total IR LF shows strong luminosity evolution:
+  - $L^\star \propto (1+z)^{3.55 \pm 0.10}$ up to $z \sim 1.85$
+  - $L^\star \propto (1+z)^{1.62 \pm 0.51}$ from $z \sim 1.85$ to $z \sim 4$
+- The total LF density evolution is negative:
+  - $\Phi^\star \propto (1+z)^{-0.57 \pm 0.22}$ up to $z \sim 1.1$
+  - $\Phi^\star \propto (1+z)^{-3.92 \pm 0.34}$ above $z \sim 1.1$
+- The total IR luminosity density rises as $(1+z)^{3.0 \pm 0.2}$ to $z \sim 1.1$, is nearly flat to $z \sim 2.8$, and then declines
+- The population mix changes with redshift:
+  - `spiral` dominates $\rho_\mathrm{IR}$ only at low redshift ($z \lesssim 0.5$–$0.6$)
+  - `SF-AGN` dominates up to $z \sim 2.5$
+  - `AGN1` and `AGN2` become important only at the highest redshifts in the sample
 
 ## Erratum
 
-**MNRAS 436(3), 2875–2876 (December 2013)** — Correction to Figure 8 scaling. Does not affect luminosity function parameters.
+**MNRAS 436(3), 2875–2876 (December 2013)** corrects the scaling in one figure and does not alter the fitted luminosity-function parameters used here.
 
 ## Repository Use
 
-Used by the repository for the three-component infrared luminosity function that underlies the SFG source model.
+The repository's SFG implementation uses the star-forming subset of this paper, chiefly the `spiral`, `starburst`, and `SF-AGN` components. That is a deliberate subset for modeling purposes; the paper itself presents a broader **five-population** decomposition.

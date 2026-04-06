@@ -1,4 +1,4 @@
-# Pinetti, Camera, Fornengo & Regis (2020) — Primary Reference
+# Pinetti, Camera, Fornengo & Regis (2020) — HI Intensity Mapping Meets Gamma Rays
 
 **Authors:** E. Pinetti, S. Camera, N. Fornengo, M. Regis
 **Journal:** JCAP 2020(07), 044
@@ -6,66 +6,85 @@
 
 ## Abstract
 
-Derives the first theoretical prediction of the cross-correlation signal between the unresolved gamma-ray background (UGRB) and neutral hydrogen (HI) 21-cm intensity mapping. Using Fermi-LAT gamma-ray data and forecasts for MeerKAT and SKA, the authors project sensitivity for constraining dark matter annihilation. The key innovation is combining two tracers with different density weightings: HI traces linear density, while DM annihilation traces density-squared, enabling clean separation via tomographic redshift discrimination.
+Derives the first theoretical prediction for the angular cross-correlation between the unresolved gamma-ray background (UGRB) and neutral-hydrogen 21-cm intensity mapping. The paper combines halo-model source terms for annihilating dark matter and for astrophysical gamma-ray emitters with forecasts for Fermi-LAT, MeerKAT, and SKA.
 
 ## Methodology
 
-- Limber approximation to project 3D power spectra to angular cross-power spectra
-- Halo model decomposition into one-halo and two-halo terms
-- Padmanabhan et al. (2017) HI model for abundance and clustering
-- PPPC4DMID tables for DM annihilation photon yields
-- Four astrophysical gamma-ray source classes (BL Lac, FSRQ, mAGN, SFG)
-- Gaussian variance for SNR forecasting
-
-## Key Results
-
-- MeerKAT + Fermi-LAT astrophysical SNR ~ 3.7 (UHF band)
-- SKA1 + Fermi-LAT SNR ~ 5.7 (Band 2)
-- SKA2 + Fermi-LAT SNR ~ 8.2 (Band 1)
-- SKA2 + next-gen gamma-ray telescope can probe thermal relic cross-section to ~TeV scale
-- Cross-correlation naturally suppresses uncorrelated foregrounds
+- Limber projection of 3D one-halo and two-halo power spectra into angular power spectra
+- Halo-model treatment of HI, dark matter annihilation, and astrophysical gamma-ray source classes
+- HI modeled with [Padmanabhan et al. (2017)](padmanabhan2017.md)
+- Gamma-ray source classes: BL Lacs, FSRQs, mAGN, and SFG
+- Forecasts for MeerKAT, SKA1, and SKA2 combined with Fermi-LAT and a next-generation gamma-ray instrument
 
 ## Key Equations
 
-**Limber integral (Eq. 2.1):**
-$$C_\ell^{ij} = \int \frac{d\chi}{\chi^2} W_i(\chi) W_j(\chi) P_{ij}\left(k = \frac{\ell}{\chi}, z\right)$$
+**Angular cross-power spectrum (Eq. 2.1):**
+$$C_\ell^{ij} = \int \frac{d\chi}{\chi^2} W_i(\chi) W_j(\chi) P_{ij}\!\left(k = \frac{\ell}{\chi}, z\right)$$
 
-**HI window function (Eqs. 3.15–3.16, per-z convention):**
-$$W_\text{HI}^{(z)} = \bar{T}_b(z) \, \phi(z)$$
+**HI brightness temperature (Eq. 3.4):**
+$$\bar{T}_b(z) = 44\,\mu\mathrm{K} \, \frac{\Omega_\mathrm{HI}(z)\,h}{2.45\times10^{-4}} \frac{(1+z)^2}{E(z)}$$
 
-where φ(z) is a top-hat selection function over the radio band.
+equivalently,
+$$\bar{T}_b(z) \approx 180\,\Omega_\mathrm{HI}(z)\,h\,\frac{(1+z)^2}{E(z)}\,\mathrm{mK}$$
 
 **DM window function (Eq. 4.1):**
-$$W_\gamma^\text{DM} = \frac{(\Omega_\text{DM}\rho_c)^2}{4\pi} \frac{\langle\sigma v\rangle}{2m_\chi^2} (1+z)^3 \Delta^2(z) \frac{dN_\gamma}{dE'} e^{-\tau}$$
+$$W_\gamma^\mathrm{DM} = \frac{(\Omega_\mathrm{DM}\rho_c)^2}{4\pi} \frac{\langle\sigma v\rangle}{2m_\chi^2} (1+z)^3 \Delta^2(z) \frac{dN_\gamma}{dE'} e^{-\tau}$$
 
-**Astrophysical window function (Eq. 4.3):**
-$$W_\gamma^\text{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\text{thr}} \Phi(L,z) \frac{dF}{dE} dL$$
+**Astrophysical gamma-ray window function (Eq. 4.3):**
+$$W_\gamma^\mathrm{astro} = \frac{d_L^2}{(1+z)^2} \int_0^{L_\mathrm{thr}} \Phi(L,z) \frac{dF}{dE} \, dL$$
 
-**Brightness temperature (Eq. 3.4):**
-$$\bar{T}_b(z) = 44\,\mu\text{K} \, \frac{\Omega_\text{HI}(z)\,h}{2.45\times10^{-4}} \frac{(1+z)^2}{E(z)}$$
+**Full Gaussian variance (Eq. 2.7):**
+$$
+\left(\Delta C_\ell^{ij}\right)^2 =
+\frac{1}{(2\ell+1)f_\mathrm{sky}}
+\left[
+\left(C_\ell^{ij}\right)^2 +
+\left(C_\ell^{ii} + \frac{N_i}{(B_\ell^i)^2}\right)
+\left(C_\ell^{jj} + \frac{N_j}{(B_\ell^j)^2}\right)
+\right]
+$$
 
-which is equivalent to $\bar{T}_b \approx 180\,\Omega_\text{HI}\,h\,(1+z)^2/E(z)$ mK.
+**Noise-dominated approximation used later for HI×γ forecasts (Eq. 5.5):**
+$$
+\left(\Delta C_\ell^{\mathrm{HI}\gamma}\right)^2 \simeq
+\frac{1}{(2\ell+1)f_\mathrm{sky}}
+\left[
+\frac{N^\gamma}{(B_\ell^\gamma)^2}
+\left(
+C_\ell^{\mathrm{HI-HI}} + \frac{N^\mathrm{HI}}{(B_\ell^\mathrm{HI})^2}
+\right)
+\right]
+$$
 
-**Clumping factor (Eq. 4.2):**
-$$\Delta^2(z) = \frac{1}{\bar\rho^2} \int \frac{dn}{dM} \int \rho^2 d^3x \, dM$$
+The important distinction is that Eq. 2.7 is the general variance expression, while Eq. 5.5 is the paper's later approximation after noting that gamma-ray noise dominates the error budget.
 
-**HI×DM cross-power (Eqs. 5.1–5.2):**
-$$P_{\text{HI}\times\text{DM}}^\text{2h} = \left[\int \frac{dn}{dM} b \frac{\tilde{v}}{\Delta^2} dM\right] \left[\int \frac{dn}{dM} b \frac{\tilde{u}_\text{HI} M_\text{HI}}{\bar\rho_\text{HI}} dM\right] P_\text{lin}$$
+## Forecast Results
 
-**Variance (Eq. 5.5):**
-$$(\Delta C_\ell)^2 = \frac{1}{(2\ell+1)f_\text{sky}} \frac{N^\gamma}{(B_\ell^\gamma)^2} \left[C_\ell^\text{HI} + \frac{N^\text{HI}}{(B_\ell^\text{HI})^2}\right]$$
-
-**SNR (Eq. 5.6):** $\text{SNR}^2 = \sum_{\ell,E} [C_\ell / \Delta C_\ell]^2$
-
-**Delta chi-squared (Eq. 5.7):** $\Delta\chi^2 = \sum_{\ell,E} [(C_\ell^\text{tot}/\sigma)^2 - (C_\ell^\text{astro}/\sigma)^2]$
+- MeerKAT + Fermi-LAT: astrophysical cross-correlation forecast at **SNR ≈ 3.6–3.7**
+- SKA1 + Fermi-LAT: **SNR > 5** in Band 2
+- SKA2 + Fermi-LAT: **SNR ≈ 6.7–8.2**
+- With Fermi-LAT-class gamma-ray data, SKA1 can probe thermal WIMPs up to about **130 GeV**, and SKA2 up to about **200 GeV**
+- With a next-generation gamma-ray instrument plus SKA2, sensitivity extends toward the **TeV scale**
 
 ## Instrument Specifications
 
-**Radio (Table 1):** MeerKAT (64 dishes, 13.5m, UHF/L), SKA1 (133+64 dishes, 14.5m), SKA2 (2000 dishes)
+**Radio (Table 1):**
 
-**Fermi-LAT (Table 2):** 12 energy bins 0.5–1000 GeV with N_gamma, f_sky, sigma_0 per bin
+- MeerKAT: 64 dishes, 13.5 m, UHF and L band
+- SKA1: 133 SKA dishes + 64 MeerKAT dishes, 14.5 m
+- SKA2: 2000 dishes
 
-**Source spectral indices (Table 3):** BL Lac α=2.11, FSRQ α=2.44, mAGN α=2.37, SFG α=2.7
+**Fermi-LAT (Table 2):**
+
+- 12 energy bins from 0.5 to 1000 GeV
+- Per-bin inputs include photon counts, sky fraction, and angular resolution
+
+**Source spectral indices (Table 3):**
+
+- BL Lac: $\alpha = 2.11$
+- FSRQ: $\alpha = 2.44$
+- mAGN: $\alpha = 2.37$
+- SFG: $\alpha = 2.7$
 
 ## Repository Use
 

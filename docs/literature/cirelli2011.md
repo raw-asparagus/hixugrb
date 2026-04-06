@@ -1,4 +1,4 @@
-# Cirelli et al. (2011) — PPPC4DMID Photon Yield Tables
+# Cirelli et al. (2011) — PPPC 4 DM ID
 
 **Authors:** M. Cirelli, G. Corcella, A. Hektor, G. Hutsi, M. Kadastik, P. Panci, M. Raidal, F. Sala, A. Strumia
 **Journal:** JCAP 1103, 051 (Erratum: JCAP 1210, E01)
@@ -6,35 +6,50 @@
 
 ## Abstract
 
-"Poor Particle Physicist Cookbook for Dark Matter Indirect Detection." Provides energy spectra of photons, positrons, antiprotons, and neutrinos from DM annihilation across 28 channels, computed via PYTHIA and HERWIG Monte Carlo.
+"A Poor Particle Physicist Cookbook for Dark Matter Indirect Detection" is a broad phenomenology reference for indirect-detection signals from annihilating or decaying dark matter in the Galaxy and beyond. It provides spectra at production, Galactic propagation functions, prompt and inverse-Compton photon predictions, synchrotron radiation, and extragalactic gamma-ray spectra.
 
-## Methodology
+## Scope
 
-- High-statistics Monte Carlo with PYTHIA and HERWIG (cross-validated)
-- 28 primary annihilation channels
-- Mass range: 5 GeV to 100 TeV
-- Includes electroweak corrections (Ciafaloni et al. 2011) for m_DM >> m_W
-- Release history: v2.0 (2012, Higgs channel), v5.0 (2015, secondary radiation)
+The paper covers:
+
+- DM distribution profiles in the Milky Way
+- Spectra at production for $e^\pm$, $\bar p$, $\bar d$, $\gamma$, and neutrinos
+- Comparison of **Pythia 8.135** and **Herwig 6.510** Monte Carlo yields
+- Propagation functions for $e^\pm$, antiprotons, and antideuterons
+- Prompt gamma-ray fluxes and J-factors
+- Inverse-Compton and synchrotron emission from DM-produced electrons and positrons
+- Extragalactic gamma rays, including clustering and EBL absorption
+
+## Primary Channels
+
+For annihilation, the paper tabulates 28 benchmark primary channels, including:
+
+- leptons: $e^\pm$, $\mu^\pm$, $\tau^\pm$ with chirality labels
+- quarks: light $q\bar q$, $c\bar c$, $b\bar b$, $t\bar t$
+- bosons: $\gamma\gamma$, $gg$, $W^+W^-$, $ZZ$, $hh$
+- neutrinos: $\nu_e\bar\nu_e$, $\nu_\mu\bar\nu_\mu$, $\nu_\tau\bar\nu_\tau$
+- four-lepton final states through light mediators: $VV \to 4e$, $4\mu$, $4\tau$
+
+The tabulated mass range is **5 GeV to 100 TeV**.
 
 ## Key Results
 
-Tables of dN/d(log10 x) where x = E/m_DM for each channel. Key channels for indirect detection: bb-bar (soft, broad), tau+tau- (hard, fewer photons), WW (intermediate).
+- Provides high-statistics spectra at production for many final states and masses
+- Quantifies Monte Carlo systematics by comparing Herwig and Pythia
+- Supplies semi-analytic propagation functions for Galactic charged cosmic rays
+- Includes prompt gamma rays, inverse-Compton gamma rays, synchrotron, and extragalactic gamma-ray predictions in one reference
+- Makes numerical results available in machine-readable form for downstream use
 
-## Data Format
+## Equation Used
 
-- File: `AtProduction_gammas.dat`
-- Columns: mDM [GeV], Log10(x), then dN/dLog10(x) for 28 channels
-- 62 unique masses × 179 x-points × 28 channels
+The numerical yields are commonly distributed in terms of $dN/d\log_{10}x$, where for annihilation $x = E/m_\chi$. The standard conversion is:
 
-## Equations Used
-
-**Conversion from table format:**
 $$\frac{dN}{dx} = \frac{dN}{d\log_{10} x} \cdot \frac{1}{x \ln 10}$$
 
-$$\frac{dN}{dE} = \frac{dN}{dx} \cdot \frac{1}{m_\chi}$$
+$$\frac{dN}{dE} = \frac{1}{m_\chi}\frac{dN}{dx}$$
 
-**Channel mapping:** bb → 'b', tautau → '\[Tau\]', WW → 'W'
+This conversion is useful for repository code that consumes PPPC prompt-photon tables, but the paper itself is much broader than those prompt yields alone.
 
 ## Repository Use
 
-Used by the repository as the source for the PPPC4DMID prompt-photon yield tables consumed by `pppc4dmid.py`.
+The repository mainly uses the PPPC prompt-photon yield tables consumed by `pppc4dmid.py`. This note now reflects the full paper scope rather than only that one downstream data product.

@@ -16,7 +16,7 @@ Derives the radio luminosity function (RLF) from the combined 3CRR, 6CE, and 7CR
 
 ## Key Results
 
-The RLF is the sum of two populations (used via [Di Mauro+ (2014)](dimauro2014.md) Eq. C.19):
+The RLF is the sum of two populations (and is later converted into a MAGN gamma-ray luminosity function in [Di Mauro+ (2014)](dimauro2014.md)):
 
 $$\rho_r(L_r, z) = \rho_l(L_r, z) + \rho_h(L_r, z)$$
 
