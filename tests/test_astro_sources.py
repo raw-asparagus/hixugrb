@@ -8,7 +8,7 @@ from hi_gamma_xcorr import astro_sources as astro, config as cfg
 
 @pytest.mark.parametrize("src,n_lo,n_hi", [
     ('FSRQ', 1e-10, 1e-7),
-    ('BL_Lac', 1e-8, 1e-4),
+    ('BL_Lac', 1e-11, 1e-4),  # Ajello LDDE strongly suppresses z=0
     ('mAGN', 1e-8, 1e-2),
     ('SFG', 1e-6, 1e0),
 ])
@@ -62,16 +62,16 @@ def test_L151_roundtrip():
 
 
 def test_magn_window_shape():
-    """mAGN emissivity should peak around z~0.3-1.5.
+    """mAGN per-chi window should peak at moderate z (~0.3-1.5).
 
-    The raw W_gamma peaks at low z due to (1+z)^{-2}, but the emissivity
-    j = W * 4pi * (1+z)^2 should peak at moderate z due to Willott RLF evolution.
+    After bug fixes (spurious (1+z)^{-2} removed from W_gamma_astro and the
+    mAGN Di Mauro K-correction convention aligned with E_rest spectral factor),
+    the per-chi window peaks at moderate z reflecting Willott RLF evolution.
     """
     z_arr = np.linspace(0.05, 3.0, 100)
     W_arr = np.array([astro.W_gamma_astro(1.0, z, 'mAGN') for z in z_arr])
-    j_arr = W_arr * 4 * np.pi * (1.0 + z_arr)**2
-    z_peak_j = z_arr[np.argmax(j_arr)]
-    assert 0.1 <= z_peak_j <= 2.0, f"mAGN emissivity peaks at z={z_peak_j:.2f}"
+    z_peak = z_arr[np.argmax(W_arr)]
+    assert 0.1 <= z_peak <= 2.5, f"mAGN window peaks at z={z_peak:.2f}"
     # Window at z=0.5 should be at least 20% of peak
     W_at_05 = np.interp(0.5, z_arr, W_arr)
     assert W_at_05 / W_arr.max() > 0.1, "mAGN window too suppressed at z=0.5"

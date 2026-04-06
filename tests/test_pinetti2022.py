@@ -55,11 +55,23 @@ def test_W_HI_pinetti_outside_band():
     assert p22.W_HI_pinetti(2.0, 0.4, 1.45) == 0.0
 
 
-def test_W_HI_pinetti_larger_than_pipeline():
-    """Thesis W_HI should be larger (fixed Omega_HI > computed value)."""
+def test_W_HI_pinetti_differs_from_pipeline():
+    """Pipeline and thesis W_HI differ by convention choices (post bug-fixes).
+
+    Pipeline:
+      - Computed Omega_HI(z) from halo integral (z-dependent, ~1.3e-3 at z=0.8)
+      - NO b_HI in W_HI (Pinetti 2020 Eq. 3.15: W_HI = T_b * phi)
+    Thesis (pinetti2022):
+      - Fixed Omega_HI = 2.45e-4 (T_b = 44 microK * (1+z)^2/E(z))
+      - Includes b_HI_pinetti in W_HI (q=0.75 bias)
+
+    At z=0.8, pipeline's computed Omega_HI >> 2.45e-4, so pipeline T_b dominates
+    even though thesis multiplies by b_HI.
+    """
     W_pipe = hi.W_HI(0.8, 0.4, 1.45)
     W_pin = p22.W_HI_pinetti(0.8, 0.4, 1.45)
-    assert W_pin > W_pipe
+    assert W_pipe > 0 and W_pin > 0
+    assert W_pipe > W_pin, f"W_pipe={W_pipe}, W_pin={W_pin}"
 
 
 def test_limber_k_no_half_integer():

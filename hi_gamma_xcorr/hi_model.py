@@ -167,12 +167,17 @@ def rho_HI_mean(z, M_min=None, M_max=None):
 
 
 def Omega_HI(z, **kwargs):
-    """HI density parameter Omega_HI(z).
+    """HI density parameter Omega_HI(z) (comoving fraction).
 
-    Omega_HI = (1+z)^{-3} * rho_HI(z) / rho_crit
+    Omega_HI(z) = rho_HI^com(z) / rho_crit,0
+
+    `rho_HI_mean` returns the COMOVING HI density (halo integral uses comoving
+    dn/dM), so no (1+z)^3 conversion is applied. This matches Bull+2015 Eq. 3
+    and Chang+2008 convention, in which T_bar_b = 188 h Omega_HI (1+z)^2/E(z)
+    mK gives a temperature that rises with z.
     """
     rho = rho_HI_mean(z, **kwargs)
-    return rho / ((1.0 + z)**3 * cfg.RHO_CRIT)
+    return rho / cfg.RHO_CRIT
 
 
 def T_bar_b(z, **kwargs):
@@ -280,17 +285,21 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
 # ---------------------------------------------------------------------------
 
 def W_HI(z, z_min, z_max):
-    """HI window function W_HI(chi) per comoving distance (Pinetti Eq. 3.15-3.16).
+    """HI window function W_HI(chi) per comoving distance (Pinetti 2020 Eq. 3.15-3.16).
 
-    W_HI(chi) = T_bar_b(z) * b_HI(z) * phi(z) * H(z) / (c * h)
+    W_HI(chi) = T_bar_b(z) * phi(z) * H(z) / (c * h)
 
     where phi(z) = 1/(z_max - z_min) is the top-hat selection function and
     H/(c*h) converts from per-z to per-(Mpc/h) convention.
 
+    IMPORTANT: per Pinetti+ 2020 Eq. 3.15, the HI window does NOT include b_HI.
+    The bias enters only through the HI power spectrum P_HI(k,z) in the Limber
+    integrand. Including b_HI here would double-count the bias in C_ell.
+
     Used with Limber weight (dchi/dz)/chi^2 * dz where dchi/dz = c*h/H.
-    The H factors cancel in the product: weight * W_HI = T_bar_b * b_HI * phi / chi^2.
+    The H factors cancel in the product: weight * W_HI = T_bar_b * phi / chi^2.
     """
     if z < z_min or z > z_max:
         return 0.0
     H_over_ch = cosmo.H(z) / (cfg.C_LIGHT_KM_S * cfg.h)  # 1/(Mpc/h)
-    return T_bar_b(z) * b_HI(z) / (z_max - z_min) * H_over_ch
+    return T_bar_b(z) / (z_max - z_min) * H_over_ch

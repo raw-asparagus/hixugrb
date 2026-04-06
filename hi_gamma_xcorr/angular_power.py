@@ -287,10 +287,12 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
     result = {'z': z_arr}
 
     # --- HI ---
+    # Pinetti 2020 Eq. 3.15: W_HI(z) = T_b(z) * phi(z) (no b_HI in the window;
+    # bias enters only through the power spectrum P_HI in the Limber integrand)
     survey_independent_hi = (z_min_hi is None and z_max_hi is None)
     if survey_independent_hi:
-        # Intrinsic T_b * b_HI (no band selection, no H/(c*h) Jacobian)
-        W_hi_perz = np.array([hi.T_bar_b(z) * hi.b_HI(z) for z in z_arr])
+        # Intrinsic T_b (no band selection, no H/(c*h) Jacobian)
+        W_hi_perz = np.array([hi.T_bar_b(z) for z in z_arr])
     else:
         # Survey-dependent: W_HI^(chi) includes H/(c*h), so * c*h/H cancels it
         W_hi_perz = np.array([

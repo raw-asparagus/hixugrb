@@ -148,9 +148,22 @@ _clumping_cache = {}  # keyed by (round(z,4), boost_scenario)
 
 def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
                     n_M=200):
-    """Clumping factor Delta^2(z) = <rho^2> / rho_bar^2.
+    """Clumping factor Delta^2(z) = <rho^2>_phys / rho_bar_phys(z)^2.
 
-    Delta^2 = (1/rho_bar^2) integral (dn/dM) * [1 + B(M)] * integral rho^2 d^3x dM
+    The physical-variable definition, consistent with Ullio+2002 Eq. 10 /
+    Pinetti Eq. 4.1 where the formula is
+
+        W_DM^(chi) propto (sigma v)/(8 pi m_chi^2) * rho_bar_com^2 * (1+z)^3
+                          * Delta^2(z) * dN/dE * exp(-tau) / H(z)
+
+    The halo integral gives <rho^2>_phys per comoving volume, which is
+    (1+z)^3 smaller than <rho^2>_phys per physical volume. Dividing by
+    rho_bar_com^2 rather than rho_bar_phys(z)^2 = rho_bar_com^2 (1+z)^6 then
+    leaves a factor (1+z)^3 mismatch. Corrected by /(1+z)^3 at the end.
+
+    Literature cross-check: at z=0 Delta^2 ~ 1e5-1e6 (dominated by halos),
+    falling to ~1e4 at z=1 and ~1e3 at z=3 as structure is less collapsed
+    (Taylor & Silk 2003; Ullio+2002; Cirelli+2011).
 
     Parameters
     ----------
@@ -188,7 +201,10 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
         integrand_arr[i] = dn * (1.0 + B) * rho2_int * M  # M from d(lnM)
 
     dlnM = np.log(M_arr[1] / M_arr[0])
-    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2
+    # Halo integral gives <rho^2>_phys per comoving volume; normalize by
+    # physical rho_bar(z)^2 = rho_bar_com^2 (1+z)^6 while the (1+z)^3
+    # physical-to-comoving volume factor leaves a net /(1+z)^3 correction.
+    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2 / (1.0 + z)**3
     _clumping_cache[cache_key] = result
     return result
 
@@ -201,8 +217,15 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
                boost_scenario='intermediate'):
     """DM annihilation gamma-ray window function per comoving distance (Pinetti Eq. 4.1).
 
-    W_DM(chi) = (sigma_v / 8pi) * (rho_DM / m_chi)^2 * (1+z)^3 / H(z)
+    W_DM(chi) = (1/(4pi)) * (sigma_v / 2) * (Omega_DM rho_c / m_chi)^2 * (1+z)^3
                 * Delta^2(z) * dN/dE'|_{E'=(1+z)E} * exp(-tau)
+
+    This is the PHYSICAL photon emissivity per steradian per energy, with NO
+    1/H(z) factor. The mean intensity is obtained via the Pinetti convention
+    <I_gamma> = integral dz * c/H(z) * W_gamma(z) (Eq. 4.1 text on p.9 of
+    arXiv:1911.04989). The c/H Jacobian is supplied by the integration measure
+    (dchi/dz) and the dchi/chi^2 weight in the Limber integrand, not baked into
+    the window function.
 
     Parameters
     ----------
@@ -220,7 +243,7 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     Returns
     -------
     W : float
-        Window function value.
+        Window function value in [photons (Mpc/h)^{-3} s^{-1} sr^{-1} GeV^{-1}].
     """
     if sigma_v is None:
         sigma_v = cfg.SIGMA_V_THERMAL
@@ -238,35 +261,24 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     # the absorption along the full propagation path from z to 0.
     atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
 
-    # Clumping factor (expensive — should be cached in practice)
-    # For now, use a simple power-law fit
     Delta2 = clumping_factor(z, boost_scenario=boost_scenario)
 
     # DM density converted to GeV/cm^3
-    # rho_DM [M_sun/h / (Mpc/h)^3] → [GeV/cm^3]:
-    # 1 [M_sun/h / (Mpc/h)^3] = M_sun_GeV * h^2 / Mpc_cm^3
     M_sun_GeV = 1.116e57   # 1 M_sun in GeV
     Mpc_cm = cfg.MPC_TO_M * 100.0   # 1 Mpc in cm
     rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT  # [M_sun/h / (Mpc/h)^3]
     rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
 
-    # Per-chi window function (Pinetti Eq. 4.1):
-    # W_DM(chi) = (sigma_v / (8 pi)) * (rho_DM / m_chi)^2 * (1+z)^3 / H(z)
-    #             * Delta^2 * dN/dE * exp(-tau)
-    # The 1/H(z) is physical (converts annihilation rate to per-comoving-distance).
-    # Used with Limber weight (dchi/dz)/chi^2 = (c*h/H)/chi^2.
-    prefactor = sigma_v / (8.0 * np.pi)
+    # Per-chi window function (Pinetti Eq. 4.1): physical emissivity
+    prefactor = sigma_v / (8.0 * np.pi)  # sigma_v/2 / (4 pi) per Eq. 4.1
     particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
     cosmological = (1.0 + z)**3
 
-    # 1/H(z) in CGS seconds (the physics factor from Eq. 4.1)
-    H_SI = cosmo.H(z) * 1e3 / cfg.MPC_TO_M  # km/s/Mpc → 1/s
-    inv_H = 1.0 / H_SI  # seconds
+    W_cgs = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten
+    # W_cgs units: [cm^3/s/sr] * [1/cm^6] * [1/GeV] = [cm^{-3} s^{-1} sr^{-1} GeV^{-1}]
+    # — physical photon emissivity, matching Pinetti 2020 Eq. 4.1.
 
-    W_cgs = prefactor * particle * cosmological * inv_H * Delta2 * float(dNdE) * atten
-    # W_cgs is in [cm^{-3} GeV^{-1}] (per-chi, CGS — the s^{-1} canceled with inv_H [s])
-
-    # Convert to (Mpc/h)-based units:
+    # Convert cm^-3 to (Mpc/h)^-3
     Mpc_h_cm = Mpc_cm / cfg.h  # cm per (Mpc/h)
     return W_cgs * Mpc_h_cm**3
 

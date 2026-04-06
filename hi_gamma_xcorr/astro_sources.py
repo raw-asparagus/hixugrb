@@ -219,7 +219,23 @@ def _L151_from_Lgamma(L_gamma):
 def _glf_mAGN(L, z):
     """mAGN GLF from Di Mauro et al. (2014) via Willott RLF (Eq. C.19).
 
-    phi_gamma = k * eta / (1+z)^{2-Gamma} * rho_r / (ln10 * L_151) * |dL_151/dL_gamma|
+    Di Mauro's Eq. C.19 is
+        phi_gamma = k * eta / (1+z)^{2-Gamma} * rho_r / (ln10 * L_151) * |dL_151/dL_gamma|
+
+    The Di Mauro K-correction (1+z)^{-(2-Gamma)} is derived for a formulation
+    where the source photon flux is dF/dE(E_obs) = L/(4 pi d_L^2 I_alpha) * E_obs^{-alpha}
+    (spectral factor at OBSERVED energy). Our W_gamma_astro uses the Pinetti Eq. 4.3
+    convention where the spectral factor is E_rest^{-alpha} = ((1+z)E_obs)^{-alpha}
+    (this is the uniform convention used by the BL Lac/FSRQ LDDE GLFs and by
+    Ackermann's L_gamma-L_IR relation for SFGs, where L is rest-frame).
+
+    To make mAGN consistent with the rest-frame-L convention, we multiply the
+    Di Mauro phi_gamma by (1+z)^alpha. Net K-correction applied in the GLF then
+    becomes (1+z)^{Gamma - (2-Gamma)} = (1+z)^{2*(Gamma-1)}, and the uniform
+    E_rest^{-alpha} spectral factor downstream reproduces Di Mauro's original
+    net redshift dependence. Derivation: we require
+        phi^{new}(L) * L * E_rest^{-alpha} = phi^{DM}(L) * L * E_obs^{-alpha}
+    which gives phi^{new} = phi^{DM} * (1+z)^{alpha}.
 
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
@@ -235,11 +251,13 @@ def _glf_mAGN(L, z):
     eta = _willott_volume_correction(z)
 
     Gamma = cfg.ASTRO_SOURCES['mAGN']['alpha']  # 2.37
-    k_corr = (1.0 + z)**(2.0 - Gamma)  # K-correction
+    k_corr_dimauro = (1.0 + z)**(2.0 - Gamma)  # Di Mauro original
+    convention_factor = (1.0 + z)**Gamma  # converts Di Mauro (E_obs) -> E_rest
 
-    # Eq. C.19: phi_gamma = k * eta / k_corr * (rho_r / (ln10 * L_151)) * |dL151/dLgamma|
+    # Eq. C.19 + convention adjustment: multiply Di Mauro's phi by (1+z)^Gamma
     dPhi_dL151 = rho_r / (np.log(10.0) * L_151)
-    phi_gamma = cfg.DIMAURO_K * eta / k_corr * dPhi_dL151 * abs(dL151_dLgamma)
+    phi_gamma = (cfg.DIMAURO_K * eta / k_corr_dimauro * convention_factor
+                 * dPhi_dL151 * abs(dL151_dLgamma))
 
     return max(phi_gamma, 0.0)
 
@@ -414,12 +432,15 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     ratio = (1.0 + z) / (1.0 + z_c)
 
     if evolution_form == 'ldde_inv':
-        # Pinetti (2022) Eq. C.4: smooth inverse-sum with negative exponents.
-        # e = [r^{-p1} + r^{-p2}]^{-1}
-        # Note: Ajello+ (2012) Eq. 15 and Ajello+ (2014) Eq. 18 use positive
-        # exponents [r^{p1} + r^{p2}]^{-1}. The pipeline follows Pinetti's
-        # sign convention. See pinetti2022_evidence_matrix.md D12.
-        e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
+        # Ajello+ (2012) Eq. 15 / Ajello+ (2014) Eq. 18: smooth inverse-sum
+        # e = [r^{p1} + r^{p2}]^{-1}, r = (1+z)/(1+z_c)
+        # with (p1, p2) fitted in this positive-exponent convention.
+        #
+        # Pinetti (2022) Eq. C.4 writes [r^{-p1} + r^{-p2}]^{-1} but uses the
+        # same (p1, p2) values from Ajello. Since p2 < 0 for blazars, the sign
+        # flip changes the low-z suppression by orders of magnitude. We use the
+        # original Ajello convention to be consistent with the fitted parameters.
+        e_z = 1.0 / (ratio**(p1) + ratio**(p2))
     elif evolution_form == 'piecewise':
         # Piecewise LDDE (legacy, retained for comparison only)
         if z <= z_c:
@@ -562,11 +583,17 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     # val = integral phi * dn/dE dL has units:
     # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s] = [Mpc^{-3} ph s^{-1} GeV^{-1}]
     #
-    # Pinetti Eq. 4.3 prescribes: W = [d_L^2/(1+z)^2] * integral Phi * dF/dE dL
-    # Since dF/dE contains L/(4 pi d_L^2), the d_L^2 cancels, leaving:
-    #   W = (1/(4pi)) * (1/(1+z)^2) * integral Phi * L * spectral dL
-    # The (1+z)^{-2} factor suppresses high-z contributions (cosmological dimming).
-    return val / (4.0 * np.pi * (1.0 + z)**2)
+    # Per-chi photon intensity window from a population of sources at comoving
+    # distance chi: the photon-number flux from each source is
+    #   dF_ph/dE_obs = (1+z)^2/(4 pi d_L^2) * dN/dE_em|_{E_em=(1+z)E_obs}
+    # (Hogg 1999 "Distance measures" Sec. 4). Integrating over sources in the
+    # shell chi^2 dchi per steradian, and using d_L^2 = chi^2 (1+z)^2, the
+    # (1+z)^2 from the K-correction cancels the (1+z)^2 in d_L^2, leaving
+    #   W^(chi) = (1/(4pi)) * integral phi(L) * dN/dE_em((1+z)E_obs) dL
+    # with NO (1+z)^{-2} prefactor. The K-correction enters naturally through
+    # E_rest = (1+z)*E_obs in the spectral factor. See Ando & Komatsu 2006
+    # (PRD 73:023521) Eqs. 1-3 and Ando & Pavlidou 2009 (MNRAS 400:2122) Eq. 6.
+    return val / (4.0 * np.pi)
 
 
 # ---------------------------------------------------------------------------
