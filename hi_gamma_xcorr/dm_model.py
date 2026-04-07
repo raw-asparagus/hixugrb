@@ -52,11 +52,12 @@ def rho2_integral_analytic(M, z, c_func=None):
 # ---------------------------------------------------------------------------
 
 def v_tilde(k, M, z, c_func=None):
-    """Fourier transform of rho^2(r|M) / rho_bar^2.
+    """Fourier transform of rho^2(r|M) / rho_bar^2  [(Mpc/h)^3].
 
     v_tilde(k|M) = (4 pi / rho_bar^2) integral_0^{R_vir} r^2 rho_NFW^2(r) sin(kr)/(kr) dr
 
-    Normalized so v_tilde(k→0) = rho2_integral / rho_bar^2.
+    Returns [(Mpc/h)^3]: the volume-weighted profile transform, analogous to
+    u_nfw but for rho^2.  At k→0, v_tilde = rho2_integral / rho_bar^2.
     """
     if c_func is None:
         c_func = hm.concentration

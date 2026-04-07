@@ -31,6 +31,7 @@ _HMF_KWARGS = dict(
     Mmax=np.log10(cfg.M_MAX) if cfg.M_MAX < 1e20 else 18.0,
     dlog10m=0.02,
     hmf_model='SMT',
+    hmf_params={'a': cfg.SMT_Q, 'p': cfg.SMT_P, 'A': cfg.SMT_A},
     cosmo_params={
         'H0': cfg.H0,
         'Om0': cfg.OMEGA_M,

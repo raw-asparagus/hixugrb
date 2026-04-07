@@ -24,9 +24,15 @@ from . import ebl as ebl_mod
 # ---------------------------------------------------------------------------
 
 def L_sens(z, E_GeV=None):
-    """Luminosity threshold [erg/s] for Fermi-LAT detection at redshift z.
+    """Approximate luminosity threshold for Fermi-LAT detection at redshift z.
 
     L_sens = 4 pi d_L^2 * F_sens(E), where d_L is in cm.
+
+    Note: F_SENS is an integral *photon* flux [cm^{-2} s^{-1}], so the result
+    is strictly a photon-number luminosity [photons/s], not an energy luminosity
+    [erg/s].  It is compared against energy-luminosity GLF bounds (L_min, L_max)
+    in W_gamma_astro as an order-of-magnitude proxy for the resolved/unresolved
+    boundary, following the Pinetti+ (2020) forecast convention.
 
     Parameters
     ----------

@@ -12,17 +12,16 @@ from . import halo_model as hm
 from . import hi_model as hi
 from . import dm_model as dm
 from . import astro_sources as astro
-from . import noise_model as nm
 
 # ---------------------------------------------------------------------------
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
 # ---------------------------------------------------------------------------
 
 def P_HI_DM_2h(k, z, n_M=120):
-    """Two-halo HI × DM cross-power spectrum.
+    """Two-halo HI × DM cross-power spectrum [(Mpc/h)^3].
 
-    P^{2h} = [integral dn * b * v_tilde/Delta^2 dM]
-             × [integral dn * b * u_HI * M_HI/rho_HI dM] × P_lin
+    P^{2h} = [sum dn * b * v_tilde/Delta^2 * M * dlnM]
+             × [sum dn * b * u_HI * M_HI/rho_HI * M * dlnM] × P_lin
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
     rho_HI = hi.rho_HI_mean(z)

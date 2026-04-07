@@ -175,7 +175,7 @@ def P_lin(k, z):
     _ensure_init()
     k = np.asarray(k, dtype=float)
     log_k = np.log10(np.clip(k, cfg.K_MIN, cfg.K_MAX))
-    z_val = float(z)
+    z_val = np.clip(float(z), _z_grid[0], _z_grid[-1])
     log_P = _Plin_interp(z_val, log_k, grid=False)
     return 10.0**log_P
 
@@ -230,7 +230,9 @@ def _build_sigma_interp(z):
     sig_arr = np.array([sigma_R(R, z) for R in R_arr])
     log_sig = np.log(np.maximum(sig_arr, 1e-30))
     log_M = np.log(_sigma_fine_M)
-    interp = interp1d(log_M, log_sig, kind='cubic', fill_value='extrapolate')
+    interp = interp1d(log_M, log_sig, kind='cubic',
+                       bounds_error=False,
+                       fill_value=(log_sig[0], log_sig[-1]))
     _sigma_interp[z_key] = interp
     return interp
 
