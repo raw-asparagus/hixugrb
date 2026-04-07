@@ -193,8 +193,11 @@ def concentration_vir(M, z):
     Computes c_200 from Correa et al. (2015) then converts to c_vir
     using the Bryan & Norman Delta_vir(z).
     """
-    c200 = concentration_correa(M, z)
-    return c200_to_cvir(c200, z)
+    M = np.asarray(M, dtype=float)
+    scalar = M.ndim == 0
+    c200 = concentration_correa(np.atleast_1d(M), z)
+    result = np.asarray(c200_to_cvir(c200, z), dtype=float)
+    return float(result[0]) if scalar else result
 
 
 # Default concentration for DM halos (now returns c_vir)

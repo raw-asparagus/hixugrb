@@ -229,27 +229,27 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
 # Normalized window functions for plotting
 # ---------------------------------------------------------------------------
 
+_Z_NORM_MAX = 4.0    # normalization integral upper limit
+_N_Z_NORM = 400      # number of points for normalization grid
+
+
 def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
                        channel='bb', source_classes=None,
                        z_min_hi=None, z_max_hi=None,
-                       unresolved_only=True, include_DM=True):
+                       unresolved_only=True, include_DM=True,
+                       z_norm_max=None):
     r"""Compute uniformly normalized window functions for all tracers.
 
     Returns $\hat{W}_i(z) = \frac{c\,h}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
 
-    for each tracer i. This strips the per-chi Jacobian and absolute amplitude,
-    leaving a dimensionless kernel that integrates to unity over redshift:
-    $\int \hat{W}_i(z)\,dz = 1$.
-
-    The mean intensity $\langle I_i \rangle$ is tracer-specific:
-    - HI: $\langle I_\mathrm{HI} \rangle = \int dz\,(c\,h/H)\,W_\mathrm{HI}^{(\chi)}$
-    - Astro: $\langle I_S \rangle = \int dz\,(c\,h/H)\,W_\gamma^{S,(\chi)}$
-    - DM: $\langle I_\mathrm{DM} \rangle = \int dz\,(c\,h/H)\,W_\gamma^{\mathrm{DM},(\chi)}$
+    for each tracer i. Windows are evaluated on ``z_arr`` but normalized by
+    integrating over ``[0, z_norm_max]`` (default 4.0) so that the shape is
+    independent of the plotting range.
 
     Parameters
     ----------
     z_arr : array
-        Redshift grid for evaluation.
+        Redshift grid for evaluation (plot range).
     E_GeV : float
         Gamma-ray energy [GeV] for gamma-ray windows.
     m_chi_GeV : float
@@ -266,6 +266,8 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
         If True, astro windows use unresolved sources only.
     include_DM : bool
         Whether to include DM window.
+    z_norm_max : float, optional
+        Upper limit for the normalization integral. Default ``_Z_NORM_MAX`` (4.0).
 
     Returns
     -------
@@ -275,54 +277,66 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
     """
     if source_classes is None:
         source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
+    if z_norm_max is None:
+        z_norm_max = _Z_NORM_MAX
 
     z_arr = np.asarray(z_arr, dtype=float)
-    dz = z_arr[1] - z_arr[0] if len(z_arr) > 1 else 1.0
 
     # c*h/H(z) converts per-chi window to per-z: W^(z) = W^(chi) * dchi/dz
     # where dchi/dz = c*h/H in [Mpc/h per unit z].
     c_h_over_H = np.array([cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z) for z in z_arr])
 
+    # --- Build extended normalization grid [0, z_norm_max] ---
+    z_ext = np.linspace(0.001, z_norm_max, _N_Z_NORM)
+    dz_ext = z_ext[1] - z_ext[0]
+    c_h_over_H_ext = np.array([cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z) for z in z_ext])
+
     result = {'z': z_arr}
 
     # --- HI ---
-    # Pinetti 2020 Eq. 3.15: W_HI(z) = T_b(z) * phi(z) (no b_HI in the window;
-    # bias enters only through the power spectrum P_HI in the Limber integrand)
     survey_independent_hi = (z_min_hi is None and z_max_hi is None)
     if survey_independent_hi:
-        # Intrinsic T_b (no band selection, no H/(c*h) Jacobian)
-        W_hi_perz = np.array([hi.T_bar_b(z) for z in z_arr])
+        W_hi_perz = np.array([hi.T_bar_b(z) for z in z_arr]) * c_h_over_H
+        W_hi_ext = np.array([hi.T_bar_b(z) for z in z_ext]) * c_h_over_H_ext
     else:
-        # Survey-dependent: W_HI^(chi) includes H/(c*h), so * c*h/H cancels it
         W_hi_perz = np.array([
             hi.W_HI(z, z_min_hi, z_max_hi) for z in z_arr
         ]) * c_h_over_H
+        W_hi_ext = np.array([
+            hi.W_HI(z, z_min_hi, z_max_hi) for z in z_ext
+        ]) * c_h_over_H_ext
 
-    I_hi = np.sum(W_hi_perz) * dz
+    I_hi = np.sum(W_hi_ext) * dz_ext
     result['HI'] = W_hi_perz / I_hi if I_hi > 0 else np.zeros_like(z_arr)
 
     # --- Astrophysical sources ---
     for src in source_classes:
-        # W_astro^(chi) does NOT absorb dchi/dz, so per-z = W^(chi) * c*h/H
         W_astro_perz = np.array([
             astro.W_gamma_astro(E_GeV, z, src, unresolved_only=unresolved_only)
             for z in z_arr
         ]) * c_h_over_H
 
-        I_src = np.sum(W_astro_perz) * dz
+        W_astro_ext = np.array([
+            astro.W_gamma_astro(E_GeV, z, src, unresolved_only=unresolved_only)
+            for z in z_ext
+        ]) * c_h_over_H_ext
+
+        I_src = np.sum(W_astro_ext) * dz_ext
         result[src] = W_astro_perz / I_src if I_src > 0 else np.zeros_like(z_arr)
 
     # --- DM ---
     if include_DM:
-        # W_DM^(chi) follows the same per-chi convention as the other tracers,
-        # so converting to a per-z kernel requires dchi/dz = c*h/H. The DM
-        # window itself does not bake in an extra 1/H factor.
         W_dm_perz = np.array([
             dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
             for z in z_arr
         ]) * c_h_over_H
 
-        I_dm = np.sum(W_dm_perz) * dz
+        W_dm_ext = np.array([
+            dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
+            for z in z_ext
+        ]) * c_h_over_H_ext
+
+        I_dm = np.sum(W_dm_ext) * dz_ext
         result['DM'] = W_dm_perz / I_dm if I_dm > 0 else np.zeros_like(z_arr)
 
     return result

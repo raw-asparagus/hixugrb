@@ -10,9 +10,8 @@ GLF sources:
 - SFG: Gruppioni et al. (2013) + Ackermann et al. (2012) — IR LF → gamma
 """
 
-import functools
-
 import numpy as np
+
 from scipy.integrate import quad
 
 from . import config as cfg
@@ -23,27 +22,34 @@ from . import ebl as ebl_mod
 # Luminosity threshold from Fermi sensitivity
 # ---------------------------------------------------------------------------
 
-def L_sens(z, E_GeV=None):
-    """Approximate luminosity threshold for Fermi-LAT detection at redshift z.
+def L_sens(z, E_GeV=None, alpha=None):
+    """Energy-luminosity threshold for Fermi-LAT detection at redshift z.
 
-    L_sens = 4 pi d_L^2 * F_sens(E), where d_L is in cm.
+    Converts the integral photon-flux sensitivity F_SENS [cm^{-2} s^{-1}]
+    into a rest-frame 0.1–100 GeV energy luminosity [erg/s] so that it can
+    be compared directly with the GLF luminosity bounds.
 
-    Note: F_SENS is an integral *photon* flux [cm^{-2} s^{-1}], so the result
-    is strictly a photon-number luminosity [photons/s], not an energy luminosity
-    [erg/s].  It is compared against energy-luminosity GLF bounds (L_min, L_max)
-    in W_gamma_astro as an order-of-magnitude proxy for the resolved/unresolved
-    boundary, following the Pinetti+ (2020) forecast convention.
+    For a power-law source dN/dE ~ E^{-alpha}:
+        F_phot = L_rest * (1+z)^{2-alpha} * J_alpha
+                 / (4 pi d_L^2 * GeV_to_erg * I_alpha)
+
+    Inverting for L_rest:
+        L_sens = F_SENS * 4 pi d_L^2 * GeV_to_erg * I_alpha
+                 / ((1+z)^{2-alpha} * J_alpha)
+
+    where I_alpha = int E^{1-alpha} dE  and  J_alpha = int E^{-alpha} dE
+    over the 0.1–100 GeV band.
 
     Parameters
     ----------
     z : float
         Redshift.
     E_GeV : float, optional
-        Photon energy [GeV] for energy-dependent sensitivity.
-        If None, uses the constant F_SENS = 10^{-10} cm^{-2} s^{-1} (forecast mode).
-        If provided, scales F_SENS by the PSF area ratio (data-analysis mode):
-        F_sens(E) = F_SENS * [sigma_0(E) / sigma_0(E_ref)]^2
-        where E_ref = 5 GeV (near Fermi's optimal sensitivity).
+        Photon energy [GeV] for energy-dependent sensitivity (data mode).
+        If None, uses the constant F_SENS (forecast mode).
+    alpha : float, optional
+        Source spectral index for the K-correction.  Required for the
+        photon-to-energy luminosity conversion.
     """
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
@@ -53,7 +59,25 @@ def L_sens(z, E_GeV=None):
     else:
         F_sens_E = cfg.F_SENS
 
-    return 4.0 * np.pi * dL_cm**2 * F_sens_E
+    L_phot = 4.0 * np.pi * dL_cm**2 * F_sens_E  # [photons/s]
+
+    if alpha is None:
+        return L_phot  # legacy fallback (photon luminosity)
+
+    # Convert photon luminosity to energy luminosity [erg/s].
+    E_min, E_max = 0.1, 100.0
+    if abs(alpha - 2.0) > 0.01:
+        I_alpha = (E_max**(2.0 - alpha) - E_min**(2.0 - alpha)) / (2.0 - alpha)
+    else:
+        I_alpha = np.log(E_max / E_min)
+    if abs(alpha - 1.0) > 0.01:
+        J_alpha = (E_max**(1.0 - alpha) - E_min**(1.0 - alpha)) / (1.0 - alpha)
+    else:
+        J_alpha = np.log(E_max / E_min)
+
+    K = (1.0 + z)**(2.0 - alpha)
+
+    return F_sens_E * 4.0 * np.pi * dL_cm**2 * cfg.GEV_TO_ERG * I_alpha / (K * J_alpha)
 
 
 def F_sens_energy(E_GeV):
@@ -149,7 +173,6 @@ def _willott_rlf(L_151, z):
     return max(rho_l + rho_h, 0.0)
 
 
-@functools.lru_cache(maxsize=512)
 def _willott_volume_correction(z):
     """Comoving-volume ratio eta(z) = [d^2V_W/dz/dOmega] / [d^2V/dz/dOmega].
 
@@ -234,23 +257,17 @@ def _L151_from_Lgamma(L_gamma):
 def _glf_mAGN(L, z):
     """mAGN GLF from Di Mauro et al. (2014) via Willott RLF (Eq. C.19).
 
-    Di Mauro's Eq. C.19 is
-        phi_gamma = k * eta / (1+z)^{2-Gamma} * rho_r / (ln10 * L_151) * |dL_151/dL_gamma|
+    Converts the Willott (2001) 151 MHz radio luminosity function into a
+    gamma-ray luminosity function via the radio→gamma chain:
+        L_gamma → L_core^{5GHz} → L_tot^{1.4GHz} → L_tot^{151MHz} → Willott RLF
 
-    The Di Mauro K-correction (1+z)^{-(2-Gamma)} is derived for a formulation
-    where the source photon flux is dF/dE(E_obs) = L/(4 pi d_L^2 I_alpha) * E_obs^{-alpha}
-    (spectral factor at OBSERVED energy). Our W_gamma_astro uses the Pinetti Eq. 4.3
-    convention where the spectral factor is E_rest^{-alpha} = ((1+z)E_obs)^{-alpha}
-    (this is the uniform convention used by the BL Lac/FSRQ LDDE GLFs and by
-    Ackermann's L_gamma-L_IR relation for SFGs, where L is rest-frame).
-
-    To make mAGN consistent with the rest-frame-L convention, we multiply the
-    Di Mauro phi_gamma by (1+z)^alpha. Net K-correction applied in the GLF then
-    becomes (1+z)^{Gamma - (2-Gamma)} = (1+z)^{2*(Gamma-1)}, and the uniform
-    E_rest^{-alpha} spectral factor downstream reproduces Di Mauro's original
-    net redshift dependence. Derivation: we require
-        phi^{new}(L) * L * E_rest^{-alpha} = phi^{DM}(L) * L * E_obs^{-alpha}
-    which gives phi^{new} = phi^{DM} * (1+z)^{alpha}.
+    The GLF is a pure number density per unit rest-frame gamma-ray luminosity.
+    No spectral K-correction is applied: the (1+z)^{-(2-Gamma)} factor in
+    Pinetti (2022) Eq. C.19 converts between observed flux and rest-frame
+    luminosity for source-counting purposes, but does not belong in the
+    comoving emissivity integral.  W_gamma_astro evaluates the rest-frame
+    photon spectrum at E_rest = (1+z)*E_obs, which is the correct physical
+    formulation (see Ando & Komatsu 2006, PRD 73:023521, Eqs. 1-3).
 
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
@@ -265,13 +282,8 @@ def _glf_mAGN(L, z):
     rho_r = _willott_rlf(L_151, z)  # dPhi/d(log10 L) in Willott cosmology
     eta = _willott_volume_correction(z)
 
-    Gamma = cfg.ASTRO_SOURCES['mAGN']['alpha']  # 2.37
-    k_corr_dimauro = (1.0 + z)**(2.0 - Gamma)  # Di Mauro original
-    convention_factor = (1.0 + z)**Gamma  # converts Di Mauro (E_obs) -> E_rest
-
-    # Eq. C.19 + convention adjustment: multiply Di Mauro's phi by (1+z)^Gamma
     dPhi_dL151 = rho_r / (np.log(10.0) * L_151)
-    phi_gamma = (cfg.DIMAURO_K * eta / k_corr_dimauro * convention_factor
+    phi_gamma = (cfg.DIMAURO_K * eta
                  * dPhi_dL151 * abs(dL151_dLgamma))
 
     return max(phi_gamma, 0.0)
@@ -547,6 +559,12 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
         - 'forecast': constant F_sens = 10^{-10} cm^{-2} s^{-1} (Pinetti 2020)
         - 'data': energy-dependent F_sens(E) scaled by PSF area (Ammazzalorso 2018)
     """
+    return _W_gamma_astro_impl(float(E_GeV), float(z), source_class,
+                               unresolved_only, unresolved_mode)
+
+
+def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode):
+    """Core implementation of W_gamma_astro."""
     if z <= 0:
         return 0.0
 
@@ -557,9 +575,9 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
 
     if unresolved_only:
         if unresolved_mode == 'data':
-            L_thr = L_sens(z, E_GeV=E_GeV)
+            L_thr = L_sens(z, E_GeV=E_GeV, alpha=alpha)
         else:
-            L_thr = L_sens(z)
+            L_thr = L_sens(z, alpha=alpha)
         L_up = min(L_max, L_thr)
     else:
         L_up = L_max

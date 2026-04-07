@@ -11,7 +11,7 @@ from scipy.integrate import quad
 from . import config as cfg
 
 # ---------------------------------------------------------------------------
-# Module-level cache: initialized on first call to init()
+# Module-level state: initialized on first call to init()
 # ---------------------------------------------------------------------------
 _camb_results = None
 _Plin_interp = None   # 2D interpolator for P_lin(k, z)
@@ -107,6 +107,12 @@ def H(z):
     return cfg.H0 * E(z)
 
 
+def _chi_scalar(z):
+    """Comoving distance for a single redshift [Mpc/h]."""
+    val, _ = quad(lambda zp: cfg.C_LIGHT_KM_S / H(zp), 0.0, z)
+    return val * cfg.h
+
+
 def chi(z):
     """Comoving distance chi(z) [Mpc/h].
 
@@ -115,11 +121,7 @@ def chi(z):
     z = np.asarray(z, dtype=float)
     scalar = z.ndim == 0
     z = np.atleast_1d(z)
-    result = np.empty_like(z)
-    for i, zi in enumerate(z):
-        val, _ = quad(lambda zp: cfg.C_LIGHT_KM_S / H(zp), 0.0, zi)
-        # val is in Mpc; convert to Mpc/h
-        result[i] = val * cfg.h
+    result = np.array([_chi_scalar(float(zi)) for zi in z])
     return float(result[0]) if scalar else result
 
 
@@ -133,6 +135,13 @@ def d_L(z):
 # Growth factor
 # ---------------------------------------------------------------------------
 
+def _growth_unnorm(z):
+    """Unnormalized growth integral at a single z."""
+    ez = E(z)
+    val, _ = quad(lambda zp: (1.0 + zp) / E(zp)**3, z, np.inf, limit=200)
+    return ez * val
+
+
 def growth_factor(z):
     """Linear growth factor D(z), normalized so D(0) = 1.
 
@@ -143,14 +152,8 @@ def growth_factor(z):
     scalar = z.ndim == 0
     z = np.atleast_1d(z)
 
-    def _D_unnorm(zi):
-        ez = E(zi)
-        integrand = lambda zp: (1.0 + zp) / E(zp)**3
-        val, _ = quad(integrand, zi, np.inf, limit=200)
-        return ez * val
-
-    D0 = _D_unnorm(0.0)
-    result = np.array([_D_unnorm(float(zi)) / D0 for zi in z])
+    D0 = _growth_unnorm(0.0)
+    result = np.array([_growth_unnorm(float(zi)) / D0 for zi in z])
     return float(result[0]) if scalar else result
 
 
@@ -242,5 +245,3 @@ def sigma_M(M, z):
     _ensure_init()
     interp = _build_sigma_interp(z)
     return np.exp(interp(np.log(M)))
-
-

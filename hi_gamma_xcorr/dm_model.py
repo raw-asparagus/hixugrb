@@ -144,7 +144,23 @@ def boost_moline(M, z, M_min_sub=1e-6):
 # Clumping factor Delta^2(z) (Eq. 4.2)
 # ---------------------------------------------------------------------------
 
-_clumping_cache = {}  # keyed by (round(z,4), boost_scenario)
+def _clumping_compute(z, M_min, M_max, boost_scenario, n_M):
+    """Core clumping computation."""
+    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
+    dlnM = np.log(M_arr[1] / M_arr[0])
+
+    integrand_arr = np.empty(n_M)
+    for i, M in enumerate(M_arr):
+        dn = hm.dndM(M, z)
+        if dn <= 0:
+            integrand_arr[i] = 0.0
+            continue
+        rho2 = rho2_integral_analytic(M, z)
+        B = boost_moline(M, z) if boost_scenario != 'no_boost' else 0.0
+        integrand_arr[i] = dn * (1.0 + B) * rho2 * M
+
+    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2 / (1.0 + z)**3
+    return max(result, 0.0)
 
 
 def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
@@ -172,47 +188,42 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
         'none', 'conservative' (M_min_sub=1e7), 'intermediate' (M_min_sub=1e-6),
         'optimistic' (M_min_sub=1e-6 with enhanced substructure)
     """
-    # Check cache
-    cache_key = (round(float(z), 4), boost_scenario)
-    if cache_key in _clumping_cache:
-        return _clumping_cache[cache_key]
-
     if M_min is None:
         M_min = cfg.M_MIN_DM
     if M_max is None:
         M_max = cfg.M_MAX_DM
 
-    M_min_sub_map = {
-        'none': 0,
-        'conservative': 1e7,
-        'intermediate': 1e-6,
-        'optimistic': 1e-6,
-    }
-    M_min_sub = M_min_sub_map.get(boost_scenario, 1e-6)
-
-    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
-    integrand_arr = np.zeros(n_M)
-
-    for i, M in enumerate(M_arr):
-        dn = hm.dndM(M, z)
-        if dn <= 0:
-            continue
-        rho2_int = rho2_integral_analytic(M, z)
-        B = boost_moline(M, z, M_min_sub) if M_min_sub > 0 else 0.0
-        integrand_arr[i] = dn * (1.0 + B) * rho2_int * M  # M from d(lnM)
-
-    dlnM = np.log(M_arr[1] / M_arr[0])
-    # Halo integral gives <rho^2>_phys per comoving volume; normalize by
-    # physical rho_bar(z)^2 = rho_bar_com^2 (1+z)^6 while the (1+z)^3
-    # physical-to-comoving volume factor leaves a net /(1+z)^3 correction.
-    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2 / (1.0 + z)**3
-    _clumping_cache[cache_key] = result
-    return result
+    return _clumping_compute(float(z), float(M_min), float(M_max),
+                             boost_scenario, int(n_M))
 
 
 # ---------------------------------------------------------------------------
 # DM annihilation window function (Eq. 4.1)
 # ---------------------------------------------------------------------------
+
+def _W_gamma_DM_impl(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario):
+    """DM window computation."""
+    E_emit = E_GeV * (1.0 + z)
+    dNdE = pppc4dmid.dNdE(E_emit, m_chi_GeV, channel)
+    if dNdE <= 0:
+        return 0.0
+
+    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
+    Delta2 = clumping_factor(z, boost_scenario=boost_scenario)
+
+    M_sun_GeV = 1.116e57
+    Mpc_cm = cfg.MPC_TO_M * 100.0
+    rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT
+    rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
+
+    prefactor = sigma_v / (8.0 * np.pi)
+    particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
+    cosmological = (1.0 + z)**3
+
+    W_cgs = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten
+    Mpc_h_cm = Mpc_cm / cfg.h
+    return W_cgs * Mpc_h_cm**3
+
 
 def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
                boost_scenario='intermediate'):
@@ -248,28 +259,12 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     """
     if sigma_v is None:
         sigma_v = cfg.SIGMA_V_THERMAL
+    return _W_gamma_DM_impl(float(E_GeV), float(z), float(m_chi_GeV),
+                            float(sigma_v), channel, boost_scenario)
 
-    # Emitted energy
-    E_emit = E_GeV * (1.0 + z)
 
-    # Photon yield at emitted energy
-    dNdE = pppc4dmid.dNdE(E_emit, m_chi_GeV, channel)
-    if dNdE <= 0:
-        return 0.0
-
-    # EBL attenuation — evaluated at OBSERVED energy E_GeV, not emitted energy.
-    # ebltable.opt_depth(z, E) takes the observed energy at Earth and integrates
-    # the absorption along the full propagation path from z to 0.
-    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
-
-    Delta2 = clumping_factor(z, boost_scenario=boost_scenario)
-
-    # DM density converted to GeV/cm^3
-    M_sun_GeV = 1.116e57   # 1 M_sun in GeV
-    Mpc_cm = cfg.MPC_TO_M * 100.0   # 1 Mpc in cm
-    rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT  # [M_sun/h / (Mpc/h)^3]
-    rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
-
+def _W_gamma_DM_original(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario):
+    """Original implementation (kept for reference; actual computation in _W_gamma_DM_impl)."""
     # Per-chi window function (Pinetti Eq. 4.1): physical emissivity
     prefactor = sigma_v / (8.0 * np.pi)  # sigma_v/2 / (4 pi) per Eq. 4.1
     particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
@@ -282,5 +277,3 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
     # Convert cm^-3 to (Mpc/h)^-3
     Mpc_h_cm = Mpc_cm / cfg.h  # cm per (Mpc/h)
     return W_cgs * Mpc_h_cm**3
-
-

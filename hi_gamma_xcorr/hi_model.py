@@ -138,7 +138,27 @@ def u_HI(k, M, z):
 # Mean HI density, Omega_HI, brightness temperature, bias
 # ---------------------------------------------------------------------------
 
-_rho_HI_cache = {}  # keyed by round(z, 4)
+def _rho_HI_default(z):
+    """rho_HI_mean at default mass limits."""
+    def integrand(lnM):
+        M = np.exp(lnM)
+        return hm.dndM(M, z) * M_HI(M, z) * M
+    val, _ = quad(integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
+                  limit=200, epsrel=1e-5)
+    return val
+
+
+def _b_HI_default(z):
+    """b_HI at default mass limits."""
+    rho = _rho_HI_default(z)
+    if rho <= 0:
+        return 0.0
+    def integrand(lnM):
+        M = np.exp(lnM)
+        return hm.dndM(M, z) * M_HI(M, z) * hm.bias(M, z) * M
+    val, _ = quad(integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
+                  limit=200, epsrel=1e-5)
+    return val / rho
 
 
 def rho_HI_mean(z, M_min=None, M_max=None):
@@ -146,9 +166,8 @@ def rho_HI_mean(z, M_min=None, M_max=None):
 
     rho_HI = integral (dn/dM) * M_HI(M, z) dM
     """
-    cache_key = round(float(z), 4)
-    if M_min is None and M_max is None and cache_key in _rho_HI_cache:
-        return _rho_HI_cache[cache_key]
+    if M_min is None and M_max is None:
+        return _rho_HI_default(float(z))
 
     if M_min is None:
         M_min = cfg.M_MIN_HI
@@ -157,12 +176,9 @@ def rho_HI_mean(z, M_min=None, M_max=None):
 
     def integrand(lnM):
         M = np.exp(lnM)
-        return hm.dndM(M, z) * M_HI(M, z) * M  # extra M from d(lnM) = dM/M
+        return hm.dndM(M, z) * M_HI(M, z) * M
 
     val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-5)
-
-    if M_min == cfg.M_MIN_HI and M_max == cfg.M_MAX_HI:
-        _rho_HI_cache[cache_key] = val
     return val
 
 
@@ -196,6 +212,9 @@ def b_HI(z, M_min=None, M_max=None):
 
     b_HI = (1/rho_HI) * integral (dn/dM) * M_HI * b(M) dM
     """
+    if M_min is None and M_max is None:
+        return _b_HI_default(float(z))
+
     if M_min is None:
         M_min = cfg.M_MIN_HI
     if M_max is None:

@@ -215,4 +215,23 @@ DEVIATIONS = {
         'affects': ['SFG GLF at z > 1.1'],
         'severity': 'Medium (thesis typo; both implementations use correct value)',
     },
+    'mAGN_kcorr': {
+        'pipeline': 'no K-correction in GLF (pure number density)',
+        'pinetti': '(1+z)^{-(2-Gamma)} K-correction in Eq. C.19',
+        'description': 'mAGN GLF K-correction factor',
+        'affects': ['mAGN W_gamma, mean intensity'],
+        'severity': ('Major (~9x at z=1). The thesis Eq. C.19 K-correction converts '
+                     'between observed flux and rest-frame luminosity for source '
+                     'counting, but does not belong in the comoving emissivity. '
+                     'Removing it brings mAGN in line with Di Mauro+2014 Fig. 6.'),
+    },
+    'L_sens_units': {
+        'pipeline': 'energy luminosity [erg/s] via K-corrected F_SENS',
+        'pinetti': 'photon luminosity [photons/s] = 4 pi d_L^2 F_SENS',
+        'description': 'Unresolved luminosity threshold units',
+        'affects': ['BL Lac (~2x), FSRQ (resolved/unresolved split)'],
+        'severity': ('Moderate. Thesis compares photon luminosity with energy-'
+                     'luminosity GLF bounds; pipeline now converts F_SENS to '
+                     'energy luminosity using the source spectral index.'),
+    },
 }
