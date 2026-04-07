@@ -44,7 +44,7 @@ def c_HI(M, z):
     converted to M_sun via M_sun = M * h before applying the exponent.
     """
     M = np.asarray(M, dtype=float)
-    M_solar = M * cfg.h  # M_sun/h → M_sun
+    M_solar = M / cfg.h  # M_sun/h → M_sun: M_phys = M_code / h
     return cfg.HI_C0 * (M_solar / 1e11)**(-0.109) * 4.0 / (1.0 + z)**cfg.HI_GAMMA_CONC
 
 

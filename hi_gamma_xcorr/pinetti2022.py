@@ -63,7 +63,7 @@ def concentration_correa_thesis(M, z):
     """
     M = np.asarray(M, dtype=float)
     z = float(z)
-    log_M = np.log10(np.clip(M * cfg.h, 1e-2, 1e16))  # M_sun/h -> M_sun
+    log_M = np.log10(np.clip(M / cfg.h, 1e-2, 1e16))  # M_sun/h -> M_sun: M_phys = M_code / h
 
     if z <= 4:
         zp1 = 1.0 + z

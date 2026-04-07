@@ -31,10 +31,10 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 2.1 | $R_\text{vir} = \left(\frac{3M}{4\pi\Delta_\text{vir}(z)\rho_c(z)}\right)^{1/3}$ | [Pinetti+ (2020)](literature/pinetti2020.md) halo-model setup; implemented with Bryan & Norman (1998) $\Delta_\text{vir}(z)$ in `halo_model.py` | `R_vir(M, z)` |
 | 2.2 | $v_c = \sqrt{GM/R_\text{vir}}$ | Dynamical | `v_circ(M, z)` |
 | 2.3 | $\nu = \delta_c^2/\sigma^2(M,z)$, $\delta_c=1.686$ | Spherical collapse | `nu(M, z)` |
-| 2.4 | $\nu f(\nu) = A\left[1+(q\nu)^{-p}\right]\sqrt{\frac{q\nu}{2\pi}}\exp\left(-\frac{q\nu}{2}\right)$ | [Sheth, Mo & Tormen (2001)](literature/sheth_mo_tormen2001.md) | hmf `SMT` model |
+| 2.4 | $\nu f(\nu) = A\left[1+(q\nu)^{-p}\right]\sqrt{\frac{q\nu}{2\pi}}\exp\left(-\frac{q\nu}{2}\right)$ | [Sheth, Mo & Tormen (2001)](literature/sheth_mo_tormen2001.md); D6: thesis uses $q=0.75$ | hmf `SMT` model |
 |    | $q=0.707$, $p=0.3$, $A\approx0.3222$ | | |
-| 2.5 | $b(\nu) = 1 + \frac{q\nu-1}{\delta_c} + \frac{2p}{\delta_c(1+(q\nu)^p)}$ | [Sheth & Tormen (1999)](literature/sheth_tormen1999.md) | `bias(M, z)` |
-| 2.6 | $\log_{10}c = \alpha + \beta\log_{10}(M/M_\odot)[1+\gamma(\log_{10}M/M_\odot)^2]$ ($z \le 4$) | [Correa et al. (2015)](literature/correa2015.md) Appendix B1, Planck | `concentration_correa` |
+| 2.5 | $b(\nu) = 1 + \frac{q\nu-1}{\delta_c} + \frac{2p}{\delta_c(1+(q\nu)^p)}$ | [Sheth & Tormen (1999)](literature/sheth_tormen1999.md); D6 | `bias(M, z)` |
+| 2.6 | $\log_{10}c = \alpha + \beta\log_{10}(M/M_\odot)[1+\gamma(\log_{10}M/M_\odot)^2]$ ($z \le 4$) | [Correa et al. (2015)](literature/correa2015.md) Appendix B1, Planck; D2: thesis uses different cosmology fit | `concentration_correa` |
 |    | $\alpha{=}1.7543{-}0.2766(1{+}z){+}0.02039(1{+}z)^2$; $\beta{=}0.2753{+}0.00351(1{+}z){-}0.3038(1{+}z)^{0.0269}$; $\gamma{=}{-}0.01537{+}0.02102(1{+}z)^{-0.1475}$ | | |
 | 2.7 | $f(c) = \ln(1+c) - c/(1+c)$ | NFW normalization | `_f_nfw(c)` |
 | 2.8 | $\tilde u(k \mid M) = \frac{1}{f(c)}\left[\sin(kr_s)[\text{Si}((1{+}c)kr_s){-}\text{Si}(kr_s)] + \cos(kr_s)[\text{Ci}((1{+}c)kr_s){-}\text{Ci}(kr_s)] - \frac{\sin(ckr_s)}{(1{+}c)kr_s}\right]$ | Analytic NFW FT; $r_s=R_\text{vir}/c$ | `u_nfw(k, M, z)` |
@@ -88,8 +88,8 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18. Current `_ldde_glf` intentionally follows this positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers; [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the inverse-sum with opposite exponent signs | `_ldde_glf` |
-| 5.5 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi h^3}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.3 for the luminosity-function structure; current implementation uses the photon-number emissivity form returned by `W_gamma_astro()` and converts the physical GLF density to [(Mpc/h)$^{-3}$] | `W_gamma_astro` |
+| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18; D12: thesis Eq. C.4 writes opposite exponent signs. Current `_ldde_glf` intentionally follows the Ajello positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers | `_ldde_glf` |
+| 5.5 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi h^3}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL\;\times e^{-\tau(E_\gamma,z)}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.3; D14: EBL attenuation $e^{-\tau}$ at observed energy now applied (thesis omitted for astro sources). Converts physical GLF density to [(Mpc/h)$^{-3}$] | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
 ### LDDE GLF Parameters (FSRQ, BL Lac only)
@@ -118,7 +118,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
 | 5.12 | $\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) | `_gruppioni_ir_lf` |
-| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) Eq. C.23 | `_gruppioni_component` |
+| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) Eq. C.23; D4: SF-AGN $k_{R2}$ sign corrected from thesis typo; D13: $z=1.1$ break applied uniformly to all 3 components | `_gruppioni_component` |
 | 5.14 | $\log_{10} L_\gamma = 1.09\,\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | [Ackermann+ (2012)](literature/ackermann2012_sfg.md) | `_L_IR_from_Lgamma` |
 | 5.15 | $\phi_\gamma = \phi_\text{IR}\,\lvert d\log_{10}L_\text{IR}/d\log_{10}L_\gamma \rvert / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
 
@@ -137,7 +137,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 6.1 | $dN/dx$ tabulated; $x=E/m_\chi$ | [Cirelli et al. (2011)](literature/cirelli2011.md) PPPC4DMID tables | `dNdx(x, m_chi, ch)` |
+| 6.1 | $dN/dx$ tabulated; $x=E/m_\chi$ | [Cirelli et al. (2011)](literature/cirelli2011.md) PPPC4DMID tables; D7: thesis used private Pythia | `dNdx(x, m_chi, ch)` |
 | 6.2 | $dN/dE = (dN/dx)/m_\chi$ | Unit conversion | `dNdE(E, m_chi, ch)` |
 
 Channels: bb̄, τ⁺τ⁻, W⁺W⁻, ZZ, cc̄, tt̄, ee, μμ, gg, hh, qq̄, γγ. Mass range: 5 GeV–100 TeV.
@@ -186,7 +186,7 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 | 9.1 | $P_{\text{HI}\times\text{DM}}^\text{1h} = \int\frac{dn}{dM}\frac{\tilde v}{\Delta^2}\frac{\tilde u_\text{HI}\,M_\text{HI}}{\bar\rho_\text{HI}}dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.1 | (subdominant; not computed) |
 | 9.2 | $P_{\text{HI}\times\text{DM}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde v}{\Delta^2}dM][\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.2 | `P_HI_DM_2h` |
 | 9.3 | $P_{\text{HI}\times\text{astro}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,b_\text{astro}\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eqs. 5.3–5.4 | `P_HI_astro_2h` |
-| 9.4 | $C_\ell^{ij} = \int\frac{d\chi}{\chi^2}\,W_i(\chi)\,W_j(\chi)\,P_{ij}(k{=}(\ell{+}\tfrac12)/\chi,\,z)$ | Limber approximation; [Pinetti+](literature/pinetti2020.md) Eq. 2.1 | `C_ell_HI_gamma` |
+| 9.4 | $C_\ell^{ij} = \int\frac{d\chi}{\chi^2}\,W_i(\chi)\,W_j(\chi)\,P_{ij}(k{=}(\ell{+}\tfrac12)/\chi,\,z)$ | Limber approximation; [Pinetti+](literature/pinetti2020.md) Eq. 2.1; D8: thesis uses $k=\ell/\chi$ | `C_ell_HI_gamma` |
 
 ---
 

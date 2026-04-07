@@ -17,6 +17,7 @@ from scipy.integrate import quad
 
 from . import config as cfg
 from . import cosmology as cosmo
+from . import ebl as ebl_mod
 
 # ---------------------------------------------------------------------------
 # Luminosity threshold from Fermi sensitivity
@@ -606,10 +607,13 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
     # E_rest = (1+z)*E_obs in the spectral factor. See Ando & Komatsu 2006
     # (PRD 73:023521) Eqs. 1-3 and Ando & Pavlidou 2009 (MNRAS 400:2122) Eq. 6.
     #
+    # EBL attenuation at observed energy (same convention as W_gamma_DM)
+    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
+
     # Convert the GLF/emissivity density from physical [Mpc^-3] to the
     # pipeline's h-dependent [(Mpc/h)^-3] convention so the Limber integral and
     # gamma-noise model share the same area/volume basis.
-    return val / (4.0 * np.pi * cfg.h**3)
+    return val / (4.0 * np.pi * cfg.h**3) * atten
 
 
 # ---------------------------------------------------------------------------

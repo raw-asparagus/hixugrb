@@ -183,6 +183,7 @@ The Pinetti 2022 parallel implementation makes **no SFG-specific deviations** fr
 Other inherited differences from the halo model:
 - Halo bias uses $q=0.75$ (not 0.707) via `pinetti2022.bias_pinetti()` → affects SFG effective bias at the characteristic halo mass
 - Limber $k$-substitution uses $k=\ell/\chi$ (thesis) vs $k=(\ell+1/2)/\chi$ (pipeline)
+- Correa concentration (D2): Pipeline uses Planck Appendix B1 fit; thesis uses different cosmology fit. <5% on $c$. See [HI Evidence Matrix](hi_evidence_matrix.md).
 
 None of these affect the SFG window function $W_\gamma^{\rm SFG}(z)$ itself — only its projection into $C_\ell$ via the halo model.
 

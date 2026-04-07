@@ -111,8 +111,8 @@ def boost_moline(M, z, M_min_sub=1e-6):
     if M_min_sub <= 0:
         return np.zeros_like(M)
 
-    # Convert M_sun/h → M_sun for the Moliné polynomial
-    M_solar = M * cfg.h
+    # Convert M_sun/h → M_sun: M_phys = M_code / h
+    M_solar = M / cfg.h
 
     # For conservative scenario (M_min_sub = 1e7), zero out below threshold
     if M_min_sub >= 1e7:
@@ -189,7 +189,7 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
     }
     M_min_sub = M_min_sub_map.get(boost_scenario, 1e-6)
 
-    M_arr = np.logspace(np.log10(max(M_min, 1e-4)), np.log10(min(M_max, 1e17)), n_M)
+    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
     integrand_arr = np.zeros(n_M)
 
     for i, M in enumerate(M_arr):

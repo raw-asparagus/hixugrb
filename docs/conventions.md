@@ -45,7 +45,7 @@ When h-dependent and physical units meet, explicit conversion is required:
 ```
 d_L [physical Mpc] = d_L [Mpc/h] / h          (cosmology.d_L → astro_sources.L_sens)
 dχ/dz [Mpc/h]     = (c/H) × h                 (angular_power.py Limber integral)
-M [M_sun]          = M [M_sun/h] × h           (halo_model.concentration_correa)
+M [M_sun]          = M [M_sun/h] / h           (halo_model.concentration_correa)
 R [Mpc]            = R [Mpc/h] / h              (halo_model.v_circ)
 N^γ [(Mpc/h)⁻⁴]   = N^γ [cm⁻⁴] × (Mpc_h_cm)⁴ (statistics.variance_Cl)
 j_γ [(Mpc/h)⁻³]   = j_γ [Mpc⁻³] / h³          (astro_sources.W_gamma_astro)
@@ -208,18 +208,27 @@ The coefficient 188 is from standard 21-cm references. The Pinetti paper's Eq. 3
 
 The pipeline makes several deliberate choices that differ from the primary literature. The implementation-facing summary lives in [`equations.md`](equations.md):
 
-| # | Deviation | Nature |
-|---|-----------|--------|
-| D2 | Correa concentration coefficients | Different Planck cosmology fit |
-| ~~D3~~ | ~~No c₂₀₀→c_vir conversion~~ | **Resolved:** `c200_to_cvir()` now converts to virial definition |
-| D4 | SF-AGN k_R2 sign | Thesis typo corrected |
-| D5 | Ω_HI computed, not fixed | More physical approach |
-| D6 | SMT q = 0.707, not 0.75 | Both used in literature |
-| D7 | PPPC4DMID public tables | vs thesis private Pythia code |
-| D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy |
-| D9 | T̄_b coefficient 188h vs 44 μK form | Equivalent, rounding difference |
-| ~~D11~~ | ~~Δ_vir = 200 fixed~~ | **Resolved:** Bryan & Norman z-dependent Δ_vir(z) now implemented |
-| D12 | BL Lac / FSRQ LDDE exponent signs | Follow Ajello, not the thesis sign flip |
+### Active deviations
+
+| # | Deviation | Nature | See also |
+|---|-----------|--------|----------|
+| D2 | Correa concentration coefficients | Different Planck cosmology fit | `equations.md` 2.6; `hi_evidence_matrix.md`; `dm_annihilation_evidence_matrix.md` |
+| D4 | SF-AGN k_R2 sign | Thesis typo corrected | `sfg_evidence_matrix.md` |
+| D5 | Ω_HI computed, not fixed | More physical approach | `equations.md` 3.7; `hi_evidence_matrix.md` |
+| D6 | SMT q = 0.707, not 0.75 | Both used in literature | `equations.md` 2.4; all evidence matrices |
+| D7 | PPPC4DMID public tables | vs thesis private Pythia code | `dm_annihilation_evidence_matrix.md` |
+| D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy | `equations.md` 9.4; all evidence matrices |
+| D12 | BL Lac / FSRQ LDDE exponent signs | Follow Ajello, not the thesis sign flip | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
+| D13 | SFG Gruppioni $L_0$ break applied uniformly | Pipeline applies z=1.1 break to all 3 IR components; paper only specifies it for spirals | `sfg_evidence_matrix.md` |
+| D14 | EBL attenuation on astro windows | Now applied to all gamma-ray windows; thesis omitted EBL for astrophysical sources | `bl_lac_evidence_matrix.md`; `astro_sources.py::W_gamma_astro` |
+
+### Resolved deviations
+
+| # | Deviation | Resolution |
+|---|-----------|------------|
+| ~~D3~~ | ~~No c₂₀₀→c_vir conversion~~ | `c200_to_cvir()` now converts to virial definition |
+| ~~D9~~ | ~~T̄_b coefficient 188h vs 44 μK form~~ | Mathematically equivalent (convention, not a deviation) |
+| ~~D11~~ | ~~Δ_vir = 200 fixed~~ | Bryan & Norman z-dependent Δ_vir(z) now implemented |
 
 ---
 

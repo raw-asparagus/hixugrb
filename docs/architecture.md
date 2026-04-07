@@ -36,12 +36,12 @@
      │ ũ_HI   │ │ W_γ^DM(E,z,m_χ,σv)          │
      │ ρ_HI   │ └──────────┬───────────────────┘
      │ b_HI   │            │
-     │ P_HI   │  ┌─────────────────┐
-     │ W_HI   │  │astro_sources.py │
-     └───┬────┘  │ GLFs (4 sources)│
-         │       │ W_γ^astro(E,z)  │
-         │       │ mean_intensity  │
-         │       └────────┬────────┘
+     │ P_HI   │  ┌──────────────────────────────┐
+     │ W_HI   │  │astro_sources.py              │
+     └───┬────┘  │ GLFs (4 sources)             │
+         │       │ W_γ^astro(E,z) × e^{-τ(E,z)}│
+         │       │ mean_intensity               │
+         │       └────────┬─────────────────────┘
          │                │
          ▼                ▼
     ┌───────────────────────────┐     ┌───────────────┐
@@ -82,7 +82,7 @@ For the equation-level implementation reference, see [`equations.md`](equations.
 | `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M), NFW Fourier transform ũ(k, M) |
 | `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI |
 | `dm_model.py` | NFW ρ² profile and Fourier transform ṽ(k, M), substructure boost B(M), clumping factor Δ², DM window W_γ^DM, DM power spectra |
-| `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro; mean UGRB intensity |
+| `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro (with EBL attenuation via `ebl.py`); mean UGRB intensity |
 | `pppc4dmid.py` | PPPC4DMID photon yield table reader/interpolator; dN/dE for bb̄, τ⁺τ⁻, WW channels |
 | `ebl.py` | EBL opacity τ(E,z) via `ebltable` package (Dominguez+2011); analytic fallback |
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs |
@@ -136,8 +136,8 @@ astro_sources.py:
     │       [Gruppioni (2013)](literature/gruppioni2013.md) 3-component IR LF
     │       → [Ackermann (2012)](literature/ackermann2012_sfg.md) L_γ-L_IR
     │
-    └─ W_gamma_astro(E, z) ← 1/(4π h³) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL
-                               [pipeline photon-emissivity form in (Mpc/h)^-3]
+    └─ W_gamma_astro(E, z) ← 1/(4π h³) × ∫ Φ(L,z) × L/I_α × E_rest^{-α} dL × e^{-τ(E,z)}
+                               [pipeline photon-emissivity form in (Mpc/h)^-3, with EBL]
 ```
 
 **Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Two modes:

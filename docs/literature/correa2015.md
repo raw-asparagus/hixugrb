@@ -6,7 +6,7 @@
 
 ## Abstract
 
-Presents a semi-analytic, physically motivated model for dark matter halo concentration as a function of halo mass and redshift. Combines an analytic model for the halo mass accretion history (MAH), based on extended Press-Schechter theory, with an empirical relation between concentration and formation time from N-body simulations. Valid for log₁₀(M/M☉) ∈ [−2, 16] and z ∈ [0, 20].
+Presents a semi-analytic, physically motivated model for dark matter halo concentration as a function of halo mass and redshift. Combines an analytic model for the halo mass accretion history (MAH), based on extended Press-Schechter theory, with an empirical relation between concentration and formation time from N-body simulations. Valid for log₁₀(M/M☉) ∈ [−2, 16] and z ∈ [0, 20]. The repository uses only the low-z regime (z ≤ 4) since the pipeline operates at z ≤ 2.5.
 
 ## Key Advantages
 

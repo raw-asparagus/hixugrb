@@ -142,6 +142,7 @@ The `pinetti2022.py` parallel module does **not** implement a separate FSRQ GLF 
 
 - Halo bias uses $q=0.75$ (thesis) vs $q=0.707$ (pipeline default) via `pinetti2022.bias_pinetti()` → ~few-percent shift in FSRQ effective bias
 - Limber $k$-substitution uses $k=\ell/\chi$ (thesis) vs $k=(\ell+1/2)/\chi$ (pipeline)
+- Correa concentration (D2): Pipeline uses Planck Appendix B1 fit; thesis uses different cosmology fit. <5% on $c$. See [HI Evidence Matrix](hi_evidence_matrix.md).
 
 Neither affects the FSRQ window function $W_\gamma^{\rm FSRQ}(z)$ itself — only its projection into $C_\ell$ via the halo model.
 

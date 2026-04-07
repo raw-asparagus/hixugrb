@@ -2,7 +2,7 @@
 
 ## Context
 
-This document audits every equation, model choice, parameter value, and computational method in the BL Lac window function chain (`astro_sources.py`: `_ldde_glf`, `_glf_BL_Lac`, `_BL_LAC_PARAMS`, `W_gamma_astro`, `L_sens`, `F_sens_energy`, `bias_astro`) against the source literature: Ajello+ (2014, ApJ 780, 73), Pinetti+ (2020, arXiv:1911.04989), Pinetti (2022) thesis (arXiv:2212.00125), Ammazzalorso+ (2018, arXiv:1806.10859), Dominguez+ (2011).
+This document audits every equation, model choice, parameter value, and computational method in the BL Lac window function chain (`astro_sources.py`: `_ldde_glf`, `_glf_BL_Lac`, `_BL_LAC_PARAMS`, `W_gamma_astro`, `L_sens`, `F_sens_energy`, `bias_astro`) against the source literature: Ajello+ (2014, ApJ 780, 73), Pinetti+ (2020, arXiv:1911.04989), Pinetti (2022) thesis (arXiv:2212.00125), Ammazzalorso+ (2018, arXiv:1808.09225), Dominguez+ (2011).
 
 Two pipeline implementations are audited side-by-side:
 - **Pipeline**: the main `hi_gamma_xcorr/` implementation (with deliberate improvements over the thesis)
@@ -158,6 +158,7 @@ The `pinetti2022.py` module does **not** implement a separate BL Lac GLF or wind
 Shared infrastructure differences (inherited through the cross-power, not through $W_\gamma^{\rm BL\,Lac}$ itself):
 - **Halo bias**: `pinetti2022.bias_pinetti()` uses $q=0.75$ (thesis) vs pipeline's $q=0.707$. Affects the Sheth-Tormen bias evaluated at $M_{\rm halo} = 10^{13}\,M_\odot/h$ (~5% effect on the 2-halo amplitude).
 - **Limber $k$-substitution**: Pinetti 2022 uses $k=\ell/\chi$ (thesis) via `pinetti2022.limber_k()` vs pipeline's $k=(\ell+1/2)/\chi$ (LoVerde & Afshordi 2008). ~5% effect at $\ell=10$, negligible at $\ell > 100$.
+- **Correa concentration (D2)**: Pipeline uses Planck Appendix B1 fit; thesis uses different cosmology fit. <5% effect on $c$. See [HI Evidence Matrix](hi_evidence_matrix.md).
 
 None of these affect the BL Lac window function $W_\gamma^{\rm BL\,Lac}(E_\gamma, z)$ itself — only its projection into $C_\ell$ via `angular_power.P_HI_astro_2h`.
 
@@ -169,7 +170,7 @@ None of these affect the BL Lac window function $W_\gamma^{\rm BL\,Lac}(E_\gamma
 |---|------|-------------------|----------|-------------------------|--------|----------|
 | 1 | LDDE exponent signs | Ajello+ 2014 Eq. 18 uses $r^{+p_i}$; Pinetti thesis Eq. C.4 writes $r^{-p_i}$ | $r^{+p_i}$ | No separate BL Lac thesis override | Deliberate choice to preserve Ajello's fit convention | Medium |
 | 2 | Single photon index $\alpha=2.11$ | Ajello+ 2014: $\mu_\star=2.12\pm 0.03$ | Fixed $\alpha=2.11$ | Same | Simplification | Low (below 1% on $\alpha$) |
-| 3 | No EBL attenuation | Pinetti Eq. 4.3 does not include $e^{-\tau}$ explicitly; literature treats EBL separately | No $e^{-\tau}$ | Same | Simplification | Medium ($E \gt 30$ GeV) |
+| ~~3~~ | ~~No EBL attenuation~~ | — | **Resolved:** $e^{-\tau}$ now applied at observed energy in `W_gamma_astro` | Same | — | — |
 | 4 | Fixed $M_{\rm halo} = 10^{13}\,M_\odot/h$ | Standard in thesis | Same | Same | Simplification | Minor |
 | 5 | Data-mode $F_{\rm sens}(E) \propto [\sigma_0(E)]^2$ | Ammazzalorso Eq. 1: more complex masking | $[\sigma_0(E)]^2$ proxy | Same | Simplification | Low |
 | 6 | $E_{\rm ref} = 5$ GeV (data mode) | Not specified | Pipeline choice | Same | Convention | None |

@@ -141,7 +141,7 @@ This document audits every equation, model choice, parameter value, and computat
 The Pinetti 2022 parallel implementation does **not** define a separate mAGN GLF or Willott-conversion path, so the active repository implementation is the effective source of truth for both columns here. The only inherited differences come from shared halo-model utilities:
 
 - Halo bias uses $q=0.75$ (not 0.707) via `pinetti2022.bias_pinetti()` → affects mAGN effective bias by ~few percent at the characteristic halo mass
-- Correa concentration coefficients differ (not relevant for mAGN GLF directly)
+- Correa concentration (D2): Pipeline uses Planck Appendix B1 fit; thesis uses different cosmology fit. <5% on $c$. See [HI Evidence Matrix](hi_evidence_matrix.md).
 - Limber $k$-substitution uses $k=\ell/\chi$ (thesis) vs $k=(\ell+1/2)/\chi$ (pipeline improvement)
 
 None of these affect the mAGN window function $W_\gamma^{\rm mAGN}(z)$ itself — only its projection into $C_\ell$ via the halo model.
