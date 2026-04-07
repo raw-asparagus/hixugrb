@@ -516,19 +516,50 @@ class TestFSRQ:
         assert z_c == pytest.approx(3.87, rel=0.01)
 
     def test_ldde_evolution_at_peak(self):
-        """e(z=z_c, L) = [1^p1 + 1^p2]^{-1} = 0.5 for any L.
-        Source: Ajello (2012) Eq. 15; at r=1 both conventions give 0.5.
+        """e(z=z_c, L) = 0.5 for any L.
+        Source: Ajello (2012) Eq. 15; at r=1: e = [1+1]^{-1} = 0.5.
         """
         from hi_gamma_xcorr import astro_sources as astro
-        # At z = z_c(L), r = (1+z)/(1+z_c) = 1, so e = 1/(1+1) = 0.5
-        # We verify by evaluating the GLF at z=z_c for L=L_c
         L = 0.84e48  # L_c
         z_c = 1.47   # z_c* at L_ref=1e48 ~ L_c
         phi_peak = astro.glf(L, z_c, 'FSRQ')
         phi_z0 = astro.glf(L, 0.01, 'FSRQ')
-        # At z_c, evolution factor = 0.5; at z~0, it should be much smaller
-        # The GLF should be peaked around z_c
         assert phi_peak > 0, "GLF should be positive at peak"
+
+    def test_ldde_convention_low_z_rise(self):
+        """At z << z_c the evolution rises as r^{p1}, not r^{|p2|}.
+
+        For FSRQ (p1=7.35, p2=-6.51): low-z rise exponent = p1 = 7.35.
+        With [r^{-p1}+r^{-p2}]^{-1} at r=0.5:
+            e = [0.5^{-7.35} + 0.5^{6.51}]^{-1} approx 0.5^{7.35} = 0.00614
+
+        Source: Ajello (2012) Eq. 15, Ajello (2014) Eq. 18 --
+        "rises as (1+z)^{p1} for z << z_c".
+        """
+        r = 0.5
+        p1, p2 = 7.35, -6.51
+        e = 1.0 / (r**(-p1) + r**(-p2))
+        e_expected = r**p1  # dominant term at r << 1
+        assert e == pytest.approx(e_expected, rel=0.01), (
+            f"Low-z evolution should rise as r^p1={e_expected:.4e}, got {e:.4e}"
+        )
+
+    def test_ldde_convention_high_z_decline(self):
+        """At z >> z_c the evolution falls as r^{p2}.
+
+        For BL Lac (p1=4.50, p2=-12.88): high-z decline exponent = p2 = -12.88.
+        With [r^{-p1}+r^{-p2}]^{-1} at r=2.0:
+            e approx 2.0^{-12.88} = 1.34e-4
+
+        Source: Ajello (2014) -- "falls as (1+z)^{p2} for z >> z_c".
+        """
+        r = 2.0
+        p1, p2 = 4.50, -12.88
+        e = 1.0 / (r**(-p1) + r**(-p2))
+        e_expected = r**p2  # dominant term at r >> 1
+        assert e == pytest.approx(e_expected, rel=0.01), (
+            f"High-z evolution should fall as r^p2={e_expected:.4e}, got {e:.4e}"
+        )
 
     def test_fsrq_glf_positive(self):
         """FSRQ GLF should be non-negative for all valid (L, z)."""

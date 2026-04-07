@@ -429,8 +429,9 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     evolution_form : str
         'piecewise' — standard LDDE (FSRQ):
             e = [(1+z)/(1+z_c)]^p1 for z <= z_c, else [(1+z)/(1+z_c)]^p2
-        'ldde_inv' — LDDE inverse-sum (Ajello+ 2014, Eq. C.4, BL Lac):
+        'ldde_inv' — LDDE inverse-sum (Ajello+ 2012 Eq. 15, 2014 Eq. 18):
             e = [r^{-p1} + r^{-p2}]^{-1}, r = (1+z)/(1+z_c)
+            Low-z rise ~ r^{p1}, high-z decline ~ r^{p2}.
         'sum' — simple sum (legacy):
             e = [(1+z)/(1+z_c)]^p1 + [(1+z)/(1+z_c)]^p2
     """
@@ -459,15 +460,17 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     ratio = (1.0 + z) / (1.0 + z_c)
 
     if evolution_form == 'ldde_inv':
-        # Ajello+ (2012) Eq. 15 / Ajello+ (2014) Eq. 18: smooth inverse-sum
-        # e = [r^{p1} + r^{p2}]^{-1}, r = (1+z)/(1+z_c)
-        # with (p1, p2) fitted in this positive-exponent convention.
+        # Smooth inverse-sum evolution from Ajello+ (2012) Eq. 15 /
+        # Ajello+ (2014) Eq. 18 / Pinetti (2022) Eq. C.4:
+        #   e = [r^{-p1} + r^{-p2}]^{-1},  r = (1+z)/(1+z_c)
         #
-        # Pinetti (2022) Eq. C.4 writes [r^{-p1} + r^{-p2}]^{-1} but uses the
-        # same (p1, p2) values from Ajello. Since p2 < 0 for blazars, the sign
-        # flip changes the low-z suppression by orders of magnitude. We use the
-        # original Ajello convention to be consistent with the fitted parameters.
-        e_z = 1.0 / (ratio**(p1) + ratio**(p2))
+        # At low z (r << 1):  e ~ r^{p1}  (rises as (1+z)^{p1})
+        # At high z (r >> 1): e ~ r^{p2}  (falls as (1+z)^{p2})
+        # At z = z_c (r = 1): e = 0.5
+        #
+        # For BL Lac: p1=4.50 (moderate rise), p2=-12.88 (steep decline).
+        # For FSRQ:  p1=7.35 (steep rise), p2=-6.51 (moderate decline).
+        e_z = 1.0 / (ratio**(-p1) + ratio**(-p2))
     elif evolution_form == 'piecewise':
         # Piecewise LDDE (legacy, retained for comparison only)
         if z <= z_c:
