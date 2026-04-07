@@ -626,7 +626,7 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
 # Mean unresolved gamma-ray intensity (for Figure 2 validation)
 # ---------------------------------------------------------------------------
 
-def mean_intensity(E_GeV, source_class, z_max=5.0, n_z=300):
+def mean_intensity(E_GeV, source_class, z_max=2.5, n_z=300):
     """Mean unresolved gamma-ray intensity from a source class.
 
     <I>(E) = integral dz (c*h/H(z)) * W_gamma_astro(E, z)

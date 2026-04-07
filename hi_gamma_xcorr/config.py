@@ -280,7 +280,7 @@ RADIO_TELESCOPES = {
         'eta': 1.0,
         'n_u': 0.005,
         'bands': {
-            'Band1': {'z_min': 0.35, 'z_max': 3.0},
+            'Band1': {'z_min': 0.35, 'z_max': 2.5},
             'Band2': {'z_min': 0.0,  'z_max': 0.5},
         },
         'f_sky': 0.61,
@@ -296,7 +296,7 @@ RADIO_TELESCOPES = {
         'eta': 1.0,
         'n_u': 0.005,
         'bands': {
-            'Band1': {'z_min': 0.35, 'z_max': 3.0},
+            'Band1': {'z_min': 0.35, 'z_max': 2.5},
             'Band2': {'z_min': 0.0,  'z_max': 0.5},
         },
         'f_sky': 0.72,
@@ -324,14 +324,13 @@ N_K = 500
 K_GRID = np.logspace(np.log10(K_MIN), np.log10(K_MAX), N_K)
 
 # Redshift grid (denser at low z for better resolution of window functions)
-Z_MAX = 5.0
-N_Z = 50
+Z_MAX = 2.5
+N_Z = 40
 # Non-uniform: more points at low z
 Z_GRID = np.concatenate([
     np.linspace(0.0, 0.5, 15),
     np.linspace(0.55, 1.5, 15),
-    np.linspace(1.6, 3.0, 10),
-    np.linspace(3.2, Z_MAX, 10),
+    np.linspace(1.6, Z_MAX, 10),
 ])
 
 # Halo mass grid [M_sun/h]
