@@ -2,19 +2,41 @@
 
 ## Audit Plan: docs/ Self-Consistency & docs/ vs hi_gamma_xcorr/ Consistency
 
-### Documentation Structure
+### Documentation Structure & Dependency Tiers
+
+The documentation forms a tiered DAG. Updates must flow **top-down** through the tiers; a file is stale when any of its dependencies is newer.
 
 ```
-papers/*.pdf  (22 PDFs — raw source of truth)
-  ↓
-literature/*.md  (22 reviews — audited by literature_evidence_matrix.md)
-  ↓
-equations.md / conventions.md / architecture.md  (aggregation layer)
-  ↓
-window-functions/*.md  (6 narratives + 6 evidence matrices — per-source detail)
-  ↓
-hi_gamma_xcorr/*.py  (implementation)
+Tier 0 — Sources of truth (never generated, always authoritative):
+  papers/*.pdf  (22 PDFs)
+  hi_gamma_xcorr/*.py  (implementation)
+
+Tier 1 — Leaf docs (depend only on papers, no inter-doc dependencies):
+  literature/*.md  (22 reviews — one per paper)
+
+Tier 2 — Synthesis docs (depend on Tier 1 + code):
+  equations.md      ← literature/*.md + code (equation↔function mapping)
+  conventions.md    ← literature/*.md + code (units, frames, deviations)
+  architecture.md   ← code (import graph, module descriptions)
+
+Tier 3 — Per-source audit docs (depend on Tier 1 + Tier 2 + code):
+  window-functions/*.md narratives         ← literature + conventions
+  window-functions/*_evidence_matrix.md    ← literature + equations + code
+
+Tier 4 — Master audit (depends on all Tier 1):
+  literature_evidence_matrix.md  ← all 22 literature/*.md
 ```
+
+**Evidence matrix → code coupling** (which matrices audit which code):
+
+| Evidence matrix | Code modules |
+|----------------|--------------|
+| `hi_evidence_matrix.md` | `hi_model.py`, `halo_model.py`, `hmf_interface.py`, `cosmology.py`, `config.py` |
+| `dm_annihilation_evidence_matrix.md` | `dm_model.py`, `pppc4dmid.py`, `ebl.py`, `halo_model.py`, `config.py` |
+| `bl_lac_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| `fsrq_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| `magn_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| `sfg_evidence_matrix.md` | `astro_sources.py`, `config.py` |
 
 ### Phase 0: Staleness Check (3 tasks, all parallel)
 
@@ -68,11 +90,41 @@ hi_gamma_xcorr/*.py  (implementation)
 | 4.3 | **pinetti2022.py parallel implementation:** thesis-faithful functions differ from main pipeline in exactly the documented ways (concentration coefficients, q=0.75, ell/chi, T_bar=180). | pinetti2022.py, evidence matrices | Differences match documentation |
 | 4.4 | **Ammazzalorso bin audit:** config bins match conventions.md S6 and equations.md S8; noise_model.py uses them correctly in data-analysis mode. | config.py, conventions.md, noise_model.py | Consistent |
 
-### Phase 5: Reconciliation Report (1 task, sequential)
+### Phase 5: Reconciliation & Fix (2 tasks, sequential)
 
 | ID  | Check |
 |-----|-------|
 | 5.1 | Aggregate all discrepancies. Classify as: (a) doc error, (b) code error, (c) stale audit, (d) cosmetic. Prioritize by impact. |
+| 5.2 | Apply fixes for (a) doc errors and (b) code errors found in 5.1. |
+
+### Phase 5.5: Documentation Regeneration (8 tasks; respects dependency tiers)
+
+After Phase 5 applies fixes, all stale documentation must be re-audited **in dependency order** (see Documentation Structure above). A file is stale when any of its Tier 0 dependencies (code) or same-tier dependencies (other docs) have been modified more recently.
+
+**Wave 1 — Tier 2 synthesis docs (1 task, reviews code changes):**
+
+| ID  | Task | Dependencies | Files |
+|-----|------|-------------|-------|
+| 5.5.1 | Review `conventions.md` against recent code commits; update if any convention, unit, frame, or deviation has changed | Code (Tier 0) | `conventions.md`, all `hi_gamma_xcorr/*.py` |
+
+**Wave 2 — Tier 3 evidence matrices (6 tasks, all parallel; depend on Wave 1):**
+
+| ID  | Task | Code dependencies |
+|-----|------|-------------------|
+| 5.5.2 | Re-audit `hi_evidence_matrix.md` | `hi_model.py`, `halo_model.py`, `hmf_interface.py`, `cosmology.py`, `config.py` |
+| 5.5.3 | Re-audit `dm_annihilation_evidence_matrix.md` | `dm_model.py`, `pppc4dmid.py`, `ebl.py`, `halo_model.py`, `config.py` |
+| 5.5.4 | Re-audit `bl_lac_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| 5.5.5 | Re-audit `fsrq_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| 5.5.6 | Re-audit `magn_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+| 5.5.7 | Re-audit `sfg_evidence_matrix.md` | `astro_sources.py`, `config.py` |
+
+For each evidence matrix: read the current matrix, read the code modules it audits, verify every claim (equation match, parameter value, line number, status). Update any stale line numbers, changed formulas, or shifted logic. Preserve the matrix format.
+
+**Wave 3 — Tier 4 master matrix (1 task, sequential; depends on Tier 1 being stable):**
+
+| ID  | Task | Dependencies |
+|-----|------|-------------|
+| 5.5.8 | Regenerate `literature_evidence_matrix.md` | All 22 `literature/*.md` files |
 
 ### Execution Summary
 
@@ -83,7 +135,8 @@ hi_gamma_xcorr/*.py  (implementation)
 | 2 | 2.1-2.3 then 2.4-2.5 | 3+2 | Phase 1 |
 | 3 | 3.1-3.4 then 3.5-3.6 then 3.7 | 4+2+1 | Phase 2 |
 | 4 | 4.1-4.3 then 4.4 | 3+1 | Phase 3 |
-| 5 | 5.1 | 1 | Phase 4 |
+| 5 | 5.1-5.2 | sequential | Phase 4 |
+| 5.5 | 5.5.1 then 5.5.2-5.5.7 then 5.5.8 | 1+6+1 | Phase 5 |
 
 ### Highest-Risk Areas
 

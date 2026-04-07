@@ -32,7 +32,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | Local LF: double power law in $L/L_c$ | Ajello+ (2014) Eq. C.2 | `_ldde_glf()` | Same | **Match** | Returns $d\Phi/d\log_{10}L$ |
 | Conversion $d\Phi/d\log_{10}L \to d\Phi/dL$: divide by $L\ln 10$ | Standard calculus | `_ldde_glf()` | Same | **Match** | |
 | Luminosity-dependent peak $z_c(L) = z_\star(L/L_{\rm ref})^{\beta}$ | Ajello+ (2014) | `_ldde_glf()` | Same | **Match** | Parameter `alpha` in code = $\beta$ in paper |
-| $z_c$ clipped below at 0.01 | Numerical safety | `_ldde_glf()` | Same | **Match** | Avoids $z_c = 0$ singularity |
+| $z_c$ clipped below at 0.01 | Numerical safety | `_ldde_glf()` line 457 | Same | **Match** | Avoids $z_c = 0$ singularity |
 | Reference luminosity $L_{\rm ref} = 10^{48}$ erg/s | Ajello+ (2014); Pinetti thesis | `L_ref=1e48` in `_BL_LAC_PARAMS` | Same | **Match** | |
 
 ---
@@ -59,7 +59,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Inverse-sum form: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$ | Ajello+ (2014) Eq. 18; Pinetti Eq. C.4 writes $[r^{-p_1}+r^{-p_2}]^{-1}$ | `_ldde_glf()` evaluates `1.0 / (ratio**p1 + ratio**p2)` | Same implementation path; no BL Lac-specific override in `pinetti2022.py` | **Partial** | The active pipeline follows Ajello's fitted convention. The thesis sign flip is documented here as a literature-side deviation. |
+| Inverse-sum form: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$ | Ajello+ (2014) Eq. 18; Pinetti Eq. C.4 | `_ldde_glf()` evaluates `1.0 / (ratio**(-p1) + ratio**(-p2))` at line 473 | Same implementation path; no BL Lac-specific override in `pinetti2022.py` | **Match** | Pipeline now matches thesis Eq. C.4 sign convention. The fitted $(p_1,p_2)$ values from Ajello Table 3 are applied with negative exponents. |
 | Alternative piecewise form available | — | `_ldde_glf(..., evolution_form='piecewise')` | Same | N/A | Not used for BL Lac; kept for comparison |
 | Alternative sum form available | — | `_ldde_glf(..., evolution_form='sum')` | Same | N/A | Not used |
 | Smooth (continuous) at $z=z_c$ | Inverse-sum form property | Verified analytically | Same | **Match** | |
@@ -77,7 +77,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | Energy band: 0.1-100 GeV | Pinetti+ (2020); Fermi-LAT standard | `W_gamma_astro()` with `E_min_band=0.1`, `E_max_band=100.0` | Same | **Match** | |
 | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}\,dE$ | Standard normalization | `W_gamma_astro()` | Same | **Match** | Analytic formula with safe branch for $\alpha\to 2$ |
 | $E_{\rm rest} = (1+z)E_{\rm obs}$ | Standard cosmological blueshift | `W_gamma_astro()` | Same | **Match** | |
-| No EBL attenuation $e^{-\tau}$ applied | — | Not present in `W_gamma_astro` | Same | **Differs** (simplification) | EBL applied to $W_\gamma^{\rm DM}$ but not to astrophysical windows. Matters for $E \gt 30$ GeV at $z \gt 0.5$ |
+| EBL attenuation $e^{-\tau}$ applied at observed energy | Standard convention | `W_gamma_astro` line 638 | Same | **Match** | EBL now applied to astrophysical windows, consistent with $W_\gamma^{\rm DM}$ |
 
 ---
 
@@ -86,11 +86,11 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
 | $L_{\rm thr}(z) = 4\pi d_L^2(z)\,F_{\rm sens}$ | Pinetti+ (2020) | `L_sens(z)` | Same | **Match** | |
-| $d_L$ in physical cm | Conversion required | Lines 41-42: `dL_Mpc = cosmo.d_L(z) / cfg.h` then $\times$ `MPC_TO_M * 100.0` | Same | **Match** | Correctly converts Mpc/h $\to$ Mpc $\to$ cm |
+| $d_L$ in physical cm | Conversion required | Lines 54–55: `dL_Mpc = cosmo.d_L(z) / cfg.h` then $\times$ `MPC_TO_M * 100.0` | Same | **Match** | Correctly converts Mpc/h $\to$ Mpc $\to$ cm |
 | $F_{\rm sens} = 10^{-10}$ cm$^{-2}$ s$^{-1}$ (forecast) | Pinetti+ (2020) | `config.py:F_SENS=1e-10` | Same | **Match** | |
 | Energy-dependent $F_{\rm sens}(E)$ (data mode) | Ammazzalorso+ (2018) Eq. 1 | `F_sens_energy(E)` | Same | **Match** | |
-| $F_{\rm sens}(E) \propto [\sigma_0(E)/\sigma_0(E_{\rm ref})]^2$ | PSF-area scaling | Line 67 | Same | **Partial** | Pipeline approximation of Ammazzalorso's masking criterion; Ammazzalorso Eq. 1 is more detailed (depends on faintest source flux ratio) |
-| Reference energy $E_{\rm ref} = 5$ GeV | Pipeline convention | `F_sens_energy()` uses `E_ref = 5.0` | Same | **Differs** | Not specified in Ammazzalorso; pipeline choice near Fermi's optimal sensitivity |
+| $F_{\rm sens}(E) \propto [\sigma_0(E)/\sigma_0(E_{\rm ref})]^2$ | PSF-area scaling | Line 98 | Same | **Partial** | Pipeline approximation of Ammazzalorso's masking criterion; Ammazzalorso Eq. 1 is more detailed (depends on faintest source flux ratio) |
+| Reference energy $E_{\rm ref} = 5$ GeV | Pipeline convention | `F_sens_energy()` uses `E_ref = 5.0` line 95 | Same | **Differs** | Not specified in Ammazzalorso; pipeline choice near Fermi's optimal sensitivity |
 | $\sigma_0(E)$ from Fermi PSF model | Ammazzalorso+ (2018) | `noise_model.sigma_psf_fermi(E)` | Same | **Match** | Energy-dependent 68% containment |
 
 ---
@@ -103,7 +103,7 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 | $d_L^2$ cancels with $1/(4\pi d_L^2)$ in $dF/dE$ | Algebra | Implicit (not written explicitly) | Same | **Match** | Pipeline computes the cancellation form directly |
 | Prefactor $1/(4\pi)$ plus h-conversion | Flux-per-steradian convention and pipeline unit convention | `W_gamma_astro()` return value | Same | **Match** | The final `h^{-3}` converts the physical GLF density to [(Mpc/h)$^{-3}$]. |
 | $L_{\rm up} = \min(L_{\max}, L_{\rm thr})$ | Pinetti+ (2020) unresolved selection | `W_gamma_astro()` | Same | **Match** | |
-| Integration via `scipy.quad` in log-$L$ | Numerical choice | `W_gamma_astro()` with `epsrel=1e-5`, `limit=200` | Same | N/A | High accuracy |
+| Integration via `scipy.quad` in log-$L$ | Numerical choice | `W_gamma_astro()` line 620 with `epsrel=1e-5`, `limit=200` | Same | N/A | High accuracy |
 | Integrand: $\phi \cdot dN/dE \cdot L$ (from $d\ln L$) | Change of variables | `W_gamma_astro()` | Same | **Match** | |
 | Returns $[(\mathrm{Mpc}/h)^{-3}\,{\rm ph}\,{\rm s}^{-1}\,{\rm GeV}^{-1}\,{\rm sr}^{-1}]$ | Pipeline per-$\chi$ convention | `W_gamma_astro()` | Same | **Match** | `d_L` is computed in physical units, then the final `h^{-3}` converts the emissivity density to the pipeline convention. |
 | Early return if $z \le 0$ | Numerical safety | `W_gamma_astro()` | Same | **Match** | |
@@ -127,9 +127,9 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 
 | # | Item | Nature | Severity | Notes |
 |---|------|--------|----------|-------|
-| T1 | Thesis Eq. C.4 flips the LDDE exponent signs relative to Ajello | Deliberate implementation choice | Medium | The active pipeline keeps Ajello+ (2014) Eq. 18 so the published LDDE1 fit is used in the convention in which it was calibrated. |
+| ~~T1~~ | ~~Thesis Eq. C.4 flips the LDDE exponent signs relative to Ajello~~ | — | — | **Resolved:** pipeline now uses `ratio**(-p1) + ratio**(-p2)` at line 473, matching thesis Eq. C.4 convention |
 | T2 | Single fixed photon index $\alpha=2.11$ | Simplification | Low | Real BL Lac population has $\sigma_\mu \sim 0.27$ scatter and HSP/ISP/LSP sub-populations with different peak energies |
-| T3 | No EBL attenuation on astrophysical window | Simplification | Medium | Matters for $E \gt 30$ GeV at $z \gt 0.5$ (up to factor ~10 suppression). DM window correctly includes $e^{-\tau}$; astro windows do not |
+| ~~T3~~ | ~~No EBL attenuation on astrophysical window~~ | — | — | **Resolved:** $e^{-\tau}$ now applied at observed energy in `W_gamma_astro` line 638 |
 | T4 | Fixed halo mass $10^{13}\,M_\odot/h$ (no $L$-dependence) | Simplification | Minor | $\sim 10$--$20\%$ on clustering amplitude. Standard in blazar literature |
 | T5 | $E_{\rm ref}=5$ GeV for PSF scaling (data mode) | Convention | Low | Not specified in Ammazzalorso+ 2018; pipeline choice |
 | T6 | Simplified PSF-area scaling vs Ammazzalorso Eq. 1 | Simplification | Low | Ammazzalorso's exact masking depends on bright-source distribution; pipeline uses $[\sigma_0(E)]^2$ proxy |
@@ -144,16 +144,16 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 |---|------|--------|--------|
 | C1 | LDDE GLF: direct function evaluation (no caching) | Per-call recomputation | Fine (cheap evaluation) |
 | C2 | Window integral via `scipy.quad` in log-$L$ | `epsrel=1e-5`, `limit=200` | High accuracy |
-| C3 | $I_\alpha$ computed analytically with log branch at $\alpha \approx 2$ | Lines 543-546 | Exact, safe near $\alpha=2$ |
-| C4 | $d_L$ converted to physical cm | Lines 41-42, 517-518 | Explicit h-factor handling |
-| C5 | $z_c$ lower-clipped at 0.01 | Line 411 | Prevents singularity at $L\to 0$ or $\beta \lt 0$ |
-| C6 | $\max(\phi\cdot e, 0)$ safeguard | Line 435 | Prevents negative GLF from numerical edge cases |
+| C3 | $I_\alpha$ computed analytically with log branch at $\alpha \approx 2$ | Lines 603–606 | Exact, safe near $\alpha=2$ |
+| C4 | $d_L$ converted to physical cm | Lines 54–55 | Explicit h-factor handling |
+| C5 | $z_c$ lower-clipped at 0.01 | Line 457 | Prevents singularity at $L\to 0$ or $\beta \lt 0$ |
+| C6 | $\max(\phi\cdot e, 0)$ safeguard | Line 486 | Prevents negative GLF from numerical edge cases |
 
 ---
 
 ## 10. Pipeline (Pinetti 2022) Parallel Summary
 
-The `pinetti2022.py` module does **not** implement a separate BL Lac GLF or window-function path. For BL Lac, the main `astro_sources.py` implementation is the implemented source of truth. Relative to the thesis text, the active pipeline makes one explicit blazar-specific choice: it keeps Ajello+ (2014) Eq. 18 with positive exponents rather than the sign-flipped thesis Eq. C.4.
+The `pinetti2022.py` module does **not** implement a separate BL Lac GLF or window-function path. For BL Lac, the main `astro_sources.py` implementation is the implemented source of truth. The LDDE sign convention now matches thesis Eq. C.4 (negative exponents), and EBL attenuation is now applied to astrophysical windows.
 
 Shared infrastructure differences (inherited through the cross-power, not through $W_\gamma^{\rm BL\,Lac}$ itself):
 - **Halo bias**: `pinetti2022.bias_pinetti()` uses $q=0.75$ (thesis) vs pipeline's $q=0.707$. Affects the Sheth-Tormen bias evaluated at $M_{\rm halo} = 10^{13}\,M_\odot/h$ (~5% effect on the 2-halo amplitude).
@@ -168,9 +168,9 @@ None of these affect the BL Lac window function $W_\gamma^{\rm BL\,Lac}(E_\gamma
 
 | # | Item | Literature/Thesis | Pipeline | Pipeline (Pinetti 2022) | Nature | Severity |
 |---|------|-------------------|----------|-------------------------|--------|----------|
-| 1 | LDDE exponent signs | Ajello+ 2014 Eq. 18 uses $r^{+p_i}$; Pinetti thesis Eq. C.4 writes $r^{-p_i}$ | $r^{+p_i}$ | No separate BL Lac thesis override | Deliberate choice to preserve Ajello's fit convention | Medium |
+| ~~1~~ | ~~LDDE exponent signs~~ | — | **Resolved:** pipeline now uses `ratio**(-p1) + ratio**(-p2)` matching thesis Eq. C.4 | Same | — | — |
 | 2 | Single photon index $\alpha=2.11$ | Ajello+ 2014: $\mu_\star=2.12\pm 0.03$ | Fixed $\alpha=2.11$ | Same | Simplification | Low (below 1% on $\alpha$) |
-| ~~3~~ | ~~No EBL attenuation~~ | — | **Resolved:** $e^{-\tau}$ now applied at observed energy in `W_gamma_astro` | Same | — | — |
+| ~~3~~ | ~~No EBL attenuation~~ | — | **Resolved:** $e^{-\tau}$ now applied at observed energy in `W_gamma_astro` line 638 | Same | — | — |
 | 4 | Fixed $M_{\rm halo} = 10^{13}\,M_\odot/h$ | Standard in thesis | Same | Same | Simplification | Minor |
 | 5 | Data-mode $F_{\rm sens}(E) \propto [\sigma_0(E)]^2$ | Ammazzalorso Eq. 1: more complex masking | $[\sigma_0(E)]^2$ proxy | Same | Simplification | Low |
 | 6 | $E_{\rm ref} = 5$ GeV (data mode) | Not specified | Pipeline choice | Same | Convention | None |

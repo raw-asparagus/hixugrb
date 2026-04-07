@@ -28,7 +28,7 @@ Physical units appear only at module boundaries:
 | Quantity | Unit | Where |
 |----------|------|-------|
 | Hubble rate H(z) | km/s/Mpc | `cosmology.H(z)` |
-| Luminosities | erg/s | `astro_sources.py` GLFs, L_sens |
+| Luminosities | erg/s | `astro_sources.py` GLFs, `L_sens` (returns energy luminosity via K-correction when `alpha` is provided) |
 | Fermi-LAT noise N^γ | cm⁻⁴ s⁻² sr⁻¹ | `config.FERMI_N_GAMMA` |
 | System temperature | K | `noise_model.T_sys` |
 | Radio noise | mK² sr | `noise_model.noise_dish` |
@@ -155,11 +155,15 @@ Correa et al. (2015) Appendix B1 fitting functions for $c_{200}$, calibrated for
 
 ### LDDE inverse-sum form
 
-Both FSRQ and BL Lac use the smooth inverse-sum evolution with the Ajello sign convention:
+Both FSRQ and BL Lac use the smooth inverse-sum evolution:
 
-$$e(z, L) = \left[r^{p_1} + r^{p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}$$
+$$e(z, L) = \left[r^{-p_1} + r^{-p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}$$
 
-**Exponent sign convention:** The active pipeline follows [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18, which use the positive-exponent form ($r^{p_1}$). [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the inverse-sum with negative exponents, but the repository keeps the Ajello convention because the fitted $(p_1,p_2)$ values are taken from the Ajello papers. The implementation-facing equation record is in [`equations.md`](equations.md).
+**Exponent sign convention:** The pipeline uses the negative-exponent form $[r^{-p_1}+r^{-p_2}]^{-1}$, which matches both [Ajello+ (2012)](literature/ajello2012.md) Eq. 15, [Ajello+ (2014)](literature/ajello2014.md) Eq. 18, and [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4. With the fitted parameters ($p_1 > 0$, $p_2 < 0$), this produces the correct physical behavior: rise at low $z$ governed by $p_1$, decline at high $z$ governed by $|p_2|$. The implementation-facing equation record is in [`equations.md`](equations.md).
+
+### mAGN K-correction placement
+
+The mAGN GLF (`_glf_mAGN`) does **not** include the $(1+z)^{-(2-\Gamma)}$ K-correction factor from [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 / [Pinetti (2022)](literature/pinetti2022_thesis.md). Instead, the rest-frame energy shift is handled inside `W_gamma_astro` via $E_\text{rest} = (1+z) E_\text{obs}$, following the Ando & Komatsu (2006) per-χ emissivity formulation. This is physically equivalent but keeps the GLF as a pure comoving number density.
 
 ### Willott cosmology correction
 
@@ -218,7 +222,7 @@ The pipeline makes several deliberate choices that differ from the primary liter
 | D6 | SMT q = 0.707, not 0.75 | Both used in literature | `equations.md` 2.4; all evidence matrices |
 | D7 | PPPC4DMID public tables | vs thesis private Pythia code | `dm_annihilation_evidence_matrix.md` |
 | D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy | `equations.md` 9.4; all evidence matrices |
-| D12 | BL Lac / FSRQ LDDE exponent signs | Follow Ajello, not the thesis sign flip | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
+| D12 | BL Lac / FSRQ LDDE exponent form | Pipeline uses $[r^{-p_1}+r^{-p_2}]^{-1}$, matching both Ajello and thesis | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
 | D13 | SFG Gruppioni $L_0$ break applied uniformly | Pipeline applies z=1.1 break to all 3 IR components; paper only specifies it for spirals | `sfg_evidence_matrix.md` |
 | D14 | EBL attenuation on astro windows | Now applied to all gamma-ray windows; thesis omitted EBL for astrophysical sources | `bl_lac_evidence_matrix.md`; `astro_sources.py::W_gamma_astro` |
 

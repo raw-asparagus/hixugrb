@@ -18,12 +18,12 @@ This document audits every equation, model choice, parameter value, and computat
 
 ---
 
-## 1. Gruppioni (2013) Three-Component IR LF Structure
+## 1. Gruppioni (2013) Five-Component IR LF Structure (Three Used)
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Three components: spiral + starburst + SF-AGN | Gruppioni+ (2013); Pinetti Eq. C.22 | `_gruppioni_ir_lf` sums three components | Same | **Match** | |
-| Modified Schechter form | Gruppioni+ (2013) Eq. 8; Pinetti Eq. C.23 | `_gruppioni_component` | Same | **Match** | |
+| Three star-forming components used: spiral + starburst + SF-AGN (out of five total in Gruppioni) | Gruppioni+ (2013) Table 8 has five populations (spiral, starburst, SF-AGN, AGN1, AGN2); Pinetti Eq. C.22 selects three | `_gruppioni_ir_lf` line 347 sums three components | Same | **Match** | Pipeline uses the three star-forming populations, consistent with Pinetti's selection |
+| Modified Schechter form | Gruppioni+ (2013) Eq. 8; Pinetti Eq. C.23 | `_gruppioni_component` line 296 | Same | **Match** | |
 | Returns $d\Phi/d\log_{10}L_{\rm IR}$ [Mpc⁻³] | Gruppioni+ (2013) convention | `_gruppioni_component` | Same | **Match** | |
 | $L_{\rm IR}$ in $L_\odot$ (8-1000 μm total IR) | Gruppioni+ (2013) | Arg convention | Same | **Match** | |
 
@@ -96,7 +96,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $\log L_\gamma = \alpha_{\rm IR}\log(L_{\rm IR}/10^{10}L_\odot) + \beta_{\rm IR}$ | Ackermann+ (2012) Table 5 (EM, AGN-excl) | `_L_IR_from_Lgamma` | Same | **Match** | |
+| $\log L_\gamma = \alpha_{\rm IR}\log(L_{\rm IR}/10^{10}L_\odot) + \beta_{\rm IR}$ | Ackermann+ (2012) Table 5 (EM, AGN-excl) | `_L_IR_from_Lgamma` line 366 | Same | **Match** | |
 | $\alpha_{\rm IR}=1.09$ | Ackermann+ (2012) EM method, AGN-excluded | `ACKERMANN_ALPHA_IR=1.09` | Same | **Match** | Full sample gives $\alpha=1.17\pm 0.07$; AGN-excluded subsample used for cleaner SFG calibration |
 | $\beta_{\rm IR}=39.19$ | Ackermann+ (2012) | `ACKERMANN_BETA_IR=39.19` | Same | **Match** | |
 | $L_\gamma$ band: 0.1-100 GeV | Ackermann+ (2012) | Implicit | Same | **Match** | |
@@ -110,7 +110,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $\Phi_\gamma = \Phi_{\rm IR}(L_{\rm IR}(L_\gamma),z) \lvert d\log L_{\rm IR}/d\log L_\gamma \rvert / (L_\gamma\ln 10)$ | Pinetti thesis Eq. C.28; Ackermann+ (2012) | `_glf_SFG` | Same | **Match** | |
+| $\Phi_\gamma = \Phi_{\rm IR}(L_{\rm IR}(L_\gamma),z) \lvert d\log L_{\rm IR}/d\log L_\gamma \rvert / (L_\gamma\ln 10)$ | Pinetti thesis Eq. C.28; Ackermann+ (2012) | `_glf_SFG` line 388 | Same | **Match** | |
 | Conversion from $d\Phi/d\log L$ to $d\Phi/dL$: divide by $L\ln 10$ | Standard calculus | `_glf_SFG` | Same | **Match** | |
 | Jacobian appears as $\lvert d\log L_{\rm IR}/d\log L_\gamma \rvert$ (log-space) | Pinetti Eq. C.28 | `_glf_SFG` | Same | **Match** | |
 | Returns $d\Phi/dL_\gamma$ [Mpc⁻³ (erg/s)⁻¹] | Standard GLF units | `_glf_SFG` | Same | **Match** | |
@@ -121,7 +121,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Formula $W = 1/(4\pi h^3) \int \Phi (L/\epsilon I_\alpha) E_{\rm rest}^{-\alpha} dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure; the active pipeline makes the final h-dependent volume conversion explicit | `W_gamma_astro` | Same | **Differs** (implementation form) | The current implementation returns the photon-emissivity form with no explicit external $(1+z)^{-2}$ prefactor and a final `h^{-3}` conversion to `[(Mpc/h)^-3]` |
+| Formula $W = 1/(4\pi h^3) \int \Phi (L/\epsilon I_\alpha) E_{\rm rest}^{-\alpha} dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure; the active pipeline makes the final h-dependent volume conversion explicit | `W_gamma_astro` lines 536/569 | Same | **Differs** (implementation form) | The current implementation returns the photon-emissivity form with no explicit external $(1+z)^{-2}$ prefactor and a final `h^{-3}` conversion to `[(Mpc/h)^-3]` |
 | SFG spectral index $\alpha=2.7$ | Pinetti+ (2020) Table 3 | `ASTRO_SOURCES['SFG']['alpha']=2.7` | Same | **Match** | |
 | $L_{\min}=10^{37}$ erg/s | Pinetti thesis Table 3.1 | `L_min=1e37` | Same | **Match** | |
 | $L_{\max}=10^{42}$ erg/s | Pinetti thesis Table 3.1 | `L_max=1e42` | Same | **Match** | |
@@ -137,7 +137,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $M_{\rm halo}(L,z) = (10^{12}M_\odot/(1+z)^{1.61})(L/6.8\times 10^{39})^{0.92}$ | Pinetti thesis Eq. C.29 | `bias_astro(z, 'SFG')` | Same | **Match** | |
+| $M_{\rm halo}(L,z) = (10^{12}M_\odot/(1+z)^{1.61})(L/6.8\times 10^{39})^{0.92}$ | Pinetti thesis Eq. C.29 | `bias_astro(z, 'SFG')` line 681/703 | Same | **Match** | |
 | $M_{\rm halo}$ normalization $10^{12}\,M_\odot$ | Pinetti Eq. C.29 | `SFG_MHALO_NORM=1e12` | Same | **Match** | |
 | Luminosity normalization $6.8\times 10^{39}$ erg/s | Pinetti Eq. C.29 | `SFG_MHALO_LNORM=6.8e39` | Same | **Match** | |
 | Luminosity exponent 0.92 | Pinetti Eq. C.29 | `SFG_MHALO_SLOPE=0.92` | Same | **Match** | |
@@ -205,7 +205,7 @@ None of these affect the SFG window function $W_\gamma^{\rm SFG}(z)$ itself — 
 
 | Concern | Resolution |
 |---------|-----------|
-| Modified Schechter form implementation | Code line 297: `phi_0 * ratio**(1-gamma) * exp(-log(1+ratio)^2 / (2*sigma^2))` matches Gruppioni Eq. 8 exactly |
+| Modified Schechter form implementation | Code lines 341–342: `phi_0 * ratio**(1-gamma) * exp(-log(1+ratio)^2 / (2*sigma^2))` matches Gruppioni Eq. 8 exactly |
 | L_IR units in Gruppioni vs Ackermann | Gruppioni uses $L_\odot$; Ackermann formula uses $L_{\rm IR}/(10^{10}L_\odot)$ so units are consistent. Code correctly uses $L_\odot$ throughout |
 | Jacobian sign | $d\log L_{\rm IR}/d\log L_\gamma = 1/\alpha_{\rm IR} = 0.917 \gt 0$ (positive, as expected for monotonic relation) |
 | Unit dimensional check | $[\Phi_\gamma]$=Mpc⁻³·(erg/s)⁻¹ from $[\Phi_{\rm IR}]$·[dimensionless]·[erg/s]⁻¹ |

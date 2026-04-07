@@ -261,19 +261,3 @@ def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
         sigma_v = cfg.SIGMA_V_THERMAL
     return _W_gamma_DM_impl(float(E_GeV), float(z), float(m_chi_GeV),
                             float(sigma_v), channel, boost_scenario)
-
-
-def _W_gamma_DM_original(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario):
-    """Original implementation (kept for reference; actual computation in _W_gamma_DM_impl)."""
-    # Per-chi window function (Pinetti Eq. 4.1): physical emissivity
-    prefactor = sigma_v / (8.0 * np.pi)  # sigma_v/2 / (4 pi) per Eq. 4.1
-    particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2
-    cosmological = (1.0 + z)**3
-
-    W_cgs = prefactor * particle * cosmological * Delta2 * float(dNdE) * atten
-    # W_cgs units: [cm^3/s/sr] * [1/cm^6] * [1/GeV] = [cm^{-3} s^{-1} sr^{-1} GeV^{-1}]
-    # — physical photon emissivity, matching Pinetti 2020 Eq. 4.1.
-
-    # Convert cm^-3 to (Mpc/h)^-3
-    Mpc_h_cm = Mpc_cm / cfg.h  # cm per (Mpc/h)
-    return W_cgs * Mpc_h_cm**3

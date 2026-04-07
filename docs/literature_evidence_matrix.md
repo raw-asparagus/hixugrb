@@ -24,7 +24,7 @@ Status legend:
 | `planck2018.md` | Base LCDM parameter set includes $H_0 = 67.36$, $\Omega_b h^2 = 0.02237$, $\Omega_c h^2 = 0.1200$, $n_s = 0.9649$, $\sigma_8 = 0.8111$, $\tau = 0.0544$ | Planck 2018 TT,TE,EE+lowE+lensing parameter table | **Match** | Values and uncertainties are recorded consistently |
 | `planck2018.md` | Derived parameters include $\Omega_M = 0.3153$, $\Omega_\Lambda = 0.6847$, $\Omega_B = 0.0493$ | Derived-parameter tables and standard conversions | **Match** | Derived values are consistent with the quoted base parameters |
 | `sheth_tormen1999.md` | Halo-bias relation is $b(\nu) = 1 + (q\nu - 1)/\delta_c + 2p/[\delta_c(1+(q\nu)^p)]$ | Sheth & Tormen (1999), bias equation | **Match** | Formula and parameter definitions are paper-faithful |
-| `sheth_tormen1999.md` | Parameter values are $q = 0.707$, $p = 0.3$, $\delta_c = 1.686$ | Sheth & Tormen (1999), model parameters | **Match** | |
+| `sheth_tormen1999.md` | Parameter values are $a = 0.707$, $p = 0.3$, $\delta_c = 1.686$ | Sheth & Tormen (1999), model parameters | **Match** | Paper notation uses $a$ (not $q$); SMT 2001 later relabels to $a$ as well |
 | `sheth_mo_tormen2001.md` | SMT multiplicity function is given in the paper's Eq. 6 form | Sheth, Mo & Tormen (2001), Eq. 6 | **Match** | The summary now stays in the paper's notation |
 | `sheth_mo_tormen2001.md` | Best-fit parameters are $a = 0.707$, $p = 0.3$, $A \approx 0.322$ | Sheth, Mo & Tormen (2001), Eq. 6 fit | **Match** | |
 | `sheth_mo_tormen2001.md` | The paper also derives a moving-barrier bias relation | Sheth, Mo & Tormen (2001), Eq. 8 | **Match** | |
@@ -34,6 +34,8 @@ Status legend:
 | `moline2017.md` | The boost prescription is the $z=0$ polynomial in $\log_{10} B(M)$ | Moline et al. (2017), Eq. 18 | **Match** | The summary no longer attributes thesis-only redshift scalings to the paper |
 | `moline2017.md` | Coefficients $b_0 \ldots b_5 = (-0.186, 0.144, -8.8\times10^{-3}, 1.13\times10^{-3}, -3.7\times10^{-5}, -2\times10^{-7})$ | Moline et al. (2017), Table 3, $\alpha = 2$ | **Match** | |
 | `moline2017.md` | The summary correctly identifies the fit as the tidal-stripping, $\alpha=2$ scenario with $M_{\min}=10^{-6} M_\odot$ built into the fit | Moline et al. (2017), Table 3 and surrounding discussion | **Match** | |
+| `bryan_norman1998.md` | The virial overdensity fitting formula $\Delta_c(x) = 18\pi^2 + 82x - 39x^2$ with $x = \Omega_m(z) - 1$ | Bryan & Norman (1998), Eq. 6 | **Match** | |
+| `loverde_afshordi2008.md` | The extended Limber approximation uses $k = (\ell + 1/2)/\chi$ instead of $k = \ell/\chi$ | LoVerde & Afshordi (2008), Eq. 2.19 | **Match** | |
 
 ---
 
@@ -48,8 +50,8 @@ Status legend:
 | `inoue2011.md` | Frequency scaling assumes $\alpha_r = 0.80$ | Inoue (2011), radio spectral-index assumption | **Match** | |
 | `inoue2011.md` | The paper quotes a gamma-ray/radio scaling with $L_\gamma \propto L_{5\,GHz}^{1.16}$ | Inoue (2011), abstract and Eq. 5 discussion | **Match** | |
 | `dimauro2014.md` | Core-radio to gamma-ray relation is $\log_{10} L_\gamma = 2.0 + 1.008 \log_{10} L_{\rm core}^{5\,GHz}$ | Di Mauro et al. (2014), Eq. 5 | **Match** | |
-| `dimauro2014.md` | Full mAGN luminosity function uses the paper's Eq. C.19 structure | Di Mauro et al. (2014), Eq. C.19 | **Match** | |
-| `dimauro2014.md` | Parameters $k = 3.05$ and $\Gamma = 2.37$ are quoted correctly | Di Mauro et al. (2014), Eq. C.19 discussion | **Match** | |
+| `dimauro2014.md` | Full mAGN luminosity function uses the paper's Eq. C.19 structure | Di Mauro et al. (2014), Eq. C.19 | **Match** | Note: "Eq. C.19" refers to Di Mauro's appendix, not the Pinetti thesis |
+| `dimauro2014.md` | Parameter $k = 3.05$ is quoted correctly | Di Mauro et al. (2014), Eq. C.19 discussion | **Match** | $\Gamma = 2.37$ is from Pinetti+ (2020) Table 3, not from Di Mauro (2014) |
 | `ajello2012.md` | The FSRQ sample contains 186 sources from the first-year Fermi-LAT catalog | Ajello et al. (2012), abstract and Table 3 context | **Match** | |
 | `ajello2012.md` | The luminosity function is the LDDE double power law in $d\Phi/d\log_{10}L$ quoted in the summary | Ajello et al. (2012), Table 3 model definition | **Match** | |
 | `ajello2012.md` | The redshift evolution is the smooth inverse-sum form of Eq. 15 with positive exponents | Ajello et al. (2012), Eq. 15 | **Match** | The summary now reflects the paper form directly |
@@ -59,7 +61,7 @@ Status legend:
 | `ajello2014.md` | The LDDE evolution is the paper-form inverse sum with positive exponents | Ajello et al. (2014), Eq. 18 | **Match** | |
 | `ajello2014.md` | LDDE1 parameters $A = 9.20\times10^{-11}$, $L_\star = 2.43\times10^{48}$, $\gamma_1 = 1.12$, $\gamma_2 = 3.71$, $p_1 = 4.50$, $p_2 = -12.88$, $z_\star = 1.67$, $\beta = 4.46\times10^{-2}$ are quoted correctly | Ajello et al. (2014), Table 3, LDDE1 | **Match** | |
 | `ajello2014.md` | The LDDE1 spectral index is $\mu_\star = 2.12 \pm 0.03$ | Ajello et al. (2014), Table 3, LDDE1 | **Match** | The earlier 2.11 shorthand has been removed from the literature summary |
-| `gruppioni2013.md` | The IR luminosity function is the sum of spiral, starburst, and SF-AGN components | Gruppioni et al. (2013), Table 8 model setup | **Match** | |
+| `gruppioni2013.md` | The IR luminosity function has five populations (spiral, starburst, SF-AGN, AGN1, AGN2); the pipeline uses three star-forming components | Gruppioni et al. (2013), Table 8 model setup | **Match** | Paper defines five populations; the three used in the pipeline (spiral, starburst, SF-AGN) are selected by Pinetti |
 | `gruppioni2013.md` | Each component uses the modified-Schechter form quoted in the summary | Gruppioni et al. (2013), functional form used for Table 8 fits | **Match** | |
 | `gruppioni2013.md` | Table 8 component parameters are quoted correctly for spiral and starburst populations | Gruppioni et al. (2013), Table 8 | **Match** | |
 | `gruppioni2013.md` | The SF-AGN density-evolution coefficient is $k_{R2} = -3.17$ | Gruppioni et al. (2013), Table 8 | **Match** | The literature summary now reflects the paper sign correctly |
@@ -95,6 +97,9 @@ Status legend:
 | `cunnington2023.md` | Reconvolution to a common beam follows the paper's Eqs. 16-18 | Cunnington et al. (2023), Section 4.1, Eqs. 16-18 | **Match** | |
 | `cunnington2023.md` | Transfer-function correction follows the mock-injection construction of Eqs. 19-20 | Cunnington et al. (2023), Section 4.3, Eqs. 19-20 | **Match** | |
 | `cunnington2023.md` | The brightness-temperature coefficient is quoted as 180 mK from Eq. 15 | Cunnington et al. (2023), Eq. 15 | **Match** | The literature summary now reports the paper value without folding in repository conventions |
+| `pinetti2022_thesis.md` | The thesis defines the full HI x UGRB cross-correlation framework including window functions, Limber projection, and source-class decomposition | Pinetti (2022), arXiv:2212.00125, Chapters 3-5 | **Match** | |
+| `pinetti2022_thesis.md` | The thesis Eq. C.4 LDDE evolution uses negative exponents $[r^{-p_1}+r^{-p_2}]^{-1}$ | Pinetti (2022), Eq. C.4 | **Match** | |
+| `pinetti2022_thesis.md` | The thesis uses $q=0.75$ for the Sheth-Tormen mass function and bias | Pinetti (2022), Eq. 3.33 | **Match** | |
 
 ---
 
@@ -108,7 +113,7 @@ Current audit result:
 
 | Status | Count |
 |--------|-------|
-| **Match** | 60 |
+| **Match** | 68 |
 | **Minor** | 0 |
 
 No outstanding literature-summary mismatches remain in the audited claim set above.

@@ -78,14 +78,14 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\log_{10} B = \sum_{i=0}^5 b_i [\log_{10}(M/M_\odot)]^i$ | Moline Eq. 18 | lines 126--129 | Same | **Match** | |
-| Coefficients from Table 3, $\alpha=2$, tidal stripping | Moline Table 3 | `config.py:MOLINE_BOOST_COEFFS` line 121 | Same | **Match** | $[-0.186, 0.144, -8.8\times10^{-3}, 1.13\times10^{-3}, -3.7\times10^{-5}, -2\times10^{-7}]$ |
-| $B(M,z) = B(M,z{=}0)/(1+z)$ | Moline thesis Eq. 3.48 | line 134 | Same | **Match** | |
-| Polynomial argument in $M_\odot$ (not $M_\odot/h$) | Moline: masses in physical $M_\odot$ | `M_solar = M / cfg.h` line 115 | Same | **Match** | Resolved: now uses $M_{\rm phys} = M_{\rm code}/h$ consistently with `v_circ` |
-| Valid range: $10^{-6} \lt M\,[M_\odot] \lt 10^{15}$ | Moline Sec. 3.2 | `np.clip(M_solar, 1e-6, 1e15)` line 126 | Same | **Match** | |
-| Output clipped to $[0, 1000]$ | Not in literature | `np.clip(B, 0.0, 1000.0)` line 139 | Same | **Differs** | Numerical safety; $B$ never reaches 1000 in practice |
-| Conservative: $B=0$ for $M \lt 10^7\,M_\odot$ | Pipeline design | lines 118--123 | Same | **Match** | |
-| `optimistic` distinct from `intermediate` | Pipeline docs (line 159) | Both map to $M_{\rm min,sub} = 10^{-6}$ (line 175) | Same | **Bug** | Documented as having "enhanced substructure" but not implemented |
+| $\log_{10} B = \sum_{i=0}^5 b_i [\log_{10}(M/M_\odot)]^i$ | Moline Eq. 18 | lines 127–130 | Same | **Match** | |
+| Coefficients from Table 3, $\alpha=2$, tidal stripping | Moline Table 3 | `config.py:MOLINE_BOOST_COEFFS` | Same | **Match** | $[-0.186, 0.144, -8.8\times10^{-3}, 1.13\times10^{-3}, -3.7\times10^{-5}, -2\times10^{-7}]$ |
+| $B(M,z) = B(M,z{=}0)/(1+z)$ | Moline thesis Eq. 3.48 | line 135 | Same | **Match** | |
+| Polynomial argument in $M_\odot$ (not $M_\odot/h$) | Moline: masses in physical $M_\odot$ | `M_solar = M / cfg.h` line 116 | Same | **Match** | Resolved: now uses $M_{\rm phys} = M_{\rm code}/h$ consistently with `v_circ` |
+| Valid range: $10^{-6} \lt M\,[M_\odot] \lt 10^{15}$ | Moline Sec. 3.2 | `np.clip(M_solar, 1e-6, 1e15)` line 127 | Same | **Match** | |
+| Output clipped to $[0, 1000]$ | Not in literature | `np.clip(B, 0.0, 1000.0)` line 140 | Same | **Differs** | Numerical safety; $B$ never reaches 1000 in practice |
+| Conservative: $B=0$ for $M \lt 10^7\,M_\odot$ | Pipeline design | lines 119–124 | Same | **Match** | |
+| `optimistic` distinct from `intermediate` | Pipeline docs | Both map to $M_{\rm min,sub} = 10^{-6}$ | Same | **Bug** | Documented as having "enhanced substructure" but not implemented |
 
 ---
 
@@ -93,12 +93,11 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\Delta^2 = (1/\bar\rho_m^2)\int (dn/dM)(1+B)\int\rho^2 d^3x\, dM$ | Pinetti Eq. 4.2 | line 149 | Same | **Match** | |
-| Integration via $d\ln M$: factor of $M$ in integrand | Standard | line 188: `dn * (1+B) * rho2_int * M` | Same | **Match** | |
-| Integration limits from config | `M_MIN_DM=1e-6`, `M_MAX_DM=1e18` | Uses config values directly at line 192 | Same | **Match** | Resolved: silent clamping removed |
-| $n_M = 200$ integration points | Implementation | Default parameter line 150 | Same | **Match** | ~9.5 pts/decade; rectangle rule adequate |
-| Normalization by $\bar\rho_m^2$ | Pinetti Eq. 4.2 | `cfg.RHO_BAR**2` line 191 | Same | **Match** | |
-| Cached by $(z, \text{scenario})$ | Implementation | `_clumping_cache` keyed by `(round(z, 4), boost_scenario)` | Same | **Match** | |
+| $\Delta^2 = (1/\bar\rho_m^2)\int (dn/dM)(1+B)\int\rho^2 d^3x\, dM$ | Pinetti Eq. 4.2 | `_clumping_compute` line 147 | Same | **Match** | |
+| Integration via $d\ln M$: factor of $M$ in integrand | Standard | line 160: `dn * (1+B) * rho2_int * M` | Same | **Match** | |
+| Integration limits from config | `M_MIN_DM=1e-6`, `M_MAX_DM=1e18` | Uses config values directly at lines 192–194 | Same | **Match** | Resolved: silent clamping removed |
+| $n_M = 200$ integration points | Implementation | Default parameter line 167 | Same | **Match** | ~9.5 pts/decade; rectangle rule adequate |
+| Normalization by $\bar\rho_m^2$ and $(1+z)^3$ | Pinetti Eq. 4.2 | `cfg.RHO_BAR**2` and `(1+z)**3` line 162 | Same | **Match** | |
 
 ---
 
@@ -133,21 +132,21 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 
 ---
 
-## 7. Window Function Assembly (`dm_model.py:W_gamma_DM`)
+## 7. Window Function Assembly (`dm_model.py:W_gamma_DM` via `_W_gamma_DM_impl`)
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $1/(8\pi)$ prefactor | Pinetti Eq. 4.1: $1/(4\pi) \times 1/(2m_\chi^2)$ | `sigma_v / (8 * np.pi)` line 258 | Same (no override yet) | **Match** | $1/(4\pi) \times 1/2 = 1/(8\pi)$; Majorana DM |
-| $(\rho_{\rm DM}/m_\chi)^2$ | Pinetti Eq. 4.1 | line 259 | Same | **Match** | |
-| $\rho_{\rm DM} = \Omega_{\rm DM}\rho_c$ | Standard | line 250 | Same | **Match** | $\Omega_{\rm DM} = 0.2660$ |
-| $M_{\odot,\rm GeV} = 1.116\times10^{57}$ | Standard conversion | line 248 | Same | **Match** | |
-| $h^2$ in density conversion | Unit identity | line 251 | Same | **Match** | **Verified numerically**: $\rho_{\rm DM} = 1.27\times10^{-6}$ GeV/cm$^3$ |
-| $(1+z)^3$ cosmological factor | Pinetti Eq. 4.1 | line 260 | Same | **Match** | |
+| $1/(8\pi)$ prefactor | Pinetti Eq. 4.1: $1/(4\pi) \times 1/(2m_\chi^2)$ | `sigma_v / (8 * np.pi)` line 219 | Same (no override yet) | **Match** | $1/(4\pi) \times 1/2 = 1/(8\pi)$; Majorana DM |
+| $(\rho_{\rm DM}/m_\chi)^2$ | Pinetti Eq. 4.1 | line 216 | Same | **Match** | |
+| $\rho_{\rm DM} = \Omega_{\rm DM}\rho_c$ | Standard | `_W_gamma_DM_impl` | Same | **Match** | $\Omega_{\rm DM} = 0.2660$ |
+| $M_{\odot,\rm GeV} = 1.116\times10^{57}$ | Standard conversion | `_W_gamma_DM_impl` | Same | **Match** | |
+| $h^2$ in density conversion | Unit identity | `_W_gamma_DM_impl` | Same | **Match** | **Verified numerically**: $\rho_{\rm DM} = 1.27\times10^{-6}$ GeV/cm$^3$ |
+| $(1+z)^3$ cosmological factor | Pinetti Eq. 4.1 | line 221 | Same | **Match** | |
 | No baked-in $1/H(z)$ factor in `W_gamma_DM()` | Limber: $d\chi/dz = c/H(z)$ is supplied by the integration measure | `dm_model.py:W_gamma_DM` docstring and return expression | Same | **Match** | Current implementation keeps the emissivity factors in `W_gamma_DM()` and leaves the Jacobian to the Limber measure |
 | $\sigma_v$ default: $3\times10^{-26}$ cm$^3$/s | Thermal relic | `cfg.SIGMA_V_THERMAL` | Same | **Match** | |
-| Final unit conversion to $({\rm Mpc}/h)^{-3}$ | Per-$\chi$ convention | `W_cgs * Mpc_h_cm**3` line 271 | Same | **Match** | |
-| $dN/dE$ at rest-frame energy | Pinetti Eq. 4.1 | `E_emit = E_GeV * (1+z)` line 252 | Same | **Match** | |
-| EBL at observed energy | Standard convention | line 262 | Same | **Match** | |
+| Final unit conversion to $({\rm Mpc}/h)^{-3}$ | Per-$\chi$ convention | `W_cgs * Mpc_h_cm**3` line 225 | Same | **Match** | |
+| $dN/dE$ at rest-frame energy | Pinetti Eq. 4.1 | `E_emit = E_GeV * (1+z)` line 206 | Same | **Match** | |
+| EBL at observed energy | Standard convention | line 211 | Same | **Match** | |
 
 ---
 
@@ -155,12 +154,12 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $P^{2h} = I_{\rm DM} \times I_{\rm HI} \times P_{\rm lin}$ | Pinetti Eqs. 5.1--5.2 | line 53 | Same (no override yet) | **Match** | |
-| $I_{\rm DM} = \int (dn/dM)\,b\,\tilde{v}/\Delta^2\,dM$ | Eq. 5.1 | lines 48, 53 | Would use $q=0.75$ bias | **Match** | $\tilde{v}/\Delta^2$ is the correct normalization |
-| $I_{\rm HI} = \int (dn/dM)\,b\,\tilde{u}_{\rm HI}\,M_{\rm HI}/\bar\rho_{\rm HI}\,dM$ | Eq. 5.2 | line 50 | Would use $q=0.75$ bias | **Match** | |
-| Mass range: HI-relevant | $M_{\rm HI} = 0$ outside $[10^8, 10^{16}]$ | lines 34--35 | Same | **Match** | |
-| Limber $k = (\ell+1/2)/\chi$ | LoVerde & Afshordi (2008) | line 163 | $k = \ell/\chi$ via `pinetti2022.limber_k()` | **Differs** | Pipeline improvement; ~5% at $\ell=10$, negligible at $\ell \gt 100$ |
-| $d\chi/dz = c \cdot h / H(z)$ in [Mpc/h] | Standard | line 155 | Same | **Match** | |
+| $P^{2h} = I_{\rm DM} \times I_{\rm HI} \times P_{\rm lin}$ | Pinetti Eqs. 5.1--5.2 | line 52 | Same (no override yet) | **Match** | |
+| $I_{\rm DM} = \int (dn/dM)\,b\,\tilde{v}/\Delta^2\,dM$ | Eq. 5.1 | lines 47, 52 | Would use $q=0.75$ bias | **Match** | $\tilde{v}/\Delta^2$ is the correct normalization |
+| $I_{\rm HI} = \int (dn/dM)\,b\,\tilde{u}_{\rm HI}\,M_{\rm HI}/\bar\rho_{\rm HI}\,dM$ | Eq. 5.2 | line 49 | Would use $q=0.75$ bias | **Match** | |
+| Mass range: HI-relevant | $M_{\rm HI} = 0$ outside $[10^8, 10^{16}]$ | lines 33–34 | Same | **Match** | |
+| Limber $k = (\ell+1/2)/\chi$ | LoVerde & Afshordi (2008) | line 162 | $k = \ell/\chi$ via `pinetti2022.limber_k()` | **Differs** | Pipeline improvement; ~5% at $\ell=10$, negligible at $\ell \gt 100$ |
+| $d\chi/dz = c \cdot h / H(z)$ in [Mpc/h] | Standard | line 154 | Same | **Match** | |
 
 ---
 

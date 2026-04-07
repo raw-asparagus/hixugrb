@@ -62,15 +62,15 @@ For the blazar LDDE evolution, the active implementation follows Ajello's publis
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Evolution form: smooth inverse-sum (continuous around peak) | Ajello+ (2012) Eq. 15: $[r^{p_1}+r^{p_2}]^{-1}$; Pinetti Eq. C.4 writes $[r^{-p_1}+r^{-p_2}]^{-1}$ | `_ldde_glf()` evaluates `1.0 / (ratio**p1 + ratio**p2)` | Same implementation path; no FSRQ-specific override in `pinetti2022.py` | **Partial** | The active pipeline intentionally follows Ajello because the fitted $(p_1,p_2)$ values come from the Ajello convention. |
+| Evolution form: smooth inverse-sum (continuous around peak) | Ajello+ (2012) Eq. 15; Pinetti Eq. C.4 writes $[r^{-p_1}+r^{-p_2}]^{-1}$ | `_ldde_glf()` evaluates `1.0 / (ratio**(-p1) + ratio**(-p2))` at line 473 | Same implementation path; no FSRQ-specific override in `pinetti2022.py` | **Match** | Pipeline now matches thesis Eq. C.4 sign convention. |
 | $r = (1+z)/(1+z_c(L))$ | Standard definition | `_ldde_glf()` | Same | **Match** | |
 | Peaks at $r=1$ (i.e., $z=z_c$) with $e=0.5$ | Both conventions | Verified analytically | Same | **Match** | |
 | Low-z and high-z suppression | Both conventions | Verified analytically | Same | **Match** | |
-| **Numerical values** between the Ajello and thesis sign choices | — | Pipeline keeps the Ajello-valued profile | A literal implementation of thesis Eq. C.4 would differ away from $r=1$ | **Differs** | This is now a documented literature discrepancy rather than a code bug. |
+| **Numerical values** between the Ajello and thesis sign choices | — | Pipeline now matches thesis Eq. C.4 convention | Same | **Match** | Sign convention resolved; pipeline uses negative exponents. |
 | Alternative `piecewise` form retained (unused) | — | `_ldde_glf(..., evolution_form='piecewise')` | Same | N/A | Deprecated; kept for comparison only |
 | Alternative `sum` form retained (legacy) | — | `_ldde_glf(..., evolution_form='sum')` | Same | N/A | Legacy; not used |
 
-**Implementation remark:** the active repository now matches Ajello's published inverse-sum. The thesis Eq. C.4 notation is preserved here only as a documentation-side deviation note.
+**Implementation remark:** the active repository now matches thesis Eq. C.4 with negative exponents (`ratio**(-p1) + ratio**(-p2)`).
 
 ---
 
@@ -80,7 +80,7 @@ For the blazar LDDE evolution, the active implementation follows Ajello's publis
 |-------|---------------------|----------|-------------------------|--------|-------|
 | $\Phi(L,z) = (d\Phi/dL)_{z=0} \times e(z,L)$ | Ajello+ (2012) Eq. 14 | `_ldde_glf()` returns `phi_L * e_z` | Same | **Match** | |
 | Non-negative output | Standard | `_ldde_glf()` applies `max(..., 0.0)` | Same | N/A | Safeguard |
-| `_glf_FSRQ()` dispatches to `_ldde_glf` with `ldde_inv` | — | `_glf_FSRQ()` | Same | **Match** (convention) | |
+| `_glf_FSRQ()` dispatches to `_ldde_glf` with `evolution_form='ldde_inv'` | — | `_glf_FSRQ()` line 500 | Same | **Match** (convention) | |
 
 ---
 
@@ -88,7 +88,7 @@ For the blazar LDDE evolution, the active implementation follows Ajello's publis
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $W = 1/(4\pi h^3)\int\Phi(L/\epsilon I_\alpha)E_{\rm rest}^{-\alpha}\,dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure | `W_gamma_astro()` returns the photon-emissivity form `val / (4\pi h^3)` | Same | **Partial** | The active implementation evaluates the per-source rest-frame photon emissivity directly, so no explicit $(1+z)^{-2}$ prefactor remains; the final `h^{-3}` converts the physical GLF density to the pipeline's h-dependent convention. |
+| $W = 1/(4\pi h^3)\int\Phi(L/\epsilon I_\alpha)E_{\rm rest}^{-\alpha}\,dL$ | Pinetti+ (2020) Eq. 4.3 motivates the luminosity-function structure | `W_gamma_astro()` lines 598–600, 603–606, 609, 620, 643; returns the photon-emissivity form `val / (4\pi h^3)` | Same | **Partial** | The active implementation evaluates the per-source rest-frame photon emissivity directly, so no explicit $(1+z)^{-2}$ prefactor remains; the final `h^{-3}` converts the physical GLF density to the pipeline's h-dependent convention. |
 | FSRQ spectral index $\alpha=2.44$ | Pinetti+ (2020) Table 3 | `ASTRO_SOURCES['FSRQ']['alpha']=2.44` | Same | **Match** | |
 | $L_{\min}=10^{44}$ erg/s | Pinetti thesis Table 3.1 | `L_min=1e44` | Same | **Match** | |
 | $L_{\max}=10^{52}$ erg/s | Pinetti thesis Table 3.1 | `L_max=1e52` | Same | **Match** | |
@@ -115,7 +115,7 @@ For the blazar LDDE evolution, the active implementation follows Ajello's publis
 
 | # | Item | Nature | Severity | Notes |
 |---|------|--------|----------|-------|
-| T1 | Thesis Eq. C.4 flips the LDDE exponent signs relative to Ajello | Deliberate implementation choice | Medium | The active pipeline keeps Ajello+ (2012) Eq. 15 so the published $(p_1,p_2)$ fit is used in the convention in which it was calibrated. |
+| ~~T1~~ | ~~Thesis Eq. C.4 flips the LDDE exponent signs relative to Ajello~~ | — | — | **Resolved:** pipeline now uses `ratio**(-p1) + ratio**(-p2)` at line 473, matching thesis Eq. C.4 convention |
 | T2 | Fixed $M_{\rm halo}=10^{13}\,M_\odot$ for bias | Standard blazar convention | Low | No luminosity dependence modeled. Alternative would be a $L$-dependent mass relation as for mAGN/SFG |
 | T3 | Pure power-law gamma-ray spectrum | Simplification | Low | Real FSRQ spectra may show curvature (e.g., at broad-line photon field absorption features); single power law standard in Pinetti framework |
 | T4 | AGN-Gaussian photon index distribution ignored | Simplification | Low | Ajello+ (2012) includes a Gaussian distribution of photon indices per source; pipeline uses only the mean index $\mu=2.44$ |
@@ -138,7 +138,7 @@ For the blazar LDDE evolution, the active implementation follows Ajello's publis
 
 ## 10. Pipeline (Pinetti 2022) Parallel Summary
 
-The `pinetti2022.py` parallel module does **not** implement a separate FSRQ GLF or window-function path. For FSRQ, the main `astro_sources.py` implementation is the implemented source of truth. Relative to the thesis text, the active pipeline makes one explicit blazar-specific choice: it keeps Ajello's positive-exponent inverse-sum rather than the sign-flipped thesis Eq. C.4. The remaining implemented differences that can affect projected FSRQ clustering come from shared halo-model helpers:
+The `pinetti2022.py` parallel module does **not** implement a separate FSRQ GLF or window-function path. For FSRQ, the main `astro_sources.py` implementation is the implemented source of truth. The LDDE sign convention now matches thesis Eq. C.4 (negative exponents). The remaining implemented differences that can affect projected FSRQ clustering come from shared halo-model helpers:
 
 - Halo bias uses $q=0.75$ (thesis) vs $q=0.707$ (pipeline default) via `pinetti2022.bias_pinetti()` → ~few-percent shift in FSRQ effective bias
 - Limber $k$-substitution uses $k=\ell/\chi$ (thesis) vs $k=(\ell+1/2)/\chi$ (pipeline)
@@ -152,7 +152,7 @@ Neither affects the FSRQ window function $W_\gamma^{\rm FSRQ}(z)$ itself — onl
 
 | # | Item | Ajello+ (2012) | Pipeline | Nature | Severity |
 |---|------|----------------|----------|--------|----------|
-| 1 | Inverse-sum exponent signs | Ajello+ (2012) Eq. 15 uses $[r^{p_1}+r^{p_2}]^{-1}$; Pinetti thesis Eq. C.4 writes $[r^{-p_1}+r^{-p_2}]^{-1}$ | $[r^{p_1}+r^{p_2}]^{-1}$ | Deliberate choice to preserve Ajello's fit convention | Medium |
+| ~~1~~ | ~~Inverse-sum exponent signs~~ | — | **Resolved:** pipeline now uses `ratio**(-p1) + ratio**(-p2)` matching thesis Eq. C.4 | — | — |
 | 2 | Photon index distribution | Gaussian about $\mu=2.44$ | Single $\alpha=2.44$ | Simplification | Low |
 | 3 | Blazar bias mass | Not prescribed per source | Fixed $10^{13}\,M_\odot/h$ | Convention | Low |
 
