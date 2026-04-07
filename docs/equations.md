@@ -12,7 +12,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 1.2 | $H(z) = H_0 E(z)$ | [Planck 2018](literature/planck2018.md): $H_0 = 67.36$ km/s/Mpc | `H(z)` |
 | 1.3 | $\chi(z) = \frac{c}{H_0}\int_0^z \frac{dz'}{E(z')}$ | Standard cosmology | `chi(z)` |
 | 1.4 | $d_L(z) = (1+z)\,\chi(z)$ | Standard cosmology | `d_L(z)` |
-| 1.5 | $D(z) \propto E(z)\int_z^\infty \frac{dz'}{(1+z')E(z')^3}$, $D(0)=1$ | Exact flat ΛCDM | `growth_factor(z)` |
+| 1.5 | $D(z) \propto E(z)\int_z^\infty \frac{(1+z')\,dz'}{E(z')^3}$, $D(0)=1$ | Exact flat ΛCDM | `growth_factor(z)` |
 | 1.6 | $\rho_c = \frac{3H_0^2}{8\pi G} = 2.775\times10^{11}\;M_\odot h^{-1}\,(\text{Mpc}/h)^{-3}$ | Standard | `config.RHO_CRIT` |
 | 1.7 | $\bar\rho_m = \Omega_M\,\rho_c$ | Standard | `config.RHO_BAR` |
 | 1.8 | $P_\text{lin}(k,z)$ via CAMB Boltzmann solver | [Planck 2018](literature/planck2018.md) params | `P_lin(k, z)` |
@@ -53,7 +53,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 3.4 | $\rho_0$ from $\int_0^{R_\text{vir}}4\pi r^2\rho_\text{HI}\,dr = M_\text{HI}$ | Mass normalization | `rho0_HI` |
 | 3.5 | $\tilde u_\text{HI}(k \mid M) = \frac{4\pi}{M_\text{HI}}\int_0^{R_\text{vir}}r^2\rho_\text{HI}(r)\frac{\sin kr}{kr}dr$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.14 | `u_HI(k, M, z)` |
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.2 | `rho_HI_mean(z)` |
-| 3.7 | $\Omega_\text{HI}(z) = \bar\rho_\text{HI}^\text{com}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 motivates the density ratio; the implementation uses the halo integral's comoving density directly | `Omega_HI(z)` |
+| 3.7 | $\Omega_\text{HI}(z) = \bar\rho_\text{HI}^\text{com}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 motivates the density ratio; D5: the implementation computes $\Omega_\text{HI}$ from the halo integral's comoving density directly, rather than using a fixed constant | `Omega_HI(z)` |
 | 3.8 | $\bar T_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)}$ mK | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.4 | `T_bar_b(z)` |
 | 3.9 | $b_\text{HI}(z) = \frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,M_\text{HI}\,b(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.6 | `b_HI(z)` |
 | 3.10 | $P_\text{HI}^\text{1h}(k,z) = \frac{1}{\bar\rho_\text{HI}^2}\int\frac{dn}{dM}\,M_\text{HI}^2\,\tilde u_\text{HI}^2\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.12 | `P_HI_1h` |
@@ -88,7 +88,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |
-| 5.4 | LDDE inverse-sum: $e(z) = [r^{p_1} + r^{p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18; D12: thesis Eq. C.4 writes opposite exponent signs. Current `_ldde_glf` intentionally follows the Ajello positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers | `_ldde_glf` |
+| 5.4 | LDDE inverse-sum: $e(z) = [r^{-p_1} + r^{-p_2}]^{-1}$, $r=(1+z)/(1+z_c)$ | [Ajello+ (2012)](literature/ajello2012.md) Eq. 15 and [Ajello+ (2014)](literature/ajello2014.md) Eq. 18; D12: thesis Eq. C.4 writes opposite exponent signs. Current `_ldde_glf` intentionally follows the Ajello positive-exponent convention because the fitted $(p_1,p_2)$ values come from the Ajello papers | `_ldde_glf` |
 | 5.5 | $W_\gamma^\text{astro}(\chi) = \frac{1}{4\pi h^3}\int_{L_\text{min}}^{L_\text{up}}\Phi(L,z)\,\frac{L}{E_\text{GeV\to erg}\,I_\alpha}\,E_\text{rest}^{-\alpha}\,dL\;\times e^{-\tau(E_\gamma,z)}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.3; D14: EBL attenuation $e^{-\tau}$ at observed energy now applied (thesis omitted for astro sources). Converts physical GLF density to [(Mpc/h)$^{-3}$] | `W_gamma_astro` |
 |   | $I_\alpha = \int_{0.1}^{100}E^{1-\alpha}dE$; $E_\text{rest}=(1+z)E$ | | |
 
@@ -111,14 +111,14 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 5.8 | $\log_{10} L_\text{core}^{5\text{GHz}} = 4.2 + 0.77\,\log_{10} L_\text{tot}^{1.4\text{GHz}}$ | [Lara+ (2004)](literature/lara2004.md) | `_L151_from_Lgamma` |
 | 5.9 | $L_r^{1.4\text{GHz}} = L_r^{151\text{MHz}} \times (1400/151)^{-0.80}$ | [Inoue (2011)](literature/inoue2011.md) | `_L151_from_Lgamma` |
 | 5.10 | $\log_{10} L_\gamma = 2.0 + 1.008\,\log_{10} L_\text{core}^{5\text{GHz}}$ | [Di Mauro+ (2014)](literature/dimauro2014.md) | `_L151_from_Lgamma` |
-| 5.11 | $\phi_\gamma = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{\rho_r}{\ln(10)\,L_{151}}\,\left\lvert\frac{dL_{151}}{dL_\gamma}\right\rvert$; $k{=}3.05$, $\Gamma{=}2.37$ | [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 | `_glf_mAGN` |
+| 5.11 | $\phi_\gamma = \frac{k\,\eta}{(1+z)^{2-\Gamma}}\,\frac{\rho_r}{\ln(10)\,L_{151}}\,\left\lvert\frac{dL_{151}}{dL_\gamma}\right\rvert$; $k{=}3.05$, $\Gamma{=}2.37$ | [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.19; chain from [Di Mauro+ (2014)](literature/dimauro2014.md) Eqs. 16, 20 | `_glf_mAGN` |
 
 ### SFG GLF — IR→Gamma Conversion Chain ([Gruppioni+ 2013](literature/gruppioni2013.md))
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
 | 5.12 | $\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) | `_gruppioni_ir_lf` |
-| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) Eq. C.23; D4: SF-AGN $k_{R2}$ sign corrected from thesis typo; D13: $z=1.1$ break applied uniformly to all 3 components | `_gruppioni_component` |
+| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) modified Schechter; [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.23; D4: SF-AGN $k_{R2}$ sign corrected from thesis typo; D13: $z=1.1$ break applied uniformly to all 3 components | `_gruppioni_component` |
 | 5.14 | $\log_{10} L_\gamma = 1.09\,\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | [Ackermann+ (2012)](literature/ackermann2012_sfg.md) | `_L_IR_from_Lgamma` |
 | 5.15 | $\phi_\gamma = \phi_\text{IR}\,\lvert d\log_{10}L_\text{IR}/d\log_{10}L_\gamma \rvert / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
 
@@ -175,7 +175,7 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 | 8.13 | $\langle W_\ell^k\rangle = \int W_\ell(E)E^{-\alpha}dE\,/\,\int E^{-\alpha}dE$; $\alpha=2.3$ | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 5 | `beam_fermi_bin_averaged` |
 | 8.14 | $W_\text{pix}(\ell) \approx \exp(-\ell^2\theta_\text{pix}^2/2)$; $\theta_\text{pix}=\sqrt{4\pi/12N_\text{side}^2}$ | HEALPix pixel window | `pixel_window` |
 | 8.15 | $\ell_\max$: $\langle W_{\ell_\max}^k\rangle = 0.61$ or $1000$ (whichever smaller) | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 7; Table I | `ell_max_fermi` |
-| 8.16 | $F_\text{sens}(E) = F_\text{sens,ref}\,[\sigma_0(E)/\sigma_0(E_\text{ref})]^2$; $E_\text{ref}=5$ GeV | Energy-dependent sensitivity (data mode) | `F_sens_energy` |
+| 8.16 | $F_\text{sens}(E) = F_\text{sens,ref}\,[\sigma_0(E)/\sigma_0(E_\text{ref})]^2$; $E_\text{ref}=5$ GeV | Energy-dependent sensitivity (data mode) | `F_sens_energy` (in `astro_sources.py`) |
 
 ---
 

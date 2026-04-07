@@ -75,7 +75,7 @@ def v_circ(M, z=0.0):
     v_c = sqrt(G M_phys / R_phys) with physical M_sun and Mpc.
     """
     M = np.asarray(M, dtype=float)
-    Rv = R_vir(M, z)       # physical Mpc/h
+    Rv = R_vir(M, z)       # Mpc/h
     M_phys = M / cfg.h     # M_sun
     R_phys = Rv / cfg.h    # Mpc
     return np.sqrt(_G_COSMO * M_phys / R_phys)

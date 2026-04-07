@@ -19,7 +19,7 @@
                 ▼             │              │
        ┌────────────────┐    │              │
        │hmf_interface.py│    │              │
-       │ hmf.MassFunction│    │              │
+       │ hmf.MassFunction│   │              │
        │ σ(M), dn/dM    │    │              │
        └───────┬────────┘    │              │
                ▼             │              │
@@ -49,6 +49,8 @@
     │ P_HI×DM, P_HI×astro (3D) │     │ T_sys, N^HI   │
     │ C_ℓ Limber integration    │     │ N^γ, B_ℓ, PSF │
     │ C_ℓ^{HI,HI} auto-power   │     └───────┬───────┘
+    │ (also imports config,     │             │
+    │  halo_model)              │             │
     └────────────┬──────────────┘             │
                  │                            │
                  ▼                            ▼
@@ -56,6 +58,7 @@
           │          statistics.py                │
           │  variance_Cl  →  compute_SNR         │
           │  delta_chi2   →  exclusion_curve     │
+          │  (also imports config)               │
           └──────────────┬───────────────────────┘
                          │
                │
@@ -88,6 +91,8 @@ For the equation-level implementation reference, see [`equations.md`](equations.
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs |
 | `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
+| `pinetti2022.py` | Thesis-faithful parameter overrides (Correa cosmology, q=0.75 bias, k=ℓ/χ Limber, T̄_b=44 μK) for validation against Pinetti (2022) |
+| `plotting.py` | Matplotlib configuration: page widths, fonts, styling for publication figures |
 | `notebooks/pipeline_validation.ipynb` | Jupyter notebook with validation plots, window-function comparisons, SNR tables, and exclusion-curve outputs |
 
 ## Window Function Pipeline
