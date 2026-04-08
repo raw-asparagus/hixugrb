@@ -236,7 +236,28 @@ The pipeline makes several deliberate choices that differ from the primary liter
 
 ---
 
-## 8. Cross-Reference
+## 8. Literature Cosmology Mismatch Registry
+
+External fits used by the pipeline were derived under various cosmologies that differ from the pipeline's Planck 2018 parameters. These mismatches **cannot be fully corrected** without re-fitting to original data; only volume/luminosity scaling corrections are possible. The table below documents each mismatch and any corrections applied.
+
+| Fit | Paper | Assumed cosmology | Correction applied | Residual mismatch |
+|-----|-------|-------------------|--------------------|--------------------|
+| Correa c(M,z) | Correa+ (2015) | Planck 2013 (Ω_m=0.317, h=0.67, σ₈=0.834) | D2: re-fit coefficients for Planck 2018 | Negligible |
+| FSRQ LDDE | Ajello+ (2012) | WMAP-era (Ω_m≈0.27, h≈0.71) | None | Small (~1–2% in d_L) |
+| BL Lac LDDE | Ajello+ (2014) | Planck 2013-era (Ω_m≈0.315, h≈0.67) | None | Negligible |
+| Willott RLF | Willott+ (2001) | H₀=50, Ω_M=0, Ω_Λ=0 (empty/Milne) | η(z) volume correction (§5) | Volume corrected; fit shape and L* not re-derived |
+| IR LF | Gruppioni+ (2013) | ΛCDM (H₀=70, Ω_m=0.3, Ω_Λ=0.7) | None | Small (enters through d_L and volume) |
+| L_γ–L_IR | Ackermann+ (2012) | WMAP-era (Ω_m≈0.27, h≈0.71) | None | Cosmology enters only through d_L; cancels in L–L scaling |
+| Boost B(M) | Moliné+ (2017) | Planck 2015 (Ω_m=0.309, h=0.677) | None | Negligible (N-body; weak cosmological dependence) |
+| HI model | Padmanabhan+ (2017) | WMAP-3/custom (Ω_m=0.281, h=0.71, σ₈=0.80) | None | Weak; pipeline substitutes Planck 2018 for f_Hc and HMF |
+
+**Notes:**
+- The Willott volume correction η(z) corrects density (number per comoving volume) but not luminosity. This matches the Di Mauro+ (2014) methodology. A full luminosity rescaling would require re-fitting the RLF to original flux data — see §5 and `literature/willott2001.md`.
+- The Padmanabhan HI model parameters were fit under WMAP-era cosmology. The pipeline uses their best-fit values but evaluates f_Hc, the halo mass function, and virial quantities with Planck 2018 parameters. The HI mass–halo mass relation has weak cosmological sensitivity since the MCMC primarily constrains the shape, not the absolute normalization.
+
+---
+
+## 9. Cross-Reference
 
 | Convention topic | Authoritative file |
 |---|---|

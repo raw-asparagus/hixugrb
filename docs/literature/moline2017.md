@@ -15,6 +15,10 @@ Refines predictions for substructure enhancement of dark matter annihilation sig
 - B(M) ~ 10–20 for Milky Way-scale halos with M_min = 10⁻⁶ M☉
 - Valid for 10⁻⁶ < M₂₀₀ [M☉] < 10¹⁵, accuracy < 5%
 
+## Assumed Cosmology
+
+Planck 2015: Ω_m = 0.309, Ω_Λ = 0.691, h = 0.677, σ₈ = 0.816, n_s = 0.967. The boost factor polynomial is calibrated from N-body simulations (Via Lactea II, ELVIS) which have weak dependence on the exact cosmological parameters.
+
 ## Key Equations
 
 ### Polynomial boost at z=0 (Eq. 18)

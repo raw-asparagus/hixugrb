@@ -8,6 +8,10 @@
 
 Derives the infrared luminosity function evolution of Herschel-selected galaxies out to $z \sim 4$ using PEP and HerMES data. The paper does **not** model only three star-forming populations: it fits the total IR LF and then decomposes it into **five main SED classes**: spiral, starburst, SF-AGN, AGN2, and AGN1. For interpretation, SF-AGN is further divided into SF-AGN(SB) and SF-AGN(Spiral).
 
+## Assumed Cosmology
+
+Standard ΛCDM: H₀ = 70 km/s/Mpc, Ω_m = 0.3, Ω_Λ = 0.7. Stated in the paper's Section 1.
+
 ## Data and Scope
 
 - PEP + HerMES coverage in GOODS-S, GOODS-N, ECDFS, and COSMOS

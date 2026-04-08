@@ -4,28 +4,38 @@
 
 ### Documentation Structure & Dependency Tiers
 
-The documentation forms a tiered DAG. Updates must flow **top-down** through the tiers; a file is stale when any of its dependencies is newer.
+The documentation and code form a tiered DAG. Correctness flows **top-down**: each tier must be consistent with the tiers above it. When a discrepancy is found, the **higher-tier artifact is authoritative** — fix the lower-tier one.
 
 ```
-Tier 0 — Sources of truth (never generated, always authoritative):
+Tier 0 — Sole source of truth (never generated, always authoritative):
   papers/*.pdf  (22 PDFs)
-  hi_gamma_xcorr/*.py  (implementation)
 
-Tier 1 — Leaf docs (depend only on papers, no inter-doc dependencies):
+Tier 1 — Leaf docs (faithful summaries of Tier 0):
   literature/*.md  (22 reviews — one per paper)
 
-Tier 2 — Synthesis docs (depend on Tier 1 + code):
-  equations.md      ← literature/*.md + code (equation↔function mapping)
-  conventions.md    ← literature/*.md + code (units, frames, deviations)
+Tier 2 — Synthesis docs (depend on Tier 1; define deviations):
+  equations.md      ← literature/*.md (equation catalog + deviation definitions)
+  conventions.md    ← literature/*.md (units, frames, deviations)
+  NOTE: These docs have a dual role — authoritative for what the math
+  should be, but descriptive for where code implements it (function names,
+  module attributions, line refs). The code-location metadata is not a
+  dependency; it is updated after code changes, not before.
+
+Tier 3 — Implementation (realization of Tier 1 + Tier 2 with documented deviations):
+  hi_gamma_xcorr/*.py
+
+Tier 4 — Descriptive docs (depend on Tier 3):
   architecture.md   ← code (import graph, module descriptions)
 
-Tier 3 — Per-source audit docs (depend on Tier 1 + Tier 2 + code):
+Tier 5 — Audit docs (verify Tier 3 against Tier 1 + Tier 2):
   window-functions/*.md narratives         ← literature + conventions
   window-functions/*_evidence_matrix.md    ← literature + equations + code
 
-Tier 4 — Master audit (depends on all Tier 1):
+Tier 6 — Master audit (depends on all Tier 1):
   literature_evidence_matrix.md  ← all 22 literature/*.md
 ```
+
+**Correctness authority flows top-down:** if code (Tier 3) disagrees with literature + equations (Tiers 1–2) and no deviation is documented, the code is suspect. Evidence matrices (Tier 5) and architecture (Tier 4) are regenerated to match code, but code itself is corrected to match the literature.
 
 **Evidence matrix → code coupling** (which matrices audit which code):
 
@@ -38,15 +48,15 @@ Tier 4 — Master audit (depends on all Tier 1):
 | `magn_evidence_matrix.md` | `astro_sources.py`, `config.py` |
 | `sfg_evidence_matrix.md` | `astro_sources.py`, `config.py` |
 
-### Phase 0: Staleness Check (3 tasks, all parallel)
+### Phase 0: Literature Review Verification (22 tasks, all parallel)
+
+Verify each `literature/*.md` review faithfully summarizes its corresponding `docs/papers/*.pdf`. This is the foundational check — everything downstream depends on the reviews being accurate.
 
 | ID  | Check | Files | Pass |
 |-----|-------|-------|------|
-| 0.1 | `literature_evidence_matrix.md` git date vs all `literature/*.md` dates | matrix + 22 lit files | Matrix newer than all lit files |
-| 0.2 | Each `window-functions/*_evidence_matrix.md` git date vs its narrative + code modules | 6 matrices + 6 narratives + code | Each matrix newer than sources |
-| 0.3 | `equations.md` / `conventions.md` git dates vs `hi_gamma_xcorr/*.py` | 2 docs + all code | Docs at least as recent as code |
+| 0.x | For each of the 22 papers: read the PDF and the corresponding `.md`; verify key equations, parameter values, and qualitative claims in the review match the paper. Flag any inaccuracies or missing content. | `docs/papers/*.pdf`, `docs/literature/*.md` (pairwise) | Review accurately represents the paper |
 
-**Method:** `git log -1 --format="%aI" -- <file>` for each file.
+**Method:** Read each PDF alongside its review. Focus on: (1) equations reproduced correctly, (2) parameter values transcribed accurately, (3) no claims in the review that aren't in the paper, (4) no material omissions relevant to this pipeline.
 
 ### Phase 1: Internal Doc-to-Doc Cross-Consistency (6 tasks; 1.1-1.3 parallel, then 1.4-1.6 parallel)
 
@@ -57,7 +67,7 @@ Tier 4 — Master audit (depends on all Tier 1):
 | 1.3 | **Formula consistency:** 10 key equations (M_HI, T_bar, W_DM, LDDE, W_astro, mAGN_GLF, Gruppioni, PSF, Limber, variance) match between equations.md and their literature source, modulo documented Dx. | equations.md, literature/*.md | Match or deviation documented |
 | 1.4 | **Window-function forms:** per-chi conventions in conventions.md S3 agree with equations.md entries 3.12, 4.6, 5.5 (what's baked in: bias, Jacobian, EBL). | conventions.md, equations.md | Consistent prefactors and notes |
 | 1.5 | **Parameter values:** Planck params, LDDE tables, spectral indices stated in both equations.md and conventions.md agree numerically. | conventions.md, equations.md | No numerical discrepancies |
-| 1.6 | **Module attribution:** function-to-module mapping in equations.md consistent with architecture.md module descriptions. | architecture.md, equations.md | No misattributions |
+| 1.6 | **Module attribution:** function-to-module mapping in equations.md consistent with architecture.md module descriptions. (Cross-check between Tier 2 descriptive metadata and Tier 4; neither is authoritative over the other — resolve against actual code.) | architecture.md, equations.md | No misattributions |
 
 ### Phase 2: Docs-to-Code Structure (5 tasks; 2.1-2.3 parallel, then 2.4-2.5 parallel)
 
@@ -97,17 +107,23 @@ Tier 4 — Master audit (depends on all Tier 1):
 | 5.1 | Aggregate all discrepancies. Classify as: (a) doc error, (b) code error, (c) stale audit, (d) cosmetic. Prioritize by impact. |
 | 5.2 | Apply fixes for (a) doc errors and (b) code errors found in 5.1. |
 
-### Phase 5.5: Documentation Regeneration (8 tasks; respects dependency tiers)
+### Phase 5.5: Documentation Regeneration (9 tasks; respects dependency tiers)
 
-After Phase 5 applies fixes, all stale documentation must be re-audited **in dependency order** (see Documentation Structure above). A file is stale when any of its Tier 0 dependencies (code) or same-tier dependencies (other docs) have been modified more recently.
+After Phase 5 applies fixes, all affected documentation must be re-audited **in dependency order** (see Documentation Structure above). Re-audit any doc whose upstream content was changed by Phase 5 fixes.
 
-**Wave 1 — Tier 2 synthesis docs (1 task, reviews code changes):**
+**Wave 1 — Tier 2 synthesis docs (1 task, reviews literature changes):**
 
 | ID  | Task | Dependencies | Files |
 |-----|------|-------------|-------|
-| 5.5.1 | Review `conventions.md` against recent code commits; update if any convention, unit, frame, or deviation has changed | Code (Tier 0) | `conventions.md`, all `hi_gamma_xcorr/*.py` |
+| 5.5.1 | Review `conventions.md` and `equations.md` against literature reviews (Tier 1); update math, deviations, and conventions to match authoritative literature. Then update code-location metadata (function names, module attributions, line refs) to reflect any code fixes from Phase 5. | Literature (Tier 1) for math; code (Tier 3) for metadata only | `conventions.md`, `equations.md`, `literature/*.md`, all `hi_gamma_xcorr/*.py` |
 
-**Wave 2 — Tier 3 evidence matrices (6 tasks, all parallel; depend on Wave 1):**
+**Wave 1.5 — Tier 4 descriptive docs (1 task; depends on Wave 1):**
+
+| ID  | Task | Dependencies | Files |
+|-----|------|-------------|-------|
+| 5.5.1b | Regenerate `architecture.md` against current code: verify import graph, module descriptions, and one-line summaries reflect any code fixes from Phase 5 | Code (Tier 3) | `architecture.md`, all `hi_gamma_xcorr/*.py` |
+
+**Wave 2 — Tier 5 evidence matrices (6 tasks, all parallel; depend on Wave 1.5):**
 
 | ID  | Task | Code dependencies |
 |-----|------|-------------------|
@@ -118,9 +134,9 @@ After Phase 5 applies fixes, all stale documentation must be re-audited **in dep
 | 5.5.6 | Re-audit `magn_evidence_matrix.md` | `astro_sources.py`, `config.py` |
 | 5.5.7 | Re-audit `sfg_evidence_matrix.md` | `astro_sources.py`, `config.py` |
 
-For each evidence matrix: read the current matrix, read the code modules it audits, verify every claim (equation match, parameter value, line number, status). Update any stale line numbers, changed formulas, or shifted logic. Preserve the matrix format.
+For each evidence matrix: read the current matrix, read the code modules it audits, verify every claim (equation match, parameter value, line number, status). Correct any inaccurate line numbers, formulas, or logic descriptions. Preserve the matrix format.
 
-**Wave 3 — Tier 4 master matrix (1 task, sequential; depends on Tier 1 being stable):**
+**Wave 3 — Tier 6 master matrix (1 task, sequential; depends on Tier 1 being stable):**
 
 | ID  | Task | Dependencies |
 |-----|------|-------------|
@@ -130,13 +146,13 @@ For each evidence matrix: read the current matrix, read the code modules it audi
 
 | Phase | Tasks | Parallelism | Depends on |
 |-------|-------|-------------|------------|
-| 0 | 0.1-0.3 | 3 parallel | -- |
+| 0 | 0.x (22 tasks) | 22 parallel | -- |
 | 1 | 1.1-1.3 then 1.4-1.6 | 3+3 | Phase 0 |
 | 2 | 2.1-2.3 then 2.4-2.5 | 3+2 | Phase 1 |
 | 3 | 3.1-3.4 then 3.5-3.6 then 3.7 | 4+2+1 | Phase 2 |
 | 4 | 4.1-4.3 then 4.4 | 3+1 | Phase 3 |
 | 5 | 5.1-5.2 | sequential | Phase 4 |
-| 5.5 | 5.5.1 then 5.5.2-5.5.7 then 5.5.8 | 1+6+1 | Phase 5 |
+| 5.5 | 5.5.1 then 5.5.1b then 5.5.2-5.5.7 then 5.5.8 | 1+1+6+1 | Phase 5 |
 
 ### Highest-Risk Areas
 

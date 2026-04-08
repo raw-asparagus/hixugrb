@@ -8,6 +8,10 @@
 
 Constructs the gamma-ray luminosity function of BL Lac objects using 211 sources from the First LAT AGN Catalog (1LAC). Compares PDE, PLE, and LDDE models. Finds LDDE provides the best fit, with overall positive evolution peaking at z ~ 1.2. HSP BL Lacs show negative evolution (density increases toward z=0), while LISP (ISP+LSP) show positive evolution.
 
+## Assumed Cosmology
+
+Planck 2013-era: Ω_m ≈ 0.315, Ω_Λ ≈ 0.685, h ≈ 0.67. The paper does not explicitly state cosmological parameters; these are inferred from the contemporary Fermi-LAT analysis conventions at the time of publication.
+
 ## GLF Parameterization
 
 ### Local luminosity function (Eq. C.2, with Γ = μ★ = 2.12)

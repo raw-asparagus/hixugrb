@@ -22,6 +22,10 @@ $$\phi_\gamma(L_\gamma, z) = \phi_\text{IR}(L_\text{IR}(L_\gamma), z)\,\frac{d\l
 
 where $d\log_{10} L_\text{IR} / d\log_{10} L_\gamma = 1/\alpha_\text{IR} \approx 0.917$.
 
+## Assumed Cosmology
+
+WMAP-era: Ω_m ≈ 0.27, Ω_Λ ≈ 0.73, h ≈ 0.71. The paper does not explicitly state cosmological parameters. Cosmology enters only through d_L in converting fluxes to luminosities; the L_γ–L_IR scaling is a correlation between two luminosities, so d_L effects largely cancel.
+
 ## Repository Use
 
 Used by the repository to convert the Gruppioni infrared luminosity function into the SFG gamma-ray luminosity function in `astro_sources.py`.

@@ -8,6 +8,10 @@
 
 Develops a comprehensive halo model for neutral hydrogen (HI) in the post-reionization universe (z ~ 0–5). Using MCMC methods, simultaneously fits HI abundance (ALFALFA mass function, DLA column densities, Ω_HI), clustering (ALFALFA small-scale, GBT intensity mapping), and DLA properties. Two profile variants are tested: an exponential profile (main text) and a modified NFW profile (Appendix A).
 
+## Assumed Cosmology
+
+WMAP-3/custom: Ω_m = 0.281, Ω_Λ = 0.719, h = 0.71, Ω_b = 0.0462, σ₈ = 0.80, n_s = 0.96, Y_P = 0.24. Explicitly stated in the paper: "Throughout the paper, we assume a flat ΛCDM cosmology consistent with previous work."
+
 ## Two Profile Fits
 
 The paper provides **two independent MCMC fits** to the same data, each with its own best-fit parameters. Parameters from one fit must NOT be mixed with the other.

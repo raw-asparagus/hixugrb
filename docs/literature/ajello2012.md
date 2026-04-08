@@ -22,6 +22,10 @@ Determines the gamma-ray luminosity function of flat-spectrum radio quasars (FSR
 - Intrinsic unbeamed population: Lorentz factor gamma ~ 11.7
 - Strong cosmological evolution similar to radio-quiet AGN
 
+## Assumed Cosmology
+
+WMAP-era: Ω_m ≈ 0.27, Ω_Λ ≈ 0.73, h ≈ 0.71. The paper does not explicitly state cosmological parameters; these are inferred from the contemporary Fermi-LAT analysis conventions.
+
 ## Equations and Parameters Used (Table 3, LDDE model)
 
 **LDDE double power-law:**

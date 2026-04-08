@@ -51,7 +51,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $M_{\rm HI} = \alpha f_{H,c} M (M/10^{11}h^{-1}M_\odot)^\beta \exp[-(v_{c,0}/v_c)^3]$ | Padmanabhan+ (2017) Eq. 1; thesis Eq. 4.2 | `hi_model.py:M_HI(M,z)` lines 20–30 | Same | **Match** | |
+| $M_{\rm HI} = \alpha f_{H,c} M (M/10^{11}h^{-1}M_\odot)^\beta \exp[-(v_{c,0}/v_c)^3]$ | Padmanabhan+ (2017) Eq. 1; thesis Eq. 4.2 | `hi_model.py:M_HI(M,z)` lines 21–31 | Same | **Match** | |
 | $\alpha = 0.176$ | Padmanabhan+ Table A1 (modified NFW fit) | `config.py:HI_ALPHA` | Same | **Match** | |
 | $\beta = -0.69$ | Padmanabhan+ Table A1 | `config.py:HI_BETA` | Same | **Match** | |
 | $v_{c,0} = 10^{1.61} \approx 40.7$ km/s | Padmanabhan+ Table A1 | `config.py:HI_VC0 = 10**1.61` | Same | **Match** | |
@@ -63,65 +63,65 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $c_{\rm HI} = c_{HI,0}(M/10^{11}M_\odot)^{-0.109} \times 4/(1+z)^\gamma$ | Padmanabhan+ Eq. 3; thesis Eq. 4.10 | `hi_model.py:c_HI(M,z)` lines 37–48 with `M * h / 1e11` | Same | **Match** | The current implementation converts the repository mass variable from $M_\odot/h$ to $M_\odot$ before applying the Padmanabhan pivot |
+| $c_{\rm HI} = c_{HI,0}(M/10^{11}M_\odot)^{-0.109} \times 4/(1+z)^\gamma$ | Padmanabhan+ Eq. 3; thesis Eq. 4.10 | `hi_model.py:c_HI(M,z)` lines 38–49 with `M * h / 1e11` | Same | **Match** | The current implementation converts the repository mass variable from $M_\odot/h$ to $M_\odot$ before applying the Padmanabhan pivot |
 | $c_{HI,0} = 139$ | Padmanabhan+ Table A1 | `config.py:HI_C0 = 139.0` | Same | **Match** | |
 | $\gamma = 0.13$ | Padmanabhan+ Table A1 | `config.py:HI_GAMMA_CONC = 0.13` | Same | **Match** | |
-| Exponent $-0.109$ | Padmanabhan+ Eq. 3 | Hardcoded in `hi_model.py:48` | Same | **Match** | |
+| Exponent $-0.109$ | Padmanabhan+ Eq. 3 | Hardcoded in `hi_model.py:49` | Same | **Match** | |
 
 ### 3.3 HI density profile
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\rho_{\rm HI}(r) = \rho_0 r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | Padmanabhan+ Eq. A1; thesis Eq. 4.8 | `hi_model.py:u_HI` integrand, lines 104–134 | Same | **Match** | Modified NFW from Maller & Bullock (2004) |
-| $\rho_0$ from $\int_0^{R_{\rm vir}} 4\pi r^2 \rho_{\rm HI}\,dr = M_{\rm HI}$ | Padmanabhan+ Eq. A2; thesis Eq. 4.9 | `hi_model.py:rho0_HI(M,z)` lines 89–101 | Same | **Match** | |
-| Normalization integral: partial fractions A=9, B=−8, C=−4 | Analytic result | `hi_model.py:_hi_profile_norm_integral` lines 79–83 | Same | **Match** | Verified: $x^2/[(x+0.75)(x+1)^2]$ decomposes as $9/(x+0.75) - 8/(x+1) - 4/(x+1)^2$. Coefficient checks: $x^2$: $A+B = 9-8 = 1$ ✓; $x^1$: $2A+1.75B+C = 18-14-4 = 0$ ✓; $x^0$: $A+0.75B+0.75C = 9-6-3 = 0$ ✓ |
+| $\rho_{\rm HI}(r) = \rho_0 r_s^3 / [(r+0.75r_s)(r+r_s)^2]$ | Padmanabhan+ Eq. A1; thesis Eq. 4.8 | `hi_model.py:u_HI` integrand, lines 105–135 | Same | **Match** | Modified NFW from Maller & Bullock (2004) |
+| $\rho_0$ from $\int_0^{R_{\rm vir}} 4\pi r^2 \rho_{\rm HI}\,dr = M_{\rm HI}$ | Padmanabhan+ Eq. A2; thesis Eq. 4.9 | `hi_model.py:rho0_HI(M,z)` lines 90–102 | Same | **Match** | |
+| Normalization integral: partial fractions A=9, B=−8, C=−4 | Analytic result | `hi_model.py:_hi_profile_norm_integral` lines 80–87 | Same | **Match** | Verified: $x^2/[(x+0.75)(x+1)^2]$ decomposes as $9/(x+0.75) - 8/(x+1) - 4/(x+1)^2$. Coefficient checks: $x^2$: $A+B = 9-8 = 1$ ✓; $x^1$: $2A+1.75B+C = 18-14-4 = 0$ ✓; $x^0$: $A+0.75B+0.75C = 9-6-3 = 0$ ✓ |
 
 ### 3.4 Fourier transform of HI profile
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\tilde{u}_{\rm HI} = (4\pi/M_{\rm HI})\int_0^{R_{\rm vir}} r^2 \rho_{\rm HI} \sin(kr)/(kr)\,dr$ | Thesis Eq. 4.11 | `hi_model.py:u_HI(k,M,z)` lines 104–134 | Same | **Match** | No analytic FT exists for modified NFW; numerical quadrature is the correct approach |
+| $\tilde{u}_{\rm HI} = (4\pi/M_{\rm HI})\int_0^{R_{\rm vir}} r^2 \rho_{\rm HI} \sin(kr)/(kr)\,dr$ | Thesis Eq. 4.11 | `hi_model.py:u_HI(k,M,z)` lines 105–135 | Same | **Match** | No analytic FT exists for modified NFW; numerical quadrature is the correct approach |
 | $\tilde{u}_{\rm HI}(k\to0) = 1$ normalization | Standard convention | `u_HI` returns 1.0 for $k \lt 10^{-10}$ | Same | **Match** | |
-| Numerical integration: `scipy.quad`, `epsrel=1e-6`, `limit=200` | N/A (computational choice) | `hi_model.py:131` | Same | Appropriate | Expensive but accurate |
+| Numerical integration: `scipy.quad`, `epsrel=1e-6`, `limit=200` | N/A (computational choice) | `hi_model.py:132` | Same | Appropriate | Expensive but accurate |
 
 ### 3.5 Mean HI density
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\bar\rho_{\rm HI}(z) = \int (dn/dM)\,M_{\rm HI}\,dM$ | Thesis Eq. 4.5 | `hi_model.py:rho_HI_mean(z)` lines 164–182 | Same | **Match** | Integration via `scipy.quad` in log-mass |
+| $\bar\rho_{\rm HI}(z) = \int (dn/dM)\,M_{\rm HI}\,dM$ | Thesis Eq. 4.5 | `hi_model.py:rho_HI_mean(z)` lines 178–193 (dispatcher); integration in `_rho_HI_default` lines 142–150 and `_rho_HI_scalar` lines 153–162 | Same | **Match** | Integration via `scipy.quad` in log-mass; cached via `@_cache_stable` |
 | Mass limits: $10^8$–$10^{16}\,M_\odot/h$ | Not explicitly stated; adequate range | `config.py:M_MIN_HI`, `M_MAX_HI` | Same | **Match** | Integrand exponentially suppressed at both ends |
 
 ### 3.6 Omega_HI
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\Omega_{\rm HI}(z) = (1+z)^{-3}\bar\rho_{\rm HI}/\rho_c$ | Thesis Eq. 4.6 | `hi_model.py:Omega_HI(z)` lines 185–196 | Fixed $2.45\times10^{-4}$ | **Differs** | Thesis (p.122) subsequently uses fixed $\Omega_{\rm HI} = 2.45\times10^{-4}$. Pipeline computes from the halo integral (z-dependent). Pipeline is more physical; thesis acknowledges up to factor-2 variation. Propagates linearly into $\bar{T}_b$ and $W_{\rm HI}$ |
+| $\Omega_{\rm HI}(z) = (1+z)^{-3}\bar\rho_{\rm HI}/\rho_c$ | Thesis Eq. 4.6 | `hi_model.py:Omega_HI(z)` lines 196–207 | Fixed $2.45\times10^{-4}$ | **Differs** | Thesis (p.122) subsequently uses fixed $\Omega_{\rm HI} = 2.45\times10^{-4}$. Pipeline computes from the halo integral (z-dependent). Pipeline is more physical; thesis acknowledges up to factor-2 variation. Propagates linearly into $\bar{T}_b$ and $W_{\rm HI}$ |
 
 ### 3.7 Brightness temperature
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $\bar{T}_b = 188\,h\,\Omega_{\rm HI}(1+z)^2/E(z)$ mK | Thesis Eq. 3.4 uses $44\,\mu{\rm K}\times(\Omega_{\rm HI}h/2.45\times10^{-4})(1+z)^2/E(z)$ | `hi_model.py:T_bar_b(z)` lines 199–207 | 44 $\mu$K via `pinetti2022.T_bar_b_thesis()` | **Partial** | Equivalent: $188 \times 2.45\times10^{-4} \approx 0.046$ mK $= 46\,\mu$K $\approx 44\,\mu$K (rounding). Combined with computed vs fixed $\Omega_{\rm HI}$, numerical results differ slightly |
+| $\bar{T}_b = 188\,h\,\Omega_{\rm HI}(1+z)^2/E(z)$ mK | Thesis Eq. 3.4 uses $44\,\mu{\rm K}\times(\Omega_{\rm HI}h/2.45\times10^{-4})(1+z)^2/E(z)$ | `hi_model.py:T_bar_b(z)` lines 210–218 | 44 $\mu$K via `pinetti2022.T_bar_b_thesis()` | **Partial** | Equivalent: $188 \times 2.45\times10^{-4} \approx 0.046$ mK $= 46\,\mu$K $\approx 44\,\mu$K (rounding). Combined with computed vs fixed $\Omega_{\rm HI}$, numerical results differ slightly |
 
 ### 3.8 Effective HI bias
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $b_{\rm HI} = (1/\bar\rho_{\rm HI})\int (dn/dM)\,M_{\rm HI}\,b(M)\,dM$ | Thesis Eq. 4.7 | `hi_model.py:b_HI(z)` lines 210–232 | $q=0.75$ via `pinetti2022.b_HI_pinetti()` | **Match** | Via `scipy.quad` in log-mass |
+| $b_{\rm HI} = (1/\bar\rho_{\rm HI})\int (dn/dM)\,M_{\rm HI}\,b(M)\,dM$ | Thesis Eq. 4.7 | `hi_model.py:b_HI(z)` lines 221–243 | $q=0.75$ via `pinetti2022.b_HI_pinetti()` | **Match** | Via `scipy.quad` in log-mass |
 
 ### 3.9 HI power spectra
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $P_{\rm HI}^{\rm 1h} = (1/\bar\rho_{\rm HI}^2)\int (dn/dM)\,M_{\rm HI}^2\,\tilde{u}_{\rm HI}^2\,dM$ | Thesis Eq. 4.13 | `hi_model.py:P_HI_1h` lines 239–267 | Same | **Match** | Rectangle rule over log-mass grid (n_M=160) |
-| $P_{\rm HI}^{\rm 2h} = [(1/\bar\rho_{\rm HI})\int (dn/dM)\,b\,M_{\rm HI}\,\tilde{u}_{\rm HI}\,dM]^2 P_{\rm lin}$ | Thesis Eq. 4.14 | `hi_model.py:P_HI_2h` lines 270–299 | Same | **Match** | Same method |
+| $P_{\rm HI}^{\rm 1h} = (1/\bar\rho_{\rm HI}^2)\int (dn/dM)\,M_{\rm HI}^2\,\tilde{u}_{\rm HI}^2\,dM$ | Thesis Eq. 4.13 | `hi_model.py:P_HI_1h` lines 250–278 | Same | **Match** | Rectangle rule over log-mass grid (n_M=160) |
+| $P_{\rm HI}^{\rm 2h} = [(1/\bar\rho_{\rm HI})\int (dn/dM)\,b\,M_{\rm HI}\,\tilde{u}_{\rm HI}\,dM]^2 P_{\rm lin}$ | Thesis Eq. 4.14 | `hi_model.py:P_HI_2h` lines 281–310 | Same | **Match** | Same method |
 
 ### 3.10 Window function
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
-| $W_{\rm HI}(\chi) = \bar{T}_b\,\phi(z)\,H(z)/(c\cdot h)$ | Thesis Eqs. 5.11–5.12 for the per-$z$ window; repository keeps $b_{\rm HI}$ in $P_{\rm HI}$ rather than in `W_HI()` | `hi_model.py:W_HI(z,z_min,z_max)` lines 306–324 | `pinetti2022.W_HI_pinetti()` | **Match** | $\phi(z) = 1/(z_{\max}-z_{\min})$ top-hat; $H/(c\cdot h)$ Jacobian converts per-$z$ to per-Mpc/$h$ |
-| Returns 0 outside $[z_{\min}, z_{\max}]$ | Top-hat selection | `hi_model.py:308-309` | Same | **Match** | |
+| $W_{\rm HI}(\chi) = \bar{T}_b\,\phi(z)\,H(z)/(c\cdot h)$ | Thesis Eqs. 5.11–5.12 for the per-$z$ window; repository keeps $b_{\rm HI}$ in $P_{\rm HI}$ rather than in `W_HI()` | `hi_model.py:W_HI(z,z_min,z_max)` lines 317–335 | `pinetti2022.W_HI_pinetti()` | **Match** | $\phi(z) = 1/(z_{\max}-z_{\min})$ top-hat; $H/(c\cdot h)$ Jacobian converts per-$z$ to per-Mpc/$h$ |
+| Returns 0 outside $[z_{\min}, z_{\max}]$ | Top-hat selection | `hi_model.py:332` | Same | **Match** | |
 
 ---
 
@@ -156,7 +156,7 @@ This document audits every equation, model choice, parameter value, and computat
 |---|------|-----------|------------------------|--------|
 | ~~D1~~ | ~~`_b_HI_cache` declared but never populated~~ | — | — | **Resolved:** dead code removed |
 | ~~D2~~ | ~~Comment says "trapezoidal" but implements rectangle rule~~ | — | — | **Resolved:** comment corrected to "rectangle rule" |
-| ~~D3~~ | ~~`from functools import lru_cache` imported but unused~~ | — | — | **Resolved:** dead import removed |
+| ~~D3~~ | ~~`from functools import lru_cache` imported but unused~~ | — | — | **Resolved:** dead import removed; replaced by `from .cache import _cache_stable` (used on `_rho_HI_default`, `_rho_HI_scalar`) |
 
 ---
 
