@@ -12,6 +12,7 @@ from scipy.integrate import quad
 from . import config as cfg
 from . import cosmology as cosmo
 from . import halo_model as hm
+from .cache import _cache_stable
 
 # ---------------------------------------------------------------------------
 # HI mass–halo mass relation (Pinetti et al. Eq. 3.7)
@@ -138,12 +139,25 @@ def u_HI(k, M, z):
 # Mean HI density, Omega_HI, brightness temperature, bias
 # ---------------------------------------------------------------------------
 
+@_cache_stable(module=__name__)
 def _rho_HI_default(z):
     """rho_HI_mean at default mass limits."""
     def integrand(lnM):
         M = np.exp(lnM)
         return hm.dndM(M, z) * M_HI(M, z) * M
     val, _ = quad(integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
+                  limit=200, epsrel=1e-5)
+    return val
+
+
+@_cache_stable(module=__name__)
+def _rho_HI_scalar(z, M_min, M_max):
+    """rho_HI_mean at explicit mass limits for scalar inputs."""
+    def integrand(lnM):
+        M = np.exp(lnM)
+        return hm.dndM(M, z) * M_HI(M, z) * M
+
+    val, _ = quad(integrand, np.log(M_min), np.log(M_max),
                   limit=200, epsrel=1e-5)
     return val
 
@@ -166,20 +180,17 @@ def rho_HI_mean(z, M_min=None, M_max=None):
 
     rho_HI = integral (dn/dM) * M_HI(M, z) dM
     """
+    z = float(z)
+
     if M_min is None and M_max is None:
-        return _rho_HI_default(float(z))
+        return _rho_HI_default(z)
 
     if M_min is None:
         M_min = cfg.M_MIN_HI
     if M_max is None:
         M_max = cfg.M_MAX_HI
 
-    def integrand(lnM):
-        M = np.exp(lnM)
-        return hm.dndM(M, z) * M_HI(M, z) * M
-
-    val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-5)
-    return val
+    return _rho_HI_scalar(z, float(M_min), float(M_max))
 
 
 def Omega_HI(z, **kwargs):

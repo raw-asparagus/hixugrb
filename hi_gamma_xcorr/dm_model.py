@@ -11,6 +11,7 @@ from . import cosmology as cosmo
 from . import halo_model as hm
 from . import pppc4dmid
 from . import ebl as ebl_mod
+from .cache import _cache_stable
 
 # ---------------------------------------------------------------------------
 # NFW rho^2 profile: analytic expressions
@@ -144,6 +145,7 @@ def boost_moline(M, z, M_min_sub=1e-6):
 # Clumping factor Delta^2(z) (Eq. 4.2)
 # ---------------------------------------------------------------------------
 
+@_cache_stable(module=__name__)
 def _clumping_compute(z, M_min, M_max, boost_scenario, n_M):
     """Core clumping computation."""
     M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
