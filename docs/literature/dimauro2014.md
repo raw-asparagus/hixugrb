@@ -36,6 +36,8 @@ k\,
 \frac{d\log L_{r,\mathrm{tot}}}{d\log L_{r,\mathrm{core}}}
 $$
 
+This is the paper's actual GLF construction. It does **not** contain an "Eq. C.19" or the later appendix-style halo-mass mappings that appeared in downstream synthesis material.
+
 ## Key Results
 
 - The radio-core / gamma-ray correlation survives partial-correlation tests and upper-limit checks
@@ -43,3 +45,9 @@ $$
 - A physically interesting case with **$k = 1$** also fits the source counts reasonably well, suggesting many radio-core MAGN may emit gamma rays
 - Unresolved MAGN are predicted to contribute about **10–63%** of the IGRB
 - The cascade component is subdominant; in the benchmark calculation it is about **8%** of the total MAGN energy flux
+
+## Repository Use
+
+Used by the repository as the main MAGN gamma-ray luminosity-function reference in `astro_sources.py`, together with the [Willott](willott2001.md) and [Lara](lara2004.md) radio relations it builds on.
+
+More repo-convenient appendix-style rewrites of these source classes appear later in [Pinetti (2022)](pinetti2022_thesis.md), but they are not part of this 2014 paper itself.

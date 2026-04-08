@@ -1,4 +1,4 @@
-# Gruppioni, Pozzi, Rodighiero et al. (2013) — The Herschel PEP/HerMES Luminosity Function - I: Probing the Evolution of PACS Selected Galaxies to z ≃ 4
+# Gruppioni, Pozzi, Rodighiero et al. (2013) — Herschel PEP/HerMES IR Luminosity Function
 
 **Authors:** C. Gruppioni, F. Pozzi, G. Rodighiero, et al.
 **Journal:** MNRAS 432(1), 23–52
@@ -74,3 +74,7 @@ Table 8 also gives the redshift evolution parameters for each class. In particul
 ## Erratum
 
 **MNRAS 436(3), 2875–2876 (December 2013)** corrects the scaling in one figure and does not alter the fitted luminosity-function parameters used here.
+
+## Repository Use
+
+The repository's SFG implementation uses the star-forming subset of this paper, chiefly the `spiral`, `starburst`, and `SF-AGN` components. That is a deliberate subset for modeling purposes; the paper itself presents a broader **five-population** decomposition.

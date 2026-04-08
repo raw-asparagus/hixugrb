@@ -1,4 +1,4 @@
-# Willott, Rawlings, Blundell, Lacy & Eales (2001) — The Radio Luminosity Function from the Low-Frequency 3CRR, 6CE & 7CRS Complete Samples
+# Willott, Rawlings, Blundell, Lacy & Eales (2001) — Radio Luminosity Function
 
 **Authors:** C. J. Willott, S. Rawlings, K. M. Blundell, M. Lacy, S. A. Eales
 **Journal:** MNRAS 322, 536–552
@@ -12,7 +12,7 @@ Derives the radio luminosity function (RLF) from the combined 3CRR, 6CE, and 7CR
 
 - 151 MHz steep-spectrum radio luminosity function
 - Two-component model: low-power (FRI-like) + high-power (FRII/quasar-like)
-- Assumes **H₀ = 50 km/s/Mpc, q₀ = 0.5** for the Model C parameter set
+- Assumes **H₀ = 50 km/s/Mpc, Ω_M = 0, Ω_Λ = 0** (open/empty cosmology) for the Model C parameter set later reused by [Di Mauro+ (2014)](dimauro2014.md)
 
 ## Key Results
 
@@ -20,7 +20,7 @@ The RLF is the sum of two populations (and is later converted into a MAGN gamma-
 
 $$\rho_r(L_r, z) = \rho_l(L_r, z) + \rho_h(L_r, z)$$
 
-where $L_r$ is the radio luminosity at 151 MHz in W Hz⁻¹ sr⁻¹.
+where $L_r$ is the radio luminosity at 151 MHz in W/Hz.
 
 ### Low-power component
 
@@ -52,4 +52,8 @@ where:
 | $k$ / $z_\star$ | $k_l = 3.48$, $z_{l\star} = 0.710$ | $z_{h\star} = 2.03$ | — |
 | $z_{h0}$ | — | 0.568 / 0.956 | — |
 
-**Important:** All densities are in the Willott cosmology (H₀ = 50, q₀ = 0.5). A comoving volume correction factor η(z) = (d_C^W/d_C)² × (H/H_W) is required to convert to Planck 2018 cosmology.
+**Important:** All densities are in the Willott cosmology (H₀ = 50, Ω_M = 0). A comoving volume correction factor η(z) = (d_C^W/d_C)² × (H/H_W) is required to convert to Planck 2018 cosmology.
+
+## Repository Use
+
+Used by the repository as the underlying 151 MHz radio luminosity function in the mAGN source model.

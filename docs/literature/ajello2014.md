@@ -1,4 +1,4 @@
-# Ajello, Romani, Gasparrini et al. (2014) — The Cosmic Evolution of Fermi BL Lacertae Objects
+# Ajello, Romani, Gasparrini et al. (2014) — BL Lac Luminosity Function
 
 **Authors:** M. Ajello, R. W. Romani, D. Gasparrini, M. S. Shaw, J. Bolmer, et al.
 **Journal:** ApJ 780(1), 73
@@ -10,7 +10,7 @@ Constructs the gamma-ray luminosity function of BL Lac objects using 211 sources
 
 ## GLF Parameterization
 
-### Local luminosity function (Eq. 18, with Γ = μ★ = 2.12)
+### Local luminosity function (Eq. C.2, with Γ = μ★ = 2.12)
 
 $$\frac{d\Phi}{d\log_{10}L} = \frac{A}{\left(\frac{L}{L_\star}\right)^{\gamma_1} + \left(\frac{L}{L_\star}\right)^{\gamma_2}}$$
 
@@ -43,3 +43,7 @@ This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll
 - Combined BL Lac population: peaks at $z \sim 1.2$–$1.7$ (luminosity-dependent)
 - BL Lacs contribute ~10–15% of the isotropic gamma-ray background
 - Spectral index: μ★ = 2.12 ± 0.03 (LDDE1, Table 3)
+
+## Repository Use
+
+Used by the repository as the primary source for the BL Lac luminosity-function parameters in `astro_sources.py`.

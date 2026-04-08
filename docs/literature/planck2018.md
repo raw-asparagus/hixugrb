@@ -1,4 +1,4 @@
-# Planck Collaboration (2020) — Planck 2018 Results. VI. Cosmological Parameters
+# Planck Collaboration (2018) — Cosmological Parameters
 
 **Authors:** Planck Collaboration (N. Aghanim et al.)
 **Journal:** A&A 641, A6 (2020)
@@ -28,7 +28,7 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 | n_s | 0.9649 +/- 0.0042 | — |
 | sigma_8 | 0.8111 +/- 0.0060 | — |
 | tau | 0.0544 +/- 0.0073 | — |
-| A_s | (2.10 +/- 0.03) × 10^{-9} | — |
+| A_s | 2.1 × 10^{-9} | — |
 
 ### Derived
 
@@ -48,3 +48,7 @@ Final full-mission Planck CMB measurements providing the most precise determinat
 - H_0 tension: 3.6 sigma below local measurement (~73 km/s/Mpc)
 - DM = 26%, baryons = 5%, dark energy = 68% of universe
 - Power-law primordial spectrum consistent with inflation
+
+## Repository Use
+
+Used by the repository as the cosmological-parameter source for `config.py`, `cosmology.py`, and the mass-function backend.

@@ -1,4 +1,4 @@
-# Cunnington, Li et al. (2023) — H I Intensity Mapping with MeerKAT: Power Spectrum Detection in Cross-Correlation with WiggleZ Galaxies
+# Cunnington, Li et al. (2023) — MeerKAT HI Intensity Mapping × WiggleZ Cross-Correlation
 
 **Authors:** S. Cunnington, Y. Li, M. G. Santos, J. Wang, I. P. Carucci, M. O. Irfan, A. Pourtsidou, M. Spinelli, L. Wolz, P. S. Soares, C. Blake, P. Bull, B. Engelbrecht, J. Fonseca, K. Grainge, Y.-Z. Ma
 **Journal:** MNRAS 518(4), 6262–6272 (2023)
@@ -124,3 +124,7 @@ Model convolved with survey window functions (Eq. 14) and corrected by transfer 
 | T_HI coefficient | 180 mK | Eq. 15 |
 | Scan speed | 5 arcmin/s along azimuth | Sec. 2 |
 | Noise diode period | 20 s | Sec. 2 |
+
+## Repository Use
+
+Relevant to the repository as the main observational reference for data-analysis-grade MeerKAT single-dish treatment: reconvolution, PCA foreground cleaning, transfer-function correction, and the MeerKAT-specific beam coefficient.

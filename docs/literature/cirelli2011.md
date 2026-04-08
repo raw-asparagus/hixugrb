@@ -1,4 +1,4 @@
-# Cirelli et al. (2011) — PPPC 4 DM ID: A Poor Particle Physicist Cookbook for Dark Matter Indirect Detection
+# Cirelli et al. (2011) — PPPC 4 DM ID
 
 **Authors:** M. Cirelli, G. Corcella, A. Hektor, G. Hutsi, M. Kadastik, P. Panci, M. Raidal, F. Sala, A. Strumia
 **Journal:** JCAP 1103, 051 (Erratum: JCAP 1210, E01)
@@ -22,7 +22,7 @@ The paper covers:
 
 ## Primary Channels
 
-For annihilation, the paper tabulates benchmark primary channels, including:
+For annihilation, the paper tabulates 28 benchmark primary channels, including:
 
 - leptons: $e^\pm$, $\mu^\pm$, $\tau^\pm$ with chirality labels
 - quarks: light $q\bar q$, $c\bar c$, $b\bar b$, $t\bar t$
@@ -39,3 +39,17 @@ The tabulated mass range is **5 GeV to 100 TeV**.
 - Supplies semi-analytic propagation functions for Galactic charged cosmic rays
 - Includes prompt gamma rays, inverse-Compton gamma rays, synchrotron, and extragalactic gamma-ray predictions in one reference
 - Makes numerical results available in machine-readable form for downstream use
+
+## Equation Used
+
+The numerical yields are commonly distributed in terms of $dN/d\log_{10}x$, where for annihilation $x = E/m_\chi$. The standard conversion is:
+
+$$\frac{dN}{dx} = \frac{dN}{d\log_{10} x} \cdot \frac{1}{x \ln 10}$$
+
+$$\frac{dN}{dE} = \frac{1}{m_\chi}\frac{dN}{dx}$$
+
+This conversion is useful for repository code that consumes PPPC prompt-photon tables, but the paper itself is much broader than those prompt yields alone.
+
+## Repository Use
+
+The repository mainly uses the PPPC prompt-photon yield tables consumed by `pppc4dmid.py`. This note now reflects the full paper scope rather than only that one downstream data product.

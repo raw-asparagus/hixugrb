@@ -1,4 +1,4 @@
-# Ajello et al. (2012) — The Luminosity Function of Fermi-detected Flat-Spectrum Radio Quasars
+# Ajello et al. (2012) — FSRQ Luminosity Function
 
 **Authors:** M. Ajello, M. S. Shaw, R. W. Romani, C. D. Dermer, L. Costamante, et al.
 **Journal:** ApJ 751(2), 108
@@ -36,7 +36,7 @@ $$e(z,L) = \left[\left(\frac{1+z}{1+z_c}\right)^{p_1} + \left(\frac{1+z}{1+z_c}\
 
 | Parameter | Value | Unit |
 |-----------|-------|------|
-| A | 3.06 × 10⁴ | 10⁻¹³ Mpc⁻³ erg⁻¹ s |
+| A | 3.06 × 10⁻⁹ | Mpc⁻³ |
 | gamma_1 | 0.21 ± 0.12 | — |
 | gamma_2 | 1.58 ± 0.27 | — |
 | L* | 0.84 × 10⁴⁸ | erg/s |
@@ -45,3 +45,7 @@ $$e(z,L) = \left[\left(\frac{1+z}{1+z_c}\right)^{p_1} + \left(\frac{1+z}{1+z_c}\
 | p_1 | 7.35 ± 1.74 | — |
 | p_2 | −6.51 ± 1.97 | — |
 | mu (photon index) | 2.44 ± 0.01 | — |
+
+## Repository Use
+
+Used by the repository as the primary source for the FSRQ luminosity-function parameters in `astro_sources.py`.
