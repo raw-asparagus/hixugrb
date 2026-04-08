@@ -1,4 +1,4 @@
-# Ammazzalorso, Fornengo, Horiuchi & Regis (2018) — Fermi-LAT × 2MPZ Cross-Correlation
+# Ammazzalorso, Fornengo, Horiuchi & Regis (2018) — Characterizing the Local Gamma-Ray Universe via Angular Cross-Correlations
 
 **Authors:** S. Ammazzalorso, N. Fornengo, S. Horiuchi, M. Regis
 **Journal:** Phys. Rev. D 98, 103007 (2018)
@@ -113,7 +113,3 @@ $$\langle N_\mathrm{sat}(M) \rangle = \left(\frac{M - M_\mathrm{cut}}{M_1}\right
 $$P_{gg}^\mathrm{1h}(k, z) = \int \frac{dn}{dM} \frac{2\langle N_\mathrm{cen}\rangle \langle N_\mathrm{sat}\rangle \tilde{v}_\delta + \langle N_\mathrm{sat}\rangle^2 \tilde{v}_\delta^2}{\bar{n}_g^2} \, dM$$
 
 $$P_{gg}^\mathrm{2h}(k, z) = \left[\int \frac{dn}{dM} b_h(M) \frac{\langle N_g \rangle}{\bar{n}_g} \tilde{v}_g(k|M) \, dM\right]^2 P_\mathrm{lin}(k)$$
-
-## Repository Use
-
-Relevant to the repository as the main data-analysis reference for Fermi-LAT beam treatment, multipole cuts, pixel-window correction, and energy-dependent source masking.

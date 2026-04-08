@@ -1,4 +1,4 @@
-# Sheth & Tormen (1999) — Large-Scale Halo Bias from the Peak-Background Split
+# Sheth & Tormen (1999) — Large Scale Bias and the Peak-Background Split
 
 **Authors:** R. K. Sheth, G. Tormen
 **Journal:** MNRAS 308(1), 119–126
@@ -26,7 +26,7 @@ This paper does **not** present the later ellipsoidal-collapse moving-barrier de
 ## Equation Used
 
 **Eulerian halo bias (Eq. 12):**
-$$b_\mathrm{Eul}(\nu) = 1 + \frac{a\nu - 1}{\delta_c} + \frac{2p}{\delta_c\left[1 + (a\nu)^p\right]}$$
+$$b_\mathrm{Eul}(\nu_1) = 1 + \frac{a\nu_1 - 1}{\delta_1} + \frac{2p}{\delta_1\left[1 + (a\nu_1)^p\right]}$$
 
 with:
 
@@ -34,11 +34,7 @@ with:
 |-----------|-------|
 | $a$ | 0.707 |
 | $p$ | 0.3 |
-| $\delta_c$ | 1.686 |
-| $\nu$ | $\delta_c^2 / \sigma^2(M,z)$ |
+| $\delta_1$ | spherical-collapse threshold at the redshift of interest (approximately 1.686 when extrapolated to $z=0$) |
+| $\nu_1$ | $\delta_1^2 / \sigma^2(M,z)$ |
 
 The paper adopts the same $a=0.707$ and $p=0.3$ values that describe the GIF mass-function fit. Many later implementations rename the coefficient $a$ as $q$; the functional form is the same.
-
-## Repository Use
-
-Used by the repository as the halo-bias reference implemented in `halo_model.py`.

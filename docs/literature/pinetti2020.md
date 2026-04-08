@@ -1,4 +1,4 @@
-# Pinetti, Camera, Fornengo & Regis (2020) — HI Intensity Mapping Meets Gamma Rays
+# Pinetti, Camera, Fornengo & Regis (2020) — Synergies Across the Spectrum for Particle Dark Matter Indirect Detection: How HI Intensity Mapping Meets Gamma Rays
 
 **Authors:** E. Pinetti, S. Camera, N. Fornengo, M. Regis
 **Journal:** JCAP 2020(07), 044
@@ -85,7 +85,3 @@ The important distinction is that Eq. 2.7 is the general variance expression, wh
 - FSRQ: $\alpha = 2.44$
 - mAGN: $\alpha = 2.37$
 - SFG: $\alpha = 2.7$
-
-## Repository Use
-
-Primary theoretical reference for the repository's HI×UGRB forecast formalism, instrument setup, and validation targets.

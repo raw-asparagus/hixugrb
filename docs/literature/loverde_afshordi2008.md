@@ -27,7 +27,3 @@ where $\nu = \ell + 1/2$ and $s(k)$, $p(k)$ encode the spectral slope and curvat
 ### Practical accuracy guideline
 
 For a projection kernel of width $\sigma_r$ centered at comoving distance $r_0$, the 0th-order Limber formula is accurate to $\sim 1\%$ when $\ell \gtrsim 5\, r_0 / \sigma_r$.
-
-## Repository Use
-
-Used by the repository as the justification for the improved Limber $k$-substitution $k = (\ell + 1/2)/\chi$ in `angular_power.py`, documented as deliberate deviation D8 from the thesis (which uses $k = \ell/\chi$). Effect is $\sim 5\%$ at $\ell = 10$, negligible at $\ell > 100$.

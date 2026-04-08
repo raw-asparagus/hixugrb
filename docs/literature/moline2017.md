@@ -1,4 +1,4 @@
-# Moliné, Sánchez-Conde, Palomares-Ruiz & Prada (2017) — Substructure Boost Factor
+# Moliné, Sánchez-Conde, Palomares-Ruiz & Prada (2017) — Characterization of Subhalo Structural Properties and Implications for Dark Matter Annihilation Signals
 
 **Authors:** A. Moliné, M. A. Sánchez-Conde, S. Palomares-Ruiz, F. Prada
 **Journal:** MNRAS 466(4), 4974–4990
@@ -33,7 +33,3 @@ $$\log_{10} B(M, z{=}0) = \sum_{i=0}^{5} b_i \left[\log_{10}\left(\frac{M}{M_\od
 | 5 | −2 × 10⁻⁷ |
 
 These coefficients use the c₂₀₀(m₂₀₀, x_sub) concentration-mass relation with tidal stripping. Subhalo mass function slope α = 2, normalization A = 0.012. M_min = 10⁻⁶ M☉ is built into the fit.
-
-## Repository Use
-
-Used by the repository as the source for the substructure boost prescription in `dm_model.py`.

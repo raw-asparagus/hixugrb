@@ -1,4 +1,4 @@
-# Padmanabhan, Refregier & Amara (2017) — HI Halo Model
+# Padmanabhan, Refregier & Amara (2017) — A Halo Model for Cosmological Neutral Hydrogen: Abundances and Clustering
 
 **Authors:** H. Padmanabhan, A. Refregier, A. Amara
 **Journal:** MNRAS 469(2), 2323–2334
@@ -54,7 +54,3 @@ $$c_\text{HI}(M,z) = c_{HI,0} \left(\frac{M}{10^{11} M_\odot}\right)^{-0.109} \f
 **Mean HI density:** $\bar\rho_\text{HI}(z) = \int (dn/dM) \, M_\text{HI} \, dM$
 
 **HI bias:** $b_\text{HI}(z) = (1/\bar\rho_\text{HI}) \int (dn/dM) \, M_\text{HI} \, b(M) \, dM$
-
-## Repository Use
-
-Used by the repository as the main HI halo-model source, with the modified-NFW profile and its Appendix A parameter set feeding `hi_model.py`.
