@@ -76,7 +76,7 @@ This document audits every equation, model choice, parameter value, and computat
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
 | $L_0(z) = L_\star ((1+z)/1.15)^{k_L}$ | Gruppioni+ (2013); Pinetti Eq. C.24 | `_gruppioni_component` | Same | **Match** | |
-| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | `_gruppioni_component` applies the freeze to **ALL** components | Same | **Differs** (simplification) | **Pipeline applies $z=1.1$ break uniformly to all three components.** Paper only specifies this break for spiral. Starburst and SF-AGN in the paper have single power laws with no break. Effect is small relative to the larger GLF-evolution and unresolved-threshold changes across the same redshift range |
+| Break at $z=1.1$ for **spiral only** | Gruppioni Table 8 ($z_{b,L}=1.1$, $k_{L,2}=0$) | `_gruppioni_component` freezes $L_0$ above $z=1.1$ only for spiral; starburst and SF-AGN use single power law | Same | **Match** | Resolved: previously applied the break uniformly (D13) |
 | Reference normalization $(1+z)/1.15$ | Pipeline convention (z=0.15 first-bin midpoint) | `(1.0+z)/1.15` | Same | N/A | Equivalent to paper's bin-by-bin parameterization |
 | Frozen value $(2.1/1.15)^{k_L}$ at $z \gt 1.1$ | Standard freezing | `_gruppioni_component` | Same | **Match** | |
 
@@ -152,7 +152,7 @@ This document audits every equation, model choice, parameter value, and computat
 
 | # | Item | Nature | Severity | Notes |
 |---|------|--------|----------|-------|
-| T1 | $L_0$ frozen at $z=1.1$ for ALL components | Deliberate simplification | Minor | Paper only specifies break for spiral; starburst and SF-AGN have single power laws. Effect is small relative to the larger GLF-evolution and unresolved-threshold changes across the same redshift range |
+| ~~T1~~ | ~~$L_0$ frozen at $z=1.1$ for ALL components~~ | — | — | **Resolved:** break now applied only to spiral per Gruppioni Table 8 |
 | T2 | $(1+z)/1.15$ reference normalization | Pipeline convention | Low | Paper parameterizes per-bin; pipeline uses continuous $(1+z)/1.15$ normalization to $z=0.15$ midpoint. Mathematically equivalent |
 | T3 | SF-AGN $k_{R2}=-3.17$ (pipeline correct; thesis typo) | Correction | Low | Pinetti thesis Table C.2 shows $+3.17$ (typo); pipeline uses $-3.17$ from Gruppioni original. Thesis typo would cause unphysical density growth at $z \gt 1.1$ |
 | T4 | Fixed characteristic luminosity $L^{\rm char}=10^{39}$ erg/s for bias | Simplification | Minor | Not prescribed in literature; alternative would be luminosity-weighted effective bias integral |
@@ -193,7 +193,7 @@ None of these affect the SFG window function $W_\gamma^{\rm SFG}(z)$ itself — 
 
 | # | Item | Literature/Thesis | Pipeline | Nature | Severity |
 |---|------|-------------------|----------|--------|----------|
-| 1 | $L_0$ break at $z=1.1$ | Only for spiral (Gruppioni Table 8) | Applied to all components | Simplification | Minor |
+| ~~1~~ | ~~$L_0$ break at $z=1.1$ applied uniformly~~ | Only for spiral (Gruppioni Table 8) | Now spiral only | **Resolved** | — |
 | 2 | $(1+z)/1.15$ reference | Per-bin parameterization (paper) | Continuous normalization | Convention | None |
 | 3 | SF-AGN $k_{R2}$ sign | Thesis $+3.17$ (typo) | $-3.17$ (paper original) | **Correction** | Resolved |
 | 4 | Fixed $L^{\rm char}$ for bias | Not prescribed | $10^{39}$ erg/s | Simplification | Minor |

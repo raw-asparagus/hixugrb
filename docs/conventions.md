@@ -223,7 +223,7 @@ The pipeline makes several deliberate choices that differ from the primary liter
 | D7 | PPPC4DMID public tables | vs thesis private Pythia code | `dm_annihilation_evidence_matrix.md` |
 | D8 | Limber k = (ℓ+1/2)/χ | Improved low-ℓ accuracy | `equations.md` 9.4; all evidence matrices |
 | D12 | BL Lac / FSRQ LDDE exponent form | Pipeline uses $[r^{-p_1}+r^{-p_2}]^{-1}$, matching both Ajello and thesis | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
-| D13 | SFG Gruppioni $L_0$ break applied uniformly | Pipeline applies z=1.1 break to all 3 IR components; paper only specifies it for spirals | `sfg_evidence_matrix.md` |
+| ~~D13~~ | ~~SFG Gruppioni $L_0$ break applied uniformly~~ | **Resolved:** luminosity break at z=1.1 now applied only to spiral; starburst and SF-AGN use single power law per Gruppioni (2013) Table 8 | `sfg_evidence_matrix.md` |
 | D14 | EBL attenuation on astro windows | Now applied to all gamma-ray windows; thesis omitted EBL for astrophysical sources | `bl_lac_evidence_matrix.md`; `astro_sources.py::W_gamma_astro` |
 
 ### Resolved deviations

@@ -340,11 +340,16 @@ def _gruppioni_component(L_IR, z, comp_name):
     k_R1 = p['k_R1']
     k_R2 = p['k_R2']
 
-    # Luminosity evolution L_0(z) — break at z=1.1 for all components (Eq. C.24)
-    if z <= 1.1:
-        L_0 = L_star * ((1.0 + z) / 1.15)**k_L
+    # Luminosity evolution L_0(z)
+    # Spiral: break at z=1.1, frozen above (kL,2=0.00 in Gruppioni Table 8)
+    # Starburst, SF-AGN: single power law, no break (Table 8 has no kL,2/zb,L)
+    if comp_name == 'spiral':
+        if z <= 1.1:
+            L_0 = L_star * ((1.0 + z) / 1.15)**k_L
+        else:
+            L_0 = L_star * (2.1 / 1.15)**k_L  # frozen above z=1.1
     else:
-        L_0 = L_star * (2.1 / 1.15)**k_L  # frozen above z=1.1
+        L_0 = L_star * ((1.0 + z) / 1.15)**k_L  # continues at all z
 
     # Density evolution phi_0(z) (Eqs. C.25-C.26)
     if comp_name == 'spiral':
