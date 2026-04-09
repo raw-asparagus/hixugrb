@@ -163,7 +163,7 @@ $$e(z, L) = \left[r^{-p_1} + r^{-p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)
 
 ### mAGN K-correction placement
 
-The mAGN GLF (`_glf_mAGN`) does **not** include the $(1+z)^{-(2-\Gamma)}$ K-correction factor from [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 / [Pinetti (2022)](literature/pinetti2022_thesis.md). Instead, the rest-frame energy shift is handled inside `W_gamma_astro` via $E_\text{rest} = (1+z) E_\text{obs}$, following the Ando & Komatsu (2006) per-χ emissivity formulation. This is physically equivalent but keeps the GLF as a pure comoving number density.
+The mAGN GLF (`_glf_mAGN`) includes the $(1+z)^{-(2-\Gamma)}$ K-correction factor from [Di Mauro+ (2014)](literature/dimauro2014.md) Eq. C.19 / [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.19, consistent with the thesis formulation. This factor accounts for the redshift-dependent mapping between the observed-frame photon flux in the Fermi 0.1–100 GeV band and the rest-frame energy luminosity. `W_gamma_astro` additionally evaluates the spectrum at $E_\text{rest} = (1+z) E_\text{obs}$.
 
 ### Willott cosmology correction
 

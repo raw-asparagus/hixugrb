@@ -74,10 +74,10 @@ This document audits every equation, model choice, parameter value, and computat
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| Assembly formula $\phi_\gamma = k\eta\rho_r/(\ln 10\,L_{151})\,\lvert dL_{151}/dL_\gamma \rvert$ | Di Mauro+ (2014) Eq. C.19 (without K-correction) | `_glf_mAGN` lines 257–289 | Same | **Partial** | K-correction factor $(1+z)^{-(2-\Gamma)}$ from Di Mauro Eq. C.19 is **not present** in the current implementation (see T6) |
+| Assembly formula $\phi_\gamma = k\eta(1+z)^{-(2-\Gamma)}\rho_r/(\ln 10\,L_{151})\,\lvert dL_{151}/dL_\gamma \rvert$ | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.19 | `_glf_mAGN` lines 281–313 | Same | **Match** | Includes K-correction factor |
 | Beaming factor $k = 3.05$ | Di Mauro+ (2014) | `DIMAURO_K = 3.05` | Same | **Match** | |
 | Mean photon index $\Gamma = 2.37$ | Pinetti+ (2020) Table 3 | `ASTRO_SOURCES['mAGN']['alpha'] = 2.37` | Same | **Match** | |
-| K-correction $(1+z)^{-(2-\Gamma)} = (1+z)^{0.37}$ | Di Mauro+ (2014) Eq. C.19 | **Not present** in `_glf_mAGN` | Same | **Differs** | Missing K-correction factor. See T6. May be partially absorbed by the SED treatment in `W_gamma_astro` but is not explicitly applied in the GLF |
+| K-correction $(1+z)^{-(2-\Gamma)}$ | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.19 | `_glf_mAGN` line 307: `K_corr = (1+z)**(-(2-alpha))` | Same | **Match** | Accounts for observed-to-rest-frame luminosity mapping |
 | $d\Phi/dL$ from $d\Phi/d\log L$: divide by $L\ln 10$ | Standard | `_glf_mAGN` | Same | **Match** | |
 | Spectral index extracted from source params | Pinetti+ Table 3 | `cfg.ASTRO_SOURCES['mAGN']['alpha']` | Same | **Match** | |
 
@@ -121,7 +121,7 @@ This document audits every equation, model choice, parameter value, and computat
 | T3 | Single $\Gamma=2.37$ for all mAGN | Simplification | Minor | Di Mauro+ (2014) assumes a single photon index; in reality there is a distribution |
 | T4 | Willott RLF extrapolated to high $z$ | Simplification | Minor | Willott calibrated up to $z\sim4$ (3CRR+6CE+7CRS). Pipeline extrapolates without warning; the Gaussian $\rho_h$ naturally decays at high $z$ |
 | T5 | Unit mismatch in Di Mauro config comment | Documentation | Low | `config.py:152` says "W/Hz" but actual correlation is in erg/s ($\nu L_\nu$). Code handles correctly |
-| T6 | K-correction $(1+z)^{-(2-\Gamma)}$ missing from `_glf_mAGN` | Missing factor | Medium | Di Mauro Eq. C.19 includes this K-correction; the current implementation omits it. May be partially compensated by the rest-frame energy treatment in `W_gamma_astro`, but the explicit factor is absent from the GLF |
+| ~~T6~~ | ~~K-correction $(1+z)^{-(2-\Gamma)}$ missing from `_glf_mAGN`~~ | — | — | **Resolved:** K-correction now included in `_glf_mAGN` (line 307) per Pinetti (2022) Eq. C.19 |
 
 ---
 
@@ -157,7 +157,7 @@ None of these affect the mAGN window function $W_\gamma^{\rm mAGN}(z)$ itself �
 | 2 | Fixed $L^{\rm char}$ for bias | Not prescribed | $10^{44}$ erg/s | Simplification | Minor |
 | 3 | Pure power-law spectrum | Standard choice | Same | Simplification | Minor |
 | 4 | Extrapolation to high $z$ | Willott calibrated to $z\lesssim 4$ | Extrapolates silently | Simplification | Low |
-| 5 | K-correction $(1+z)^{-(2-\Gamma)}$ missing | Di Mauro Eq. C.19 includes it | Not present in `_glf_mAGN` | Missing factor | Medium |
+| ~~5~~ | ~~K-correction $(1+z)^{-(2-\Gamma)}$ missing~~ | Di Mauro Eq. C.19 | Now present in `_glf_mAGN` | **Resolved** | — |
 
 ---
 
@@ -167,7 +167,7 @@ None of these affect the mAGN window function $W_\gamma^{\rm mAGN}(z)$ itself �
 |---------|-----------|
 | Willott parameters match which model? | Parameter values ($\rho_{l\star}=10^{-7.523}$, etc.) verified to match Willott Table 1 Model C ($\Omega_M=0$). `_willott_volume_correction` now follows the corresponding Di Mauro Eq. 18 volume element for the same Model C background |
 | Log-space Jacobian correctness | Di Mauro (slope=1.008) × Lara (slope=0.77) = 0.776; inverse = 1.288. nuLnu↔W/Hz and freq scaling are log-space constant offsets (Jacobian=1). Verified analytically |
-| K-correction sign | $(1+z)^{-(2-\Gamma)} = (1+z)^{-(2-2.37)} = (1+z)^{+0.37}$. This is a positive correction (boost at high $z$), as expected for $\Gamma \gt 2$. **Note:** this factor is currently missing from `_glf_mAGN` (see T6) |
+| K-correction sign | $(1+z)^{-(2-\Gamma)} = (1+z)^{-(2-2.37)} = (1+z)^{+0.37}$. This is a positive correction (boost at high $z$), as expected for $\Gamma \gt 2$. Now present in `_glf_mAGN` line 307 |
 | h-factor handling in $d_L$ | `cosmo.d_L(z)/cfg.h` correctly converts Mpc/h → physical Mpc before conversion to cm |
 | Unit dimensional check | $[\Phi]$=Mpc⁻³ (erg/s)⁻¹, $[L/I_\alpha]\cdot[E^{-\alpha}]$=ph·s⁻¹·GeV⁻¹·(erg/s)⁻¹·(erg/s)=ph·s⁻¹·GeV⁻¹. After $1/(4\pi)$ and the final h-dependent volume conversion: ph·s⁻¹·GeV⁻¹·sr⁻¹·(Mpc/h)⁻³. Consistent with the pipeline's per-chi emissivity convention |
 

@@ -285,13 +285,9 @@ def _glf_mAGN(L, z):
     gamma-ray luminosity function via the radio→gamma chain:
         L_gamma → L_core^{5GHz} → L_tot^{1.4GHz} → L_tot^{151MHz} → Willott RLF
 
-    The GLF is a pure number density per unit rest-frame gamma-ray luminosity.
-    No spectral K-correction is applied: the (1+z)^{-(2-Gamma)} factor in
-    Pinetti (2022) Eq. C.19 converts between observed flux and rest-frame
-    luminosity for source-counting purposes, but does not belong in the
-    comoving emissivity integral.  W_gamma_astro evaluates the rest-frame
-    photon spectrum at E_rest = (1+z)*E_obs, which is the correct physical
-    formulation (see Ando & Komatsu 2006, PRD 73:023521, Eqs. 1-3).
+    Includes the K-correction factor (1+z)^{-(2-Gamma)} from Pinetti (2022)
+    Eq. C.19 / Di Mauro+ (2014), which accounts for the redshift-dependent
+    mapping between observed-frame photon flux and rest-frame luminosity.
 
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
@@ -306,8 +302,12 @@ def _glf_mAGN(L, z):
     rho_r = _willott_rlf(L_151, z)  # dPhi/d(log10 L) in Willott cosmology
     eta = _willott_volume_correction(z)
 
+    # K-correction: (1+z)^{-(2-Gamma)} per Pinetti (2022) Eq. C.19
+    alpha = cfg.ASTRO_SOURCES['mAGN']['alpha']
+    K_corr = (1.0 + z)**(-(2.0 - alpha))
+
     dPhi_dL151 = rho_r / (np.log(10.0) * L_151)
-    phi_gamma = (cfg.DIMAURO_K * eta
+    phi_gamma = (cfg.DIMAURO_K * eta * K_corr
                  * dPhi_dL151 * abs(dL151_dLgamma))
 
     return max(phi_gamma, 0.0)
