@@ -37,8 +37,9 @@ def L_sens(z, E_GeV=None, alpha=None):
         L_sens = F_SENS * 4 pi d_L^2 * GeV_to_erg * I_alpha
                  / ((1+z)^{2-alpha} * J_alpha)
 
-    where I_alpha = int E^{1-alpha} dE  and  J_alpha = int E^{-alpha} dE
-    over the 0.1–100 GeV band.
+    where I_alpha = int E^{1-alpha} dE over the rest-frame 0.1–100 GeV band
+    and J_alpha = int E^{-alpha} dE over the Fermi sensitivity 1–100 GeV band
+    (Pinetti 2022 thesis Eq. 3.76).
 
     Parameters
     ----------
@@ -65,15 +66,18 @@ def L_sens(z, E_GeV=None, alpha=None):
         return L_phot  # legacy fallback (photon luminosity)
 
     # Convert photon luminosity to energy luminosity [erg/s].
-    E_min, E_max = 0.1, 100.0
+    # I_alpha: rest-frame energy band 0.1–100 GeV (luminosity definition, Eq. 3.67)
+    E_min_L, E_max_L = 0.1, 100.0
+    # J_alpha: Fermi sensitivity band 1–100 GeV (detection threshold, Eq. 3.76)
+    E_min_F, E_max_F = 1.0, 100.0
     if abs(alpha - 2.0) > 0.01:
-        I_alpha = (E_max**(2.0 - alpha) - E_min**(2.0 - alpha)) / (2.0 - alpha)
+        I_alpha = (E_max_L**(2.0 - alpha) - E_min_L**(2.0 - alpha)) / (2.0 - alpha)
     else:
-        I_alpha = np.log(E_max / E_min)
+        I_alpha = np.log(E_max_L / E_min_L)
     if abs(alpha - 1.0) > 0.01:
-        J_alpha = (E_max**(1.0 - alpha) - E_min**(1.0 - alpha)) / (1.0 - alpha)
+        J_alpha = (E_max_F**(1.0 - alpha) - E_min_F**(1.0 - alpha)) / (1.0 - alpha)
     else:
-        J_alpha = np.log(E_max / E_min)
+        J_alpha = np.log(E_max_F / E_min_F)
 
     K = (1.0 + z)**(2.0 - alpha)
 
