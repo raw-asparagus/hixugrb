@@ -163,7 +163,7 @@ W_gamma^mAGN(E_GeV, z)                              [astro_sources.py::W_gamma_a
 │   └── DIMAURO_K = 3.05                            [config.py]
 ├── alpha = 2.37 (photon index)                     [config.py]
 ├── L_min=1e40, L_max=1e50 erg/s                    [config.py]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.py::L_sens]
+├── L_sens(z) = F_sens*4pi*d_L^2*GeV2erg*I_a/[K*J_a^EBL]  [astro_sources.py::L_sens]
 ├── E_rest = E_obs*(1+z)                            [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV] [energy normalization]
 └── final return = emissivity / (4*pi*h^3)          [physical Mpc^-3 -> (Mpc/h)^-3]

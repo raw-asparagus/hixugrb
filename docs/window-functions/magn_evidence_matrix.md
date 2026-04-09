@@ -92,8 +92,8 @@ This document audits every equation, model choice, parameter value, and computat
 | Energy normalization $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}dE$ [GeV² band] | Pinetti+ (2020) | `W_gamma_astro` analytic `energy_integral` lines 603–606 | Same | **Match** | Analytic form for $\alpha\ne 2$ |
 | 0.1–100 GeV band for $I_\alpha$ | Ackermann/Di Mauro convention | `W_gamma_astro` with `E_min_band=0.1`, `E_max_band=100.0` | Same | **Match** | |
 | GeV→erg conversion: $1.602\times10^{-3}$ | Standard | `GeV_to_erg = 1.602e-3` | Same | **Match** | |
-| Unresolved threshold $L_{\rm thr}=4\pi d_L^2 F_{\rm sens}$ | Pinetti+ (2020); Di Mauro+ (2014) | `L_sens(z)` | Same | **Match** | |
-| $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ (forecast) | Pinetti+ (2020) | `F_SENS = 1e-10` | Same | **Match** | |
+| $L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,G_{\rm eV\to erg}\,I_\alpha / [(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)]$ | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eqs. 3.75–3.76 | `L_sens(z, alpha=2.37)` with K-correction and EBL | Same | **Match** | $J_\alpha^{\rm EBL}$ over Fermi 1–100 GeV band with $e^{-\tau}$ |
+| $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ in 1–100 GeV band (forecast) | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. 3.76 | `F_SENS = 1e-10` | Same | **Match** | |
 | $L_{\rm up} = \min(L_{\max}, L_{\rm thr})$ | Pinetti+ (2020) | `W_gamma_astro` unresolved branch | Same | **Match** | |
 | Integration via `scipy.quad` in log-$L$ | — | `W_gamma_astro` with `epsrel=1e-5` | Same | N/A | Numerical choice |
 | Luminosity range $[10^{40}, 10^{50}]$ erg/s | Pinetti thesis Table 3.1 | `L_min=1e40`, `L_max=1e50` | Same | **Match** | |

@@ -84,7 +84,8 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 5.1 | $L_\text{sens}(z) = 4\pi d_L^2(z)\,F_\text{sens}$; $F_\text{sens}=10^{-10}$ cm⁻²s⁻¹ | Fermi-LAT sensitivity | `L_sens(z)` |
+| 5.1 | $L_\text{sens}(z) = F_\text{sens}\,4\pi d_L^2\,\frac{G_\text{eV→erg}\,I_\alpha}{(1+z)^{2-\alpha}\,J_\alpha^\text{EBL}(z)}$; $F_\text{sens}=10^{-10}$ cm⁻²s⁻¹ (1–100 GeV band) | [Pinetti (2022)](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76 | `L_sens(z)` |
+|   | $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}dE$ (rest-frame luminosity band); $J_\alpha^\text{EBL}(z) = \int_1^{100} E^{-\alpha}\,e^{-\tau(E,z)}dE$ (Fermi sensitivity band with EBL; $\tau$ at observed energy $E$) | | `_J_alpha_ebl` |
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
 | 5.3 | $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$ | Luminosity-dependent peak | `_ldde_glf` |

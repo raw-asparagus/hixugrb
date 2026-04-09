@@ -85,9 +85,9 @@ For the shared cosmological backbone (Layer 1) and halo model infrastructure (ha
 
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|-------------------------|--------|-------|
-| $L_{\rm thr}(z) = 4\pi d_L^2(z)\,F_{\rm sens}$ | Pinetti+ (2020) | `L_sens(z)` | Same | **Match** | |
-| $d_L$ in physical cm | Conversion required | Lines 54–55: `dL_Mpc = cosmo.d_L(z) / cfg.h` then $\times$ `MPC_TO_M * 100.0` | Same | **Match** | Correctly converts Mpc/h $\to$ Mpc $\to$ cm |
-| $F_{\rm sens} = 10^{-10}$ cm$^{-2}$ s$^{-1}$ (forecast) | Pinetti+ (2020) | `config.py:F_SENS=1e-10` | Same | **Match** | |
+| $L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,\frac{G_{\rm eV\to erg}\,I_\alpha}{(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)}$ | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eqs. 3.75–3.76 | `L_sens(z, alpha=2.11)` with K-correction and EBL | Same | **Match** | $I_\alpha$ over rest-frame 0.1–100 GeV; $J_\alpha^{\rm EBL}$ over Fermi 1–100 GeV with $e^{-\tau}$ |
+| $d_L$ in physical cm | Conversion required | Lines 55–56: `dL_Mpc = cosmo.d_L(z) / cfg.h` then $\times$ `MPC_TO_M * 100.0` | Same | **Match** | Correctly converts Mpc/h $\to$ Mpc $\to$ cm |
+| $F_{\rm sens} = 10^{-10}$ cm$^{-2}$ s$^{-1}$ in 1–100 GeV band (forecast) | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. 3.76 | `config.py:F_SENS=1e-10` | Same | **Match** | |
 | Energy-dependent $F_{\rm sens}(E)$ (data mode) | Ammazzalorso+ (2018) Eq. 1 | `F_sens_energy(E)` | Same | **Match** | |
 | $F_{\rm sens}(E) \propto [\sigma_0(E)/\sigma_0(E_{\rm ref})]^2$ | PSF-area scaling | Line 98 | Same | **Partial** | Pipeline approximation of Ammazzalorso's masking criterion; Ammazzalorso Eq. 1 is more detailed (depends on faintest source flux ratio) |
 | Reference energy $E_{\rm ref} = 5$ GeV | Pipeline convention | `F_sens_energy()` uses `E_ref = 5.0` line 95 | Same | **Differs** | Not specified in Ammazzalorso; pipeline choice near Fermi's optimal sensitivity |

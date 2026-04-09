@@ -187,7 +187,7 @@ Two modes are available:
 |---|---|---|
 | Energy bins | 12 bins, 0.5–1000 GeV | 11 bins, 0.631–1000 GeV |
 | Beam | Gaussian approximation `beam_fermi()` | Exact King PSF `beam_fermi_exact()` |
-| Sensitivity | F_sens = 10⁻¹⁰ cm⁻²s⁻¹ (constant) | F_sens(E) scaled by PSF area |
+| Sensitivity | F_sens = 10⁻¹⁰ cm⁻²s⁻¹ in the **1–100 GeV** band (Pinetti 2022 Eq. 3.76); L_sens includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation in the photon-flux integral | F_sens(E) scaled by PSF area |
 | ℓ range | No cuts | ℓ_min = 40, ℓ_max from W_ℓ = 0.61 |
 | Pixel window | Not applied | `pixel_window(ℓ, N_side)` |
 

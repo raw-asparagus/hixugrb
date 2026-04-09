@@ -119,7 +119,7 @@ with:
 - $L_{\min}=10^{37}$ erg/s, $L_{\max}=10^{42}$ erg/s (Pinetti thesis Table 3.1)
 - $\alpha=2.7$ (softest spectrum among UGRB sources)
 - $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$ (energy normalization, 0.1-100 GeV band)
-- $L_{\rm thr}(z)=4\pi d_L^2 F_{\rm sens}$ (Fermi sensitivity cut)
+- $L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,G_{\rm eV\to erg}\,I_\alpha / [(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)]$ (Fermi sensitivity cut with K-correction and EBL; Pinetti 2022 Eqs. 3.75–3.76)
 
 The low $L_{\max}=10^{42}$ erg/s reflects that individual SFGs are much fainter than blazars (compared to $10^{50}$ erg/s for mAGN or $10^{52}$ erg/s for blazars).
 
@@ -160,7 +160,7 @@ W_gamma^SFG(E_GeV, z)                               [astro_sources.py::W_gamma_a
 │   └── Jacobian |dlog L_IR/dlog L_gamma| = 1/1.09 = 0.917
 ├── alpha = 2.7                                     [config.py]
 ├── L_min=1e37, L_max=1e42 erg/s                    [config.py]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.py::L_sens]
+├── L_sens(z) = F_sens*4pi*d_L^2*GeV2erg*I_a/[K*J_a^EBL]  [astro_sources.py::L_sens]
 ├── E_rest = E_obs * (1+z)                          [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]
 └── final return = emissivity / (4*pi*h^3)          [physical Mpc^-3 -> (Mpc/h)^-3]

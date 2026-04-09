@@ -6,7 +6,7 @@ The BL Lac window function shares the generic astrophysical gamma-ray source for
 
 $$W_\gamma^{\rm BL\,Lac}(\chi) = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm BL\,Lac}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
-with $\alpha = 2.11$ (Pinetti+ 2020 Table 3 BL Lac photon index — hardest among UGRB astrophysical components, reflecting Doppler-boosted inverse-Compton emission from the relativistic jet), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z,E))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z,E)=4\pi d_L^2(z)\,F_{\rm sens}(E)$.
+with $\alpha = 2.11$ (Pinetti+ 2020 Table 3 BL Lac photon index — hardest among UGRB astrophysical components, reflecting Doppler-boosted inverse-Compton emission from the relativistic jet), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm sens}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm sens}$ from Pinetti (2022) Eqs. 3.75–3.76, including K-correction $(1+z)^{2-\alpha}$ and EBL attenuation in the 1–100 GeV sensitivity band.
 
 Unlike SFGs (derived from IR LF via Ackermann calorimetric scaling) or mAGN (radio LF via multi-step conversion chain), BL Lacs have a **direct gamma-ray LDDE luminosity function** fit from Fermi-LAT source-count data (Ajello et al. 2014). The LDDE form captures the luminosity-dependent redshift evolution inherent to blazar populations: faint HSPs (high-synchrotron-peaked BL Lacs) show negative evolution (density rising toward $z=0$), while luminous LISPs peak near $z\sim 1.2$.
 
@@ -77,22 +77,28 @@ This is a **single fixed index for the entire population** (no scatter in $\alph
 
 ## Layer 4: Fermi-LAT Flux Sensitivity Threshold
 
-The luminosity corresponding to the Fermi-LAT detection threshold at redshift $z$:
+The rest-frame energy luminosity corresponding to the Fermi-LAT detection threshold at redshift $z$ (Pinetti 2022 thesis Eqs. 3.75–3.76):
 
-$$L_{\rm thr}(z, E) = 4\pi\,d_L^2(z)\;F_{\rm sens}(E)$$
+$$L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,\frac{G_{\rm eV\to erg}\,I_\alpha}{(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)}$$
 
-where $d_L$ is the physical luminosity distance (code converts internal Mpc/h $\to$ physical Mpc via $\div h$, then Mpc $\to$ cm).
+where:
+- $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}\,dE$ is the rest-frame 0.1–100 GeV energy band integral
+- $J_\alpha^{\rm EBL}(z) = \int_1^{100} E^{-\alpha}\,e^{-\tau(E(1+z),z)}\,dE$ is the Fermi 1–100 GeV sensitivity band integral with EBL attenuation
+- $(1+z)^{2-\alpha}$ is the K-correction for a power-law source
+- $d_L$ is the physical luminosity distance (code converts Mpc/h → Mpc → cm)
+
+The EBL factor in $J_\alpha^{\rm EBL}$ accounts for photon absorption: at high $z$, sources must be intrinsically brighter to exceed the detector threshold.
 
 ### Two operating modes
 
 | Mode | $F_{\rm sens}(E)$ | Physics | Use case |
 |------|-------------------|---------|----------|
-| `forecast` | $10^{-10}\,{\rm cm}^{-2}\,{\rm s}^{-1}$ constant | Survey-independent | Pinetti 2020 SNR forecasts |
+| `forecast` | $10^{-10}\,{\rm cm}^{-2}\,{\rm s}^{-1}$ in 1–100 GeV band | Survey-independent | Pinetti 2020 SNR forecasts |
 | `data` | $\propto [\sigma_0(E)/\sigma_0(E_{\rm ref})]^2$ | PSF-area-scaled | Ammazzalorso+ 2018 analysis |
 
 In **data mode**, worse PSF at low energies means fewer sources can be resolved → higher threshold flux → more sources remain "unresolved" and contribute to the diffuse window. Reference energy $E_{\rm ref} = 5$ GeV near Fermi's optimal sensitivity.
 
-**Implementation:** `astro_sources.L_sens()`, `astro_sources.F_sens_energy()`, and `config.F_SENS`.
+**Implementation:** `astro_sources.L_sens()`, `astro_sources._J_alpha_ebl()`, `astro_sources.F_sens_energy()`, and `config.F_SENS`.
 
 ---
 
@@ -145,8 +151,11 @@ W_gamma^BL_Lac(E_GeV, z)                             [astro_sources.W_gamma_astr
 │           └── L_ref = 1e48 erg/s
 ├── alpha = 2.11                                     [config.ASTRO_SOURCES['BL_Lac']['alpha']]
 ├── L_min = 7e43, L_max = 1e52 erg/s                [config.ASTRO_SOURCES['BL_Lac']]
-├── L_thr(z,E) = 4*pi*d_L^2 * F_sens(E)             [astro_sources.L_sens]
-│   ├── forecast mode: F_sens = F_SENS = 1e-10      [config.F_SENS]
+├── L_sens(z) = F_sens*4pi*d_L^2*GeV2erg*I_a/[K*J_a^EBL]  [astro_sources.L_sens]
+│   ├── I_alpha: rest-frame 0.1–100 GeV band        [luminosity definition]
+│   ├── J_alpha^EBL: Fermi 1–100 GeV with exp(-tau)  [astro_sources._J_alpha_ebl]
+│   ├── K = (1+z)^{2-alpha}                         [K-correction]
+│   ├── forecast mode: F_sens = 1e-10               [config.F_SENS]
 │   └── data mode:     F_sens ∝ [sigma_0(E)]^2      [astro_sources.F_sens_energy]
 ├── E_rest = E_obs * (1+z)                           [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]

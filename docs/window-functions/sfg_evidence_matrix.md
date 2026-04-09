@@ -127,8 +127,8 @@ This document audits every equation, model choice, parameter value, and computat
 | $L_{\max}=10^{42}$ erg/s | Pinetti thesis Table 3.1 | `L_max=1e42` | Same | **Match** | |
 | $E_{\rm rest} = E_{\rm obs}(1+z)$ | Standard | `W_gamma_astro` sets `E_rest = E_GeV * (1+z)` | Same | **Match** | |
 | Energy normalization $I_\alpha$ over 0.1-100 GeV | Pinetti+ (2020) | `W_gamma_astro` analytic `energy_integral` | Same | **Match** | |
-| Unresolved threshold $L_{\rm thr}=4\pi d_L^2 F_{\rm sens}$ | Pinetti+ (2020) | `L_sens(z)` | Same | **Match** | |
-| $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ | Pinetti+ (2020) | `F_SENS=1e-10` | Same | **Match** | |
+| $L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,G_{\rm eV\to erg}\,I_\alpha / [(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)]$ | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eqs. 3.75–3.76 | `L_sens(z, alpha=2.7)` with K-correction and EBL | Same | **Match** | $J_\alpha^{\rm EBL}$ over Fermi 1–100 GeV band with $e^{-\tau}$ |
+| $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ in 1–100 GeV band | [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. 3.76 | `F_SENS=1e-10` | Same | **Match** | |
 | Integration via `scipy.quad` in log-$L$, epsrel=1e-5 | — | `W_gamma_astro` with `epsrel=1e-5` | Same | N/A | Numerical choice |
 
 ---

@@ -6,7 +6,7 @@ The Flat-Spectrum Radio Quasar (FSRQ) window function shares the generic astroph
 
 $$W_\gamma^{\rm FSRQ}(\chi) = \frac{1}{4\pi}\int_{L_{\min}}^{L_{\rm up}}\Phi_\gamma^{\rm FSRQ}(L,z)\;\frac{L}{E_{\rm GeV\to erg}\,I_\alpha}\;E_{\rm rest}^{-\alpha}\;dL$$
 
-with $\alpha=2.44$ (Pinetti+ 2020 Table 3 FSRQ photon index — the softest blazar spectrum, reflecting external Compton scattering off broad-line-region photons), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm thr}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm thr}(z)=4\pi d_L^2(z)\,F_{\rm sens}$.
+with $\alpha=2.44$ (Pinetti+ 2020 Table 3 FSRQ photon index — the softest blazar spectrum, reflecting external Compton scattering off broad-line-region photons), $E_{\rm rest}=(1+z)E_{\rm obs}$, $I_\alpha=\int_{0.1}^{100}E^{1-\alpha}\,dE$, and $L_{\rm up}=\min(L_{\max}, L_{\rm sens}(z))$ with Fermi-LAT sensitivity threshold $L_{\rm sens}$ from Pinetti (2022) Eqs. 3.75–3.76, including K-correction $(1+z)^{2-\alpha}$ and EBL attenuation in the 1–100 GeV sensitivity band.
 
 Unlike SFGs (derived via IR→gamma calorimetric scaling) or mAGN (derived via radio→gamma conversion chain), FSRQs have a **direct Fermi-LAT gamma-ray luminosity function** fit by Ajello+ (2012) to 186 first-year catalog sources using the LDDE (Luminosity-Dependent Density Evolution) formalism.
 
@@ -104,7 +104,7 @@ with:
 - $L_{\min}=10^{44}$ erg/s, $L_{\max}=10^{52}$ erg/s (Pinetti thesis Table 3.1 — note the high $L_{\max}$ reflects FSRQs being among the most luminous gamma-ray sources)
 - $\alpha=2.44$ (soft blazar spectrum due to EC cooling)
 - $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}\,dE$ (energy normalization, 0.1-100 GeV band)
-- $L_{\rm thr}(z) = 4\pi d_L^2\,F_{\rm sens}$; $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ (forecast mode) or energy-dependent (data mode)
+- $L_{\rm sens}(z) = F_{\rm sens}\,4\pi d_L^2\,G_{\rm eV\to erg}\,I_\alpha / [(1+z)^{2-\alpha}\,J_\alpha^{\rm EBL}(z)]$; $F_{\rm sens}=10^{-10}$ cm⁻²s⁻¹ in 1–100 GeV band (forecast); $J_\alpha^{\rm EBL}$ includes EBL attenuation (Pinetti 2022 Eqs. 3.75–3.76)
 - $L_{\rm up} = \min(L_{\max}, L_{\rm thr}(z))$ — unresolved sources only (resolved FSRQs excluded)
 
 The current implementation uses the photon-number emissivity form, so the explicit redshift dependence enters through $E_{\rm rest}=(1+z)E_{\rm obs}$ and the luminosity-function factors rather than an additional $(1+z)^{-2}$ prefactor. After the emissivity integral is evaluated in physical Mpc$^{-3}$ units, the code converts it to the pipeline's h-dependent convention by returning `val / (4\pi h^3)`. Integration uses `scipy.quad` in log-$L$ with `epsrel=1e-5`.
@@ -141,7 +141,7 @@ W_gamma^FSRQ(E_GeV, z)                              [astro_sources.W_gamma_astro
 ├── alpha_spectral = 2.44                           [config.ASTRO_SOURCES['FSRQ']['alpha']]
 ├── L_min = 1e44 erg/s                              [config.ASTRO_SOURCES['FSRQ']['L_min']]
 ├── L_max = 1e52 erg/s                              [config.ASTRO_SOURCES['FSRQ']['L_max']]
-├── L_thr(z) = 4*pi*d_L^2 * F_sens                  [astro_sources.L_sens]
+├── L_sens(z) = F_sens*4pi*d_L^2*GeV2erg*I_a/[K*J_a^EBL]  [astro_sources.L_sens]
 ├── E_rest = E_obs * (1+z)                          [rest-frame energy]
 ├── I_alpha = integral E^{1-alpha} dE [0.1,100 GeV]
 └── 1 / (4*pi*h^3)                                  [photon-emissivity prefactor after d_L^2 cancellation and Mpc^-3 -> (Mpc/h)^-3 conversion]

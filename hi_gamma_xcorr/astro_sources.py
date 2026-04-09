@@ -29,17 +29,19 @@ def L_sens(z, E_GeV=None, alpha=None):
     into a rest-frame 0.1–100 GeV energy luminosity [erg/s] so that it can
     be compared directly with the GLF luminosity bounds.
 
-    For a power-law source dN/dE ~ E^{-alpha}:
-        F_phot = L_rest * (1+z)^{2-alpha} * J_alpha
-                 / (4 pi d_L^2 * GeV_to_erg * I_alpha)
+    Following Pinetti (2022) thesis Eqs. 3.75–3.76:
 
-    Inverting for L_rest:
-        L_sens = F_SENS * 4 pi d_L^2 * GeV_to_erg * I_alpha
-                 / ((1+z)^{2-alpha} * J_alpha)
+        k_sens = F_SENS / J_alpha_EBL(z)
+        L_sens = 4 pi d_L^2 * k_sens * (1+z)^{-(2-alpha)} * I_alpha * GeV_to_erg
 
-    where I_alpha = int E^{1-alpha} dE over the rest-frame 0.1–100 GeV band
-    and J_alpha = int E^{-alpha} dE over the Fermi sensitivity 1–100 GeV band
-    (Pinetti 2022 thesis Eq. 3.76).
+    where:
+        I_alpha = int_{0.1}^{100} E^{1-alpha} dE  (rest-frame luminosity band)
+        J_alpha_EBL(z) = int_1^{100} E^{-alpha} exp(-tau(E, z)) dE
+                         (Fermi sensitivity band with EBL; tau at observed energy E)
+
+    The EBL factor in J_alpha accounts for the fact that photons from distant
+    sources are absorbed before reaching the detector, raising the effective
+    luminosity threshold at high z.
 
     Parameters
     ----------
@@ -68,20 +70,38 @@ def L_sens(z, E_GeV=None, alpha=None):
     # Convert photon luminosity to energy luminosity [erg/s].
     # I_alpha: rest-frame energy band 0.1–100 GeV (luminosity definition, Eq. 3.67)
     E_min_L, E_max_L = 0.1, 100.0
-    # J_alpha: Fermi sensitivity band 1–100 GeV (detection threshold, Eq. 3.76)
+    # J_alpha: Fermi sensitivity band 1–100 GeV with EBL (Eq. 3.76)
     E_min_F, E_max_F = 1.0, 100.0
     if abs(alpha - 2.0) > 0.01:
         I_alpha = (E_max_L**(2.0 - alpha) - E_min_L**(2.0 - alpha)) / (2.0 - alpha)
     else:
         I_alpha = np.log(E_max_L / E_min_L)
-    if abs(alpha - 1.0) > 0.01:
-        J_alpha = (E_max_F**(1.0 - alpha) - E_min_F**(1.0 - alpha)) / (1.0 - alpha)
-    else:
-        J_alpha = np.log(E_max_F / E_min_F)
+
+    # J_alpha with EBL attenuation (Eq. 3.76): int E^{-alpha} exp(-tau) dE
+    J_alpha = _J_alpha_ebl(z, alpha, E_min_F, E_max_F)
 
     K = (1.0 + z)**(2.0 - alpha)
 
     return F_sens_E * 4.0 * np.pi * dL_cm**2 * cfg.GEV_TO_ERG * I_alpha / (K * J_alpha)
+
+
+def _J_alpha_ebl(z, alpha, E_min, E_max, n_pts=50):
+    """Compute J_alpha = int E^{-alpha} exp(-tau(E, z)) dE over [E_min, E_max].
+
+    Uses trapezoidal integration over a log-spaced energy grid.
+    At z <= 0 or when EBL is negligible, falls back to the analytic integral.
+    """
+    if z <= 0:
+        # No EBL at z=0
+        if abs(alpha - 1.0) > 0.01:
+            return (E_max**(1.0 - alpha) - E_min**(1.0 - alpha)) / (1.0 - alpha)
+        else:
+            return np.log(E_max / E_min)
+
+    E_arr = np.logspace(np.log10(E_min), np.log10(E_max), n_pts)
+    atten = ebl_mod.attenuation(E_arr, z)
+    integrand = E_arr**(-alpha) * atten
+    return np.trapezoid(integrand, E_arr)
 
 
 def F_sens_energy(E_GeV):

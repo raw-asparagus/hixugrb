@@ -128,7 +128,7 @@ config.py (spectral indices α, L_min, L_max, F_sens)
 cosmology.py: d_L(z)
     │
 astro_sources.py:
-    ├─ L_sens(z)           ← 4π d_L² F_sens
+    ├─ L_sens(z)           ← F_sens × 4π d_L² × GeV2erg × I_α / [K × J_α^EBL(z)]
     ├─ glf(L, z, source)   ← dispatches to source-specific GLF
     │   ├─ _FSRQ_PARAMS    ← LDDE, [Ajello+ (2012)](literature/ajello2012.md) Table 3
     │   ├─ _BL_LAC_PARAMS  ← LDDE inverse-sum, [Ajello+ (2014)](literature/ajello2014.md) Table 3 (LDDE1)
@@ -145,8 +145,8 @@ astro_sources.py:
                                [pipeline photon-emissivity form in (Mpc/h)^-3, with EBL]
 ```
 
-**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity. Two modes:
-- `unresolved_mode='forecast'`: constant F_sens = 10⁻¹⁰ cm⁻²s⁻¹ ([Pinetti+ 2020](literature/pinetti2020.md))
+**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity ([Pinetti 2022](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76). `L_sens` includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation $e^{-\tau}$ in the Fermi 1–100 GeV sensitivity band via `_J_alpha_ebl(z)`. Two modes:
+- `unresolved_mode='forecast'`: constant F_sens = 10⁻¹⁰ cm⁻²s⁻¹ in 1–100 GeV ([Pinetti+ 2020](literature/pinetti2020.md))
 - `unresolved_mode='data'`: energy-dependent F_sens(E) scaled by PSF area ([Ammazzalorso+ 2018](literature/ammazzalorso2018.md))
 - `unresolved_only=False`: survey-independent total emission
 
