@@ -94,9 +94,9 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 | Claim | Literature Reference | Pipeline | Pipeline (Pinetti 2022) | Status | Notes |
 |-------|---------------------|----------|------------------------|--------|-------|
 | $\Delta^2 = (1/\bar\rho_m^2)\int (dn/dM)(1+B)\int\rho^2 d^3x\, dM$ | Pinetti Eq. 4.2 | `_clumping_compute` line 149 (cached via `@_cache_stable`) | Same | **Match** | |
-| Integration via $d\ln M$: factor of $M$ in integrand | Standard | line 162: `dn * (1+B) * rho2_int * M` | Same | **Match** | |
-| Integration limits from config | `M_MIN_DM=1e-6`, `M_MAX_DM=1e18` | Uses config values directly at lines 193–196 | Same | **Match** | Resolved: silent clamping removed |
-| $n_M = 200$ integration points | Implementation | Default parameter line 169 | Same | **Match** | ~9.5 pts/decade; rectangle rule adequate |
+| Integration via $d\ln M$: factor of $M$ in integrand | Standard | line 159: `dn * (1+B) * rho2 * M` | Same | **Match** | |
+| Integration limits from config | `M_MIN_DM=1e-6`, `M_MAX_DM=1e18` | Uses config values directly at lines 195–197 | Same | **Match** | Resolved: silent clamping removed |
+| Adaptive quadrature (`scipy.quad`, epsrel=1e-4) over $\ln M$ | Implementation | `_clumping_compute` uses `quad` over $[\ln M_{\min}, \ln M_{\max}]$ | Same | **Match** | Replaced former rectangle rule (n_M=200) with adaptive integration |
 | Normalization by $\bar\rho_m^2$ and $(1+z)^3$ | Pinetti Eq. 4.2 | `cfg.RHO_BAR**2` and `(1+z)**3` line 164 | Same | **Match** | |
 
 ---
@@ -169,7 +169,7 @@ The following shared components are audited in the [HI Evidence Matrix](hi_evide
 |---|------|--------|------------------------|--------|
 | C1 | $\rho^2$ volume integral | Analytic formula | Same | Exact |
 | C2 | $\tilde{v}(k \mid M)$ Fourier transform | Numerical quadrature (`scipy.quad`, epsrel=1e-5) | Same | Accurate; performance bottleneck |
-| C3 | $\Delta^2(z)$ mass integral | Rectangle rule, 200 points, $d\ln M$ | Same | Adequate (~1% accuracy) |
+| C3 | $\Delta^2(z)$ mass integral | Adaptive quadrature (`scipy.quad`, epsrel=1e-4) over $\ln M$ | Same | High accuracy |
 | C4 | $C_\ell$ Limber redshift integral | Rectangle rule, uniform grid ($n_z=200$) | Same | Sub-percent accuracy |
 | C5 | Cross/auto power spectra | 2-halo term only | Same | Justified at $\ell \lt 1000$ |
 | C6 | PPPC4DMID | Public tables (thesis used private Pythia) | Same (Pythia unavailable) | Percent-level, irreducible |

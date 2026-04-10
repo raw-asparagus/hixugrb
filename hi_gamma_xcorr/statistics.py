@@ -69,7 +69,7 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
 def compute_SNR(telescope, band_name, fermissimo=False,
                 ell_min=10, ell_max=1000, n_ell=100,
                 source_classes=None, n_z=100, n_M=60,
-                analysis_mode='forecast'):
+                analysis_mode='forecast', hi_brightness='padmanabhan'):
     """Compute the total signal-to-noise ratio for detecting the cross-correlation.
 
     SNR^2 = sum over (l, E-bins) of [C_l^{HI x gamma_astro} / Delta C_l]^2
@@ -85,6 +85,9 @@ def compute_SNR(telescope, band_name, fermissimo=False,
     analysis_mode : str
         'forecast': Pinetti+(2020) treatment (12 bins, Gaussian beam, no l cuts)
         'data': Ammazzalorso+(2018) treatment (11 bins, exact beam, l cuts)
+    hi_brightness : str
+        HI brightness prescription: 'padmanabhan' uses the halo-integral
+        Omega_HI(z); 'fixed_omega' uses config.OMEGA_HI_FIXED.
 
     Returns
     -------
@@ -117,7 +120,10 @@ def compute_SNR(telescope, band_name, fermissimo=False,
     ).astype(int)).astype(float)
 
     # HI auto-power
-    C_HI = ap.C_ell_HI_auto(ell_arr, z_min, z_max, n_z=n_z, n_M=n_M)
+    C_HI = ap.C_ell_HI_auto(
+        ell_arr, z_min, z_max, n_z=n_z, n_M=n_M,
+        hi_brightness=hi_brightness
+    )
 
     # Radio noise and beam
     N_HI = nm.noise_radio_combined(ell_arr, telescope, band_name)
@@ -162,7 +168,7 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         C_signal = ap.C_ell_HI_gamma(
             ell_bin, E_b, z_min, z_max, telescope, band_name,
             source_classes=source_classes, include_DM=False,
-            n_z=n_z, n_k_M=n_M
+            n_z=n_z, n_k_M=n_M, hi_brightness=hi_brightness
         )
 
         C_astro = C_signal['total']
@@ -186,7 +192,7 @@ def _closest_pinetti_bin(E_GeV):
 def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
                channel='bb', fermissimo=False,
                ell_min=10, ell_max=1000, n_ell=100,
-               n_z=100, n_M=60):
+               n_z=100, n_M=60, hi_brightness='padmanabhan'):
     """Compute Delta chi^2 for a given DM mass and cross-section.
 
     Delta chi^2 = sum_l,E [(C_l^{astro+DM} / sigma)^2 - (C_l^{astro} / sigma)^2]
@@ -203,7 +209,10 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
         np.log10(ell_min), np.log10(ell_max), n_ell
     ).astype(int)).astype(float)
 
-    C_HI = ap.C_ell_HI_auto(ell_arr, z_min, z_max, n_z=n_z, n_M=n_M)
+    C_HI = ap.C_ell_HI_auto(
+        ell_arr, z_min, z_max, n_z=n_z, n_M=n_M,
+        hi_brightness=hi_brightness
+    )
     N_HI = nm.noise_radio_combined(ell_arr, telescope, band_name)
 
     dchi2 = 0.0
@@ -227,12 +236,14 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
         C_with_DM = ap.C_ell_HI_gamma(
             ell_arr, E_b, z_min, z_max, telescope, band_name,
             m_chi_GeV=m_chi_GeV, sigma_v=sigma_v, channel=channel,
-            include_DM=True, n_z=n_z, n_k_M=n_M
+            include_DM=True, n_z=n_z, n_k_M=n_M,
+            hi_brightness=hi_brightness
         )['total']
 
         C_no_DM = ap.C_ell_HI_gamma(
             ell_arr, E_b, z_min, z_max, telescope, band_name,
-            include_DM=False, n_z=n_z, n_k_M=n_M
+            include_DM=False, n_z=n_z, n_k_M=n_M,
+            hi_brightness=hi_brightness
         )['total']
 
         mask = sigma_Cl > 0
@@ -250,7 +261,8 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
 
 def exclusion_curve(telescope, band_name, channel='bb',
                     fermissimo=False, CL='95',
-                    m_chi_arr=None, n_ell=50, n_z=50, n_M=30):
+                    m_chi_arr=None, n_ell=50, n_z=50, n_M=30,
+                    hi_brightness='padmanabhan'):
     """Compute the DM exclusion curve: sigma_v vs m_chi.
 
     For each m_chi, find sigma_v where Delta chi^2 = threshold.
@@ -281,7 +293,8 @@ def exclusion_curve(telescope, band_name, channel='bb',
         dchi2_test = delta_chi2(
             m_chi, sv_test, telescope, band_name,
             channel=channel, fermissimo=fermissimo,
-            n_ell=n_ell, n_z=n_z, n_M=n_M
+            n_ell=n_ell, n_z=n_z, n_M=n_M,
+            hi_brightness=hi_brightness
         )
 
         if dchi2_test <= 0:

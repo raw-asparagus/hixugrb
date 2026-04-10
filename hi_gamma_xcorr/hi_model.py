@@ -218,11 +218,145 @@ def T_bar_b(z, **kwargs):
     return 188.0 * cfg.h * OHI * (1.0 + z)**2 / cosmo.E(z)
 
 
-def b_HI(z, M_min=None, M_max=None):
+def T_bar_b_fixed_omega(z, omega_hi=None):
+    """Mean 21-cm brightness temperature for a fixed Omega_HI [mK]."""
+    if omega_hi is None:
+        omega_hi = cfg.OMEGA_HI_FIXED
+    return 188.0 * cfg.h * float(omega_hi) * (1.0 + z)**2 / cosmo.E(z)
+
+
+# ---------------------------------------------------------------------------
+# Cunnington et al. (2025), arXiv:2510.27549, Appendix A.
+# Polynomial models used by the public MeerFish forecast code, adapted from
+# SKA Cosmology SWG (2020) and the latest MeerKLASS Omega_HI constraints
+# (Cunnington et al. 2023a). See docs/literature/cunnington2025_meerklass_overview.md.
+# Notably the brightness-temperature prefactor is 180 mK (Battye+2013), not the
+# 188 mK form used by `T_bar_b` (Padmanabhan 2017 / Pinetti 2020 convention).
+# ---------------------------------------------------------------------------
+
+
+def Omega_HI_cunnington(z):
+    """HI density polynomial from Cunnington et al. (2025), Eq. A5.
+
+    Omega_HI(z) = 6.7432e-4 + 3.9e-4 * z - 6.5e-5 * z^2
+
+    Adapted from SKA Cosmology SWG (2020) with the latest MeerKLASS
+    constraints (Cunnington et al. 2023a).
+    """
+    z = np.asarray(z, dtype=float)
+    return 6.7432e-4 + 3.9e-4 * z - 6.5e-5 * z * z
+
+
+def b_HI_cunnington(z):
+    """HI bias polynomial from Cunnington et al. (2025), Eq. A3.
+
+    b_HI(z) = 0.842 + 0.693 * z - 0.0459 * z^2
+
+    Fit to the Villaescusa-Navarro et al. (2018) hydrodynamic simulations.
+    Provided as the MeerFish forecast default; included here for
+    notebook plotting and cross-checks against the pipeline halo-integral
+    `b_HI(z)` produced by the Padmanabhan+2017 modified-NFW halo model.
+    """
+    z = np.asarray(z, dtype=float)
+    return 0.842 + 0.693 * z - 0.0459 * z * z
+
+
+def T_bar_b_cunnington(z):
+    """Mean 21-cm brightness temperature from Cunnington et al. (2025), Eq. A4.
+
+    T_bar_HI(z) = 180 * Omega_HI(z) * h * (1 + z)^2 / (H(z) / H_0)  [mK]
+
+    Uses the 180 mK Battye+2013 prefactor (NOT the 188 mK form in `T_bar_b`)
+    and the MeerFish Omega_HI(z) polynomial of `Omega_HI_cunnington`. This is
+    the brightness model adopted by all published MeerKLASS data analyses
+    and by the public MeerFish Fisher forecast code.
+    """
+    OHI = Omega_HI_cunnington(z)
+    return 180.0 * cfg.h * OHI * (1.0 + np.asarray(z, dtype=float))**2 / cosmo.E(z)
+
+
+def _is_cunnington_mode(hi_brightness):
+    """Return True if `hi_brightness` selects the Cunnington 2025 / MeerFish mode."""
+    return hi_brightness in ('cunnington', 'meerfish', 'cunnington2025')
+
+
+def _is_known_mode(hi_brightness):
+    return (
+        hi_brightness in ('padmanabhan', 'computed', 'halo_integral')
+        or hi_brightness in ('fixed_omega', 'omega_fixed', 'pinetti_omega')
+        or _is_cunnington_mode(hi_brightness)
+    )
+
+
+def T_bar_b_for_model(z, hi_brightness='padmanabhan'):
+    """Mean brightness temperature for a named HI brightness prescription.
+
+    Parameters
+    ----------
+    z : float or array
+        Redshift.
+    hi_brightness : str
+        - 'padmanabhan' (also 'computed', 'halo_integral'):
+          188 mK prefactor with halo-integral Omega_HI(z) from the
+          Padmanabhan+2017 modified-NFW HI model. Pipeline default.
+        - 'fixed_omega' (also 'omega_fixed', 'pinetti_omega'):
+          188 mK prefactor with the fixed `cfg.OMEGA_HI_FIXED = 2.45e-4`
+          (Pinetti 2020 / Battye+2013 44 uK form).
+        - 'cunnington' (also 'meerfish', 'cunnington2025'):
+          180 mK prefactor with the Cunnington et al. (2025), Eq. A5
+          Omega_HI(z) polynomial. Convention used by all published
+          MeerKLASS data analyses and the MeerFish forecast code.
+          When this mode is selected, the HI bias and the HI 2-halo power
+          spectrum also automatically switch to the matched Cunnington
+          Eq. A3 polynomial b_HI(z), so the brightness and the clustering
+          stay self-consistent across the whole pipeline.
+    """
+    if hi_brightness in ('padmanabhan', 'computed', 'halo_integral'):
+        return T_bar_b(z)
+    if hi_brightness in ('fixed_omega', 'omega_fixed', 'pinetti_omega'):
+        return T_bar_b_fixed_omega(z)
+    if _is_cunnington_mode(hi_brightness):
+        return T_bar_b_cunnington(z)
+    raise ValueError(
+        "hi_brightness must be 'padmanabhan', 'fixed_omega' or 'cunnington' "
+        f"(got {hi_brightness!r})"
+    )
+
+
+def b_HI(z, M_min=None, M_max=None, hi_brightness='padmanabhan'):
     """Mass-weighted effective HI bias b_HI(z).
 
-    b_HI = (1/rho_HI) * integral (dn/dM) * M_HI * b(M) dM
+    b_HI = (1/rho_HI) * integral (dn/dM) * M_HI * b(M) dM       (halo integral)
+
+    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, this
+    instead returns the data-calibrated polynomial
+
+        b_HI(z) = 0.842 + 0.693 z - 0.0459 z^2
+
+    from `b_HI_cunnington` (Cunnington et al. 2025, Eq. A3, fit to
+    Villaescusa-Navarro et al. 2018 hydrodynamic simulations). The
+    ``M_min``/``M_max`` arguments are silently ignored in that case because
+    the polynomial does not carry mass-cut information.
+
+    Parameters
+    ----------
+    z : float
+        Redshift.
+    M_min, M_max : float, optional
+        Halo-mass integration bounds for the halo-integral mode. Ignored if
+        ``hi_brightness`` is a Cunnington alias.
+    hi_brightness : str, optional
+        See ``T_bar_b_for_model`` for the full alias list.
     """
+    if not _is_known_mode(hi_brightness):
+        raise ValueError(
+            "hi_brightness must be 'padmanabhan', 'fixed_omega' or 'cunnington' "
+            f"(got {hi_brightness!r})"
+        )
+
+    if _is_cunnington_mode(hi_brightness):
+        return float(b_HI_cunnington(float(z)))
+
     if M_min is None and M_max is None:
         return _b_HI_default(float(z))
 
@@ -278,17 +412,39 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
     return result * dlnM / rho**2
 
 
-def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
+def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160, hi_brightness='padmanabhan'):
     """Two-halo HI power spectrum P_HI^{2h}(k, z) [(Mpc/h)^3].
 
     P_HI^{2h} = [(1/rho_HI) * integral (dn/dM) * b(M) * M_HI * u_HI dM]^2 * P_lin(k,z)
+              (halo integral, Padmanabhan / Pinetti convention)
+
+    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, this
+    collapses to the linear-bias form
+
+        P_HI^{2h}(k, z) = b_HI_cunn(z)^2 * P_lin(k, z)
+
+    using `b_HI_cunnington` (Cunnington et al. 2025, Eq. A3). The HI profile
+    factor u_HI(k, M, z) is dropped: this approximation is valid in the linear
+    regime k <~ 0.3 h/Mpc that MeerKLASS analyses target. ``M_min``/``M_max``/
+    ``n_M`` are ignored in that case.
     """
+    k = np.atleast_1d(np.asarray(k, dtype=float))
+
+    if not _is_known_mode(hi_brightness):
+        raise ValueError(
+            "hi_brightness must be 'padmanabhan', 'fixed_omega' or 'cunnington' "
+            f"(got {hi_brightness!r})"
+        )
+
+    if _is_cunnington_mode(hi_brightness):
+        b = float(b_HI_cunnington(float(z)))
+        return b * b * cosmo.P_lin(k, z)
+
     if M_min is None:
         M_min = cfg.M_MIN_HI
     if M_max is None:
         M_max = cfg.M_MAX_HI
 
-    k = np.atleast_1d(np.asarray(k, dtype=float))
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
     if rho <= 0:
         return np.zeros_like(k)
@@ -314,7 +470,7 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
 # HI window function for Limber integration
 # ---------------------------------------------------------------------------
 
-def W_HI(z, z_min, z_max):
+def W_HI(z, z_min, z_max, hi_brightness='padmanabhan'):
     """HI window function W_HI(chi) per comoving distance (Pinetti 2020 Eq. 3.15-3.16).
 
     W_HI(chi) = T_bar_b(z) * phi(z) * H(z) / (c * h)
@@ -332,4 +488,4 @@ def W_HI(z, z_min, z_max):
     if z < z_min or z > z_max:
         return 0.0
     H_over_ch = cosmo.H(z) / (cfg.C_LIGHT_KM_S * cfg.h)  # 1/(Mpc/h)
-    return T_bar_b(z) / (z_max - z_min) * H_over_ch
+    return T_bar_b_for_model(z, hi_brightness) / (z_max - z_min) * H_over_ch

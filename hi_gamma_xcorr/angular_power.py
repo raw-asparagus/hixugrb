@@ -17,17 +17,32 @@ from . import astro_sources as astro
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
 # ---------------------------------------------------------------------------
 
-def P_HI_DM_2h(k, z, n_M=120):
+def P_HI_DM_2h(k, z, n_M=120, hi_brightness='padmanabhan'):
     """Two-halo HI × DM cross-power spectrum [(Mpc/h)^3].
 
     P^{2h} = [sum dn * b * v_tilde/Delta^2 * M * dlnM]
              × [sum dn * b * u_HI * M_HI/rho_HI * M * dlnM] × P_lin
+             (halo integral, Padmanabhan / Pinetti convention)
+
+    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, the HI
+    halo integral collapses to the linear-bias polynomial:
+
+        P^{2h}(k, z) = I_DM(k, z) * b_HI_cunn(z) * P_lin(k, z)
+
+    The DM kernel I_DM is unchanged because the DM 2-halo bias is a separate
+    weighted integral over the dark-matter density-squared profile and has
+    nothing to do with the HI side.
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
-    rho_HI = hi.rho_HI_mean(z)
     Delta2 = dm.clumping_factor(z)
 
-    if rho_HI <= 0 or Delta2 <= 0:
+    if Delta2 <= 0:
+        return np.zeros_like(k)
+
+    cunn_mode = hi._is_cunnington_mode(hi_brightness)
+
+    rho_HI = None if cunn_mode else hi.rho_HI_mean(z)
+    if not cunn_mode and rho_HI <= 0:
         return np.zeros_like(k)
 
     M_min = max(cfg.M_MIN_HI, 1e8)
@@ -39,32 +54,54 @@ def P_HI_DM_2h(k, z, n_M=120):
     for M in M_arr:
         dn = hm.dndM(M, z)
         b = hm.bias(M, z)
-        m_hi = hi.M_HI(M, z)
         if dn <= 0:
             continue
-        u_hi = hi.u_HI(k, M, z) if m_hi > 0 else np.zeros_like(k)
         vt = dm.v_tilde(k, M, z)
         I_DM += dn * b * vt / Delta2 * M
-        if m_hi > 0:
-            I_HI += dn * b * u_hi * m_hi / rho_HI * M
+        if not cunn_mode:
+            m_hi = hi.M_HI(M, z)
+            if m_hi > 0:
+                u_hi = hi.u_HI(k, M, z)
+                I_HI += dn * b * u_hi * m_hi / rho_HI * M
 
     dlnM = np.log(M_arr[1] / M_arr[0])
-    return I_DM * dlnM * I_HI * dlnM * cosmo.P_lin(k, z)
+    I_DM *= dlnM
+
+    if cunn_mode:
+        b_hi = float(hi.b_HI_cunnington(float(z)))
+        return I_DM * b_hi * cosmo.P_lin(k, z)
+
+    I_HI *= dlnM
+    return I_DM * I_HI * cosmo.P_lin(k, z)
 
 
 # ---------------------------------------------------------------------------
 # HI × Astrophysical source 3D cross-power spectra (Eqs. 5.3–5.4)
 # ---------------------------------------------------------------------------
 
-def P_HI_astro_2h(k, z, source_class, n_M=120):
+def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
     """Two-halo HI × astrophysical source cross-power spectrum.
 
     P^{2h} = b_HI_integral × b_astro × P_lin
+             (halo integral, Padmanabhan / Pinetti convention)
 
     For point sources, the 2-halo term dominates and is the product
     of the HI bias integral and the source effective bias times P_lin.
+
+    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, the HI
+    halo integral collapses to the linear-bias polynomial:
+
+        P^{2h}(k, z) = b_HI_cunn(z) * b_astro(z) * P_lin(k, z)
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
+
+    # Astrophysical source bias (independent of HI mode)
+    b_astro = astro.bias_astro(z, source_class)
+
+    if hi._is_cunnington_mode(hi_brightness):
+        b_hi = float(hi.b_HI_cunnington(float(z)))
+        return b_hi * b_astro * cosmo.P_lin(k, z) * np.ones_like(k)
+
     rho_HI = hi.rho_HI_mean(z)
     if rho_HI <= 0:
         return np.zeros_like(k)
@@ -87,9 +124,6 @@ def P_HI_astro_2h(k, z, source_class, n_M=120):
     dlnM = np.log(M_arr[1] / M_arr[0])
     I_HI *= dlnM
 
-    # Astrophysical source bias
-    b_astro = astro.bias_astro(z, source_class)
-
     return I_HI * b_astro * cosmo.P_lin(k, z)
 
 
@@ -100,7 +134,7 @@ def P_HI_astro_2h(k, z, source_class, n_M=120):
 def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
                    m_chi_GeV=100.0, sigma_v=None, channel='bb',
                    source_classes=None, include_DM=True,
-                   n_z=200, n_k_M=100):
+                   n_z=200, n_k_M=100, hi_brightness='padmanabhan'):
     """Compute C_l^{HI × gamma} via Limber integration (Pinetti Eq. 2.1).
 
     C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+1/2)/chi, z)
@@ -127,6 +161,17 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
         Astrophysical source classes to include. None = all four.
     include_DM : bool
         Whether to include the DM contribution.
+    hi_brightness : str
+        HI prescription used for *both* the brightness and the bias.
+        - ``'padmanabhan'``: 188 mK with halo-integral Omega_HI(z) and the
+          halo-integral effective HI bias (Padmanabhan+2017 modified-NFW).
+        - ``'fixed_omega'``: 188 mK with the fixed Omega_HI = 2.45e-4 of
+          Pinetti 2020 / Battye+2013, halo-integral bias.
+        - ``'cunnington'`` (alias ``'meerfish'``): 180 mK with the Cunnington
+          et al. (2025) Eq. A5 polynomial Omega_HI(z) AND the matched Eq. A3
+          polynomial b_HI(z). Both brightness and bias are switched together
+          so the C_ell is internally self-consistent with the MeerKLASS data
+          analyses and the public MeerFish forecast code.
 
     Returns
     -------
@@ -154,7 +199,7 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
         dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h  # Mpc/h per unit z
 
         # HI window function
-        W_hi = hi.W_HI(z, z_min, z_max)  # mK
+        W_hi = hi.W_HI(z, z_min, z_max, hi_brightness=hi_brightness)  # mK
         if W_hi <= 0:
             continue
 
@@ -171,14 +216,16 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
             W_gamma = astro.W_gamma_astro(E_GeV, z, src)
             if W_gamma <= 0:
                 continue
-            P_cross = P_HI_astro_2h(k_arr, z, src, n_M=n_k_M)
+            P_cross = P_HI_astro_2h(k_arr, z, src, n_M=n_k_M,
+                                    hi_brightness=hi_brightness)
             result[src] += W_hi * W_gamma * P_cross * weight
 
         # DM contribution
         if include_DM:
             W_dm = dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
             if W_dm > 0:
-                P_dm = P_HI_DM_2h(k_arr, z, n_M=n_k_M)
+                P_dm = P_HI_DM_2h(k_arr, z, n_M=n_k_M,
+                                  hi_brightness=hi_brightness)
                 result['DM'] += W_hi * W_dm * P_dm * weight
 
     # Total
@@ -190,7 +237,8 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
 # HI auto-power C_l^{HI,HI} (needed for noise/variance computation)
 # ---------------------------------------------------------------------------
 
-def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
+def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100,
+                  hi_brightness='padmanabhan'):
     """HI auto-correlation angular power spectrum C_l^{HI,HI}.
 
     Uses only the 2-halo term for efficiency.
@@ -208,7 +256,7 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
         H_z = cosmo.H(z)
         dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h
 
-        W_hi = hi.W_HI(z, z_min, z_max)
+        W_hi = hi.W_HI(z, z_min, z_max, hi_brightness=hi_brightness)
         if W_hi <= 0:
             continue
 
@@ -218,8 +266,10 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100):
         # C_l = integral dz * (dchi/dz)/chi^2 * W_HI^2 * P
         weight = dchi_dz / chi_z**2 * dz
 
-        # P_HI (2-halo only for speed)
-        P_hi = hi.P_HI_2h(k_arr, z, n_M=n_M)
+        # P_HI (2-halo only for speed). Same hi_brightness drives both
+        # the brightness amplitude (W_hi above) and the bias prescription
+        # used inside P_HI_2h, so the auto-power stays self-consistent.
+        P_hi = hi.P_HI_2h(k_arr, z, n_M=n_M, hi_brightness=hi_brightness)
         result += W_hi**2 * P_hi * weight
 
     return result
@@ -237,7 +287,7 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
                        channel='bb', source_classes=None,
                        z_min_hi=None, z_max_hi=None,
                        unresolved_only=True, include_DM=True,
-                       z_norm_max=None):
+                       z_norm_max=None, hi_brightness='padmanabhan'):
     r"""Compute uniformly normalized window functions for all tracers.
 
     Returns $\hat{W}_i(z) = \frac{c\,h}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
@@ -268,6 +318,12 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
         Whether to include DM window.
     z_norm_max : float, optional
         Upper limit for the normalization integral. Default ``_Z_NORM_MAX`` (4.0).
+    hi_brightness : str
+        HI prescription used for both the brightness and (where applicable)
+        the bias. Aliases: ``'padmanabhan'``, ``'fixed_omega'``,
+        ``'cunnington'`` (= ``'meerfish'``). The Cunnington mode uses the
+        Eqs. A4 / A5 brightness and the Eq. A3 bias polynomial together so
+        the windows are self-consistent with the MeerFish forecasts.
 
     Returns
     -------
@@ -296,14 +352,20 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
     # --- HI ---
     survey_independent_hi = (z_min_hi is None and z_max_hi is None)
     if survey_independent_hi:
-        W_hi_perz = np.array([hi.T_bar_b(z) for z in z_arr]) * c_h_over_H
-        W_hi_ext = np.array([hi.T_bar_b(z) for z in z_ext]) * c_h_over_H_ext
-    else:
         W_hi_perz = np.array([
-            hi.W_HI(z, z_min_hi, z_max_hi) for z in z_arr
+            hi.T_bar_b_for_model(z, hi_brightness) for z in z_arr
         ]) * c_h_over_H
         W_hi_ext = np.array([
-            hi.W_HI(z, z_min_hi, z_max_hi) for z in z_ext
+            hi.T_bar_b_for_model(z, hi_brightness) for z in z_ext
+        ]) * c_h_over_H_ext
+    else:
+        W_hi_perz = np.array([
+            hi.W_HI(z, z_min_hi, z_max_hi, hi_brightness=hi_brightness)
+            for z in z_arr
+        ]) * c_h_over_H
+        W_hi_ext = np.array([
+            hi.W_HI(z, z_min_hi, z_max_hi, hi_brightness=hi_brightness)
+            for z in z_ext
         ]) * c_h_over_H_ext
 
     I_hi = np.sum(W_hi_ext) * dz_ext

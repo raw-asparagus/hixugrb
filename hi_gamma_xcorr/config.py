@@ -73,6 +73,7 @@ HI_BETA = -0.69                # Mass slope (Table A1)
 HI_VC0 = 10**1.61              # Minimum circular velocity cutoff [km/s] ≈ 40.7 (Table A1)
 HI_C0 = 139.0                  # HI concentration normalization (Table A1)
 HI_GAMMA_CONC = 0.13           # Concentration redshift evolution exponent (Table A1)
+OMEGA_HI_FIXED = 2.45e-4       # Fixed HI density used for Pinetti-style forecasts
 Y_P = 0.24                     # Primordial helium mass fraction
 F_HC = (1.0 - Y_P) * OMEGA_B / OMEGA_M  # Cosmic hydrogen fraction in halos
 
@@ -268,6 +269,143 @@ RADIO_TELESCOPES = {
             'L':   {'z_min': 0.0, 'z_max': 0.58},
         },
         'f_sky': 0.097,
+    },
+    'MeerKLASS_DR0': {
+        # Cunnington, Li et al. (2023), MNRAS 518, 6262 (arXiv:2206.01579).
+        # See docs/literature/cunnington2023.md.
+        # First MeerKAT single-dish HI intensity-mapping x WiggleZ detection,
+        # 7 x 1.5 hr L-band scans on the WiggleZ 11hr field, 0.400 < z < 0.459.
+        'survey_area_deg2': 200.0,       # Sec. 2 of Cunnington+2023
+        't_obs_hours': 10.5,             # 7 x 1.5 hr scans (Sec. 2)
+        'n_dishes': 60,                  # avg usable dishes per time block (Sec. 2)
+        'd_dish_m': 13.5,
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Cunnington+2025 Table 2)
+        'n_u': 0.0005,
+        'bands': {
+            'L': {'z_min': 0.400, 'z_max': 0.459},   # 973.2-1014.6 MHz used
+        },
+        'f_sky': 200.0 / 41253.0,
+    },
+    # NOTE — the two MeerKLASS DR1 entries below mirror the *interferometric
+    # continuum* DR1 papers (Mangla+2025 L-band, Paul+2025 UHF). The published
+    # 13.5 hr / 12 hr on-source totals are continuum-DR1 only; they do NOT
+    # equal the cumulative MeerKLASS single-dish HI integration time on the
+    # same fields. For HI single-dish forecasts use the Cunnington+2025-derived
+    # entries `MeerKLASS_L_deepfield`, `MeerKLASS_2024_HI`, or
+    # `MeerKLASS_XLP_2028` below instead.
+    'MeerKLASS_DR1_L': {
+        # Mangla et al. (2025), arXiv:2512.17685 — MeerKLASS L-band OTF DR1.
+        # See docs/literature/mangla2025_meerklass_lband_dr1.md.
+        # 8 rising-scan blocks, Sep–Oct 2021, total 13.5 hr usable on-source,
+        # 67 tiles covering ~268 deg^2. Continuum interferometric release;
+        # commensal with single-dish HI intensity mapping in the same band.
+        'survey_area_deg2': 268.0,       # Abstract / Sec. 2.2 of Mangla+2025
+        't_obs_hours': 13.5,             # 8 rising-scan blocks (Table 1)
+        'n_dishes': 64,                  # MeerKAT array (Sec. 2.2)
+        'd_dish_m': 13.5,
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Cunnington+2025 Table 2)
+        'n_u': 0.0005,
+        'bands': {
+            # L-band 856-1712 MHz; full HI redshift coverage
+            # (no sub-band cut applied for forecast purposes)
+            'L': {'z_min': 0.0,  'z_max': 0.66},
+        },
+        'f_sky': 268.0 / 41253.0,
+    },
+    'MeerKLASS_DR1_UHF': {
+        # Paul et al. (2025), arXiv:2512.11964 — MeerKLASS UHF OTF DR1.
+        # See docs/literature/paul2025_meerklass_uhf_dr1.md.
+        # 8 OTF blocks (4 rising + 4 setting), Feb–Jul 2023, ~12 hr usable
+        # on-source, 89 tiles covering ~800 deg^2 in the DESI footprint.
+        # Continuum interferometric release; commensal with single-dish HI.
+        'survey_area_deg2': 800.0,       # Abstract / Sec. 2 of Paul+2025
+        't_obs_hours': 12.0,             # 8 OTF blocks (Table 1)
+        'n_dishes': 64,                  # MeerKAT array (Sec. 1)
+        'd_dish_m': 13.5,
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Cunnington+2025 Table 2)
+        'n_u': 0.0005,
+        'bands': {
+            'UHF': {'z_min': 0.31, 'z_max': 1.61},   # 544-1088 MHz (Sec. 2)
+        },
+        'f_sky': 800.0 / 41253.0,
+    },
+    'MeerKLASS_L_deepfield': {
+        # MeerKLASS L-band deep-field, reported in MeerKLASS Collaboration
+        # et al. (2025), arXiv:2407.21626 (not yet ingested into docs/papers/).
+        # Summarised in Cunnington et al. (2025), arXiv:2510.27549, Sec. 5.1
+        # (see docs/literature/cunnington2025_meerklass_overview.md).
+        # 41 repeated scans over 236 deg^2, totalling 62 hr per dish before
+        # flagging — the deepest L-band single-dish HI integration to date.
+        # Cross-correlation with GAMA: > 4 sigma at 0.39 < z < 0.46.
+        'survey_area_deg2': 236.0,       # Cunnington+2025 Sec. 5.1
+        't_obs_hours': 62.0,             # 41 scans, 62 hr per dish (Sec. 5.1)
+        'n_dishes': 64,
+        'd_dish_m': 13.5,
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Cunnington+2025 Table 2)
+        'n_u': 0.0005,
+        'bands': {
+            # L-band cosmologically useable window is RFI-restricted to
+            # 971-1023 MHz (Cunnington+2025 Sec. 2), z = 0.39-0.46.
+            'L': {'z_min': 0.39, 'z_max': 0.46},
+        },
+        'f_sky': 236.0 / 41253.0,
+    },
+    'MeerKLASS_2024_HI': {
+        # Cumulative MeerKLASS UHF single-dish HI total at end of 2024,
+        # from Cunnington et al. (2025), arXiv:2510.27549, Table 1.
+        # See docs/literature/cunnington2025_meerklass_overview.md.
+        # This is the actually-observed HI dataset to date (modulo the
+        # 2025 in-progress increment to ~880 hr / ~3,600 deg^2).
+        'survey_area_deg2': 1600.0,      # Table 1 of Cunnington+2025
+        't_obs_hours': 380.0,            # Cumulative end-2024 (Table 1)
+        'n_dishes': 64,
+        'd_dish_m': 13.5,
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Table 2 of Cunnington+2025)
+        'n_u': 0.0005,
+        'bands': {
+            # UHF cosmological window: 580-1000 MHz (Table 2 of Cunnington+2025).
+            'UHF': {'z_min': 0.40, 'z_max': 1.45},
+        },
+        'f_sky': 1600.0 / 41253.0,
+    },
+    'MeerKLASS_XLP_2028': {
+        # Authoritative full-programme forecast configuration, taken directly
+        # from Cunnington et al. (2025), arXiv:2510.27549, Table 2 / Sec. 6
+        # (XLP target awarded for completion by end of 2028).
+        # See docs/literature/cunnington2025_meerklass_overview.md.
+        #
+        # Nominal: 2,500 hr / 10,000 deg^2 UHF.
+        # Survey efficiency epsilon = 0.5 (50% RFI loss assumed in all
+        # MeerFish forecasts), giving 1,250 hr useable.
+        # Cosmological UHF window: 580-1000 MHz, 0.4 < z < 1.45.
+        'survey_area_deg2': 10000.0,     # Table 2
+        't_obs_hours': 2500.0,           # Table 2 nominal total
+        'n_dishes': 64,                  # Table 2
+        'd_dish_m': 13.5,                # Table 2
+        'd_interf_km': 1.0,
+        'n_beams': 1,
+        'n_pol': 2,
+        'eta': 0.5,                      # epsilon = 0.5 (Table 2)
+        'n_u': 0.0005,
+        'bands': {
+            'UHF': {'z_min': 0.40, 'z_max': 1.45},  # Table 2
+        },
+        'f_sky': 10000.0 / 41253.0,
     },
     'SKA1': {
         'survey_area_deg2': 25000.0,

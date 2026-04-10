@@ -216,14 +216,11 @@ DEVIATIONS = {
         'severity': 'Medium (thesis typo; both implementations use correct value)',
     },
     'mAGN_kcorr': {
-        'pipeline': 'no K-correction in GLF (pure number density)',
+        'pipeline': '(1+z)^{-(2-Gamma)} K-correction in GLF (thesis Eq. C.19)',
         'pinetti': '(1+z)^{-(2-Gamma)} K-correction in Eq. C.19',
         'description': 'mAGN GLF K-correction factor',
         'affects': ['mAGN W_gamma, mean intensity'],
-        'severity': ('Major (~9x at z=1). The thesis Eq. C.19 K-correction converts '
-                     'between observed flux and rest-frame luminosity for source '
-                     'counting, but does not belong in the comoving emissivity. '
-                     'Removing it brings mAGN in line with Di Mauro+2014 Fig. 6.'),
+        'severity': 'None (now matched)',
     },
     'L_sens_units': {
         'pipeline': 'energy luminosity [erg/s] via K-corrected F_SENS',

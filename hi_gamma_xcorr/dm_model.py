@@ -146,27 +146,26 @@ def boost_moline(M, z, M_min_sub=1e-6):
 # ---------------------------------------------------------------------------
 
 @_cache_stable(module=__name__)
-def _clumping_compute(z, M_min, M_max, boost_scenario, n_M):
-    """Core clumping computation."""
-    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
-    dlnM = np.log(M_arr[1] / M_arr[0])
+def _clumping_compute(z, M_min, M_max, boost_scenario):
+    """Core clumping computation using adaptive quadrature over ln M."""
 
-    integrand_arr = np.empty(n_M)
-    for i, M in enumerate(M_arr):
+    def integrand(lnM):
+        M = np.exp(lnM)
         dn = hm.dndM(M, z)
         if dn <= 0:
-            integrand_arr[i] = 0.0
-            continue
+            return 0.0
         rho2 = rho2_integral_analytic(M, z)
         B = boost_moline(M, z) if boost_scenario != 'no_boost' else 0.0
-        integrand_arr[i] = dn * (1.0 + B) * rho2 * M
+        return dn * (1.0 + B) * rho2 * M
 
-    result = np.sum(integrand_arr) * dlnM / cfg.RHO_BAR**2 / (1.0 + z)**3
+    val, _ = quad(integrand, np.log(M_min), np.log(M_max),
+                  limit=300, epsrel=1e-4)
+
+    result = val / cfg.RHO_BAR**2 / (1.0 + z)**3
     return max(result, 0.0)
 
 
-def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
-                    n_M=200):
+def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate'):
     """Clumping factor Delta^2(z) = <rho^2>_phys / rho_bar_phys(z)^2.
 
     The physical-variable definition, consistent with Ullio+2002 Eq. 10 /
@@ -179,6 +178,8 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
     (1+z)^3 smaller than <rho^2>_phys per physical volume. Dividing by
     rho_bar_com^2 rather than rho_bar_phys(z)^2 = rho_bar_com^2 (1+z)^6 then
     leaves a factor (1+z)^3 mismatch. Corrected by /(1+z)^3 at the end.
+
+    Uses adaptive quadrature (scipy.quad) over ln M for high accuracy.
 
     Literature cross-check: at z=0 Delta^2 ~ 1e5-1e6 (dominated by halos),
     falling to ~1e4 at z=1 and ~1e3 at z=3 as structure is less collapsed
@@ -196,7 +197,7 @@ def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate',
         M_max = cfg.M_MAX_DM
 
     return _clumping_compute(float(z), float(M_min), float(M_max),
-                             boost_scenario, int(n_M))
+                             boost_scenario)
 
 
 # ---------------------------------------------------------------------------

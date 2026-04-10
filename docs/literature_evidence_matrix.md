@@ -97,6 +97,21 @@ Status legend:
 | `cunnington2023.md` | Reconvolution to a common beam follows the paper's Eqs. 16-18 | Cunnington et al. (2023), Section 4.1, Eqs. 16-18 | **Match** | |
 | `cunnington2023.md` | Transfer-function correction follows the mock-injection construction of Eqs. 19-20 | Cunnington et al. (2023), Section 4.3, Eqs. 19-20 | **Match** | |
 | `cunnington2023.md` | The brightness-temperature coefficient is quoted as 180 mK from Eq. 15 | Cunnington et al. (2023), Eq. 15 | **Match** | The literature summary now reports the paper value without folding in repository conventions |
+| `mangla2025_meerklass_lband_dr1.md` | MeerKLASS L-band OTF DR1 covers ~268 deg² in 13.5 hr of usable on-source time across 8 rising-scan blocks | Mangla et al. (2025), Abstract, Sec. 2.2, Table 1 | **Match** | DR1 reports interferometric continuum only; rising scans only because the setting calibrator (Pictor A) is extended on interferometric baselines |
+| `mangla2025_meerklass_lband_dr1.md` | The L-band receiver covers 856–1712 MHz; visibility integration is 2 s; survey speed ~150 deg² hr⁻¹ | Mangla et al. (2025), Sec. 2.2 | **Match** | |
+| `mangla2025_meerklass_lband_dr1.md` | The OTF time-smearing artefact arises because the correlator delay centre is held fixed in (az, el); modelled inside DDFacet via a fringe-rate-dependent PSF | Mangla et al. (2025), Sec. 3.1.3, Sec. 3.2, Appendix B | **Match** | A new OTF-optimised correlator mode introduced at MeerKAT in 2025 removes the residual smearing in DR2 |
+| `mangla2025_meerklass_lband_dr1.md` | DR1 mosaic median noise is 33 μJy beam⁻¹ at median resolution 25.5″ × 7.8″, catalogue contains 34,874 sources at SNR > 9 | Mangla et al. (2025), Abstract, Sec. 4 | **Match** | |
+| `paul2025_meerklass_uhf_dr1.md` | MeerKLASS UHF OTF DR1 covers ~800 deg² in ~12 hr across 8 cross-linked OTF blocks (4 rising + 4 setting), inside the DESI footprint | Paul et al. (2025), Abstract, Sec. 2, Table 1 | **Match** | Cross-linked rising/setting strategy averages down direction-dependent systematics |
+| `paul2025_meerklass_uhf_dr1.md` | The UHF receiver covers 544–1088 MHz; central frequency 816 MHz; visibility integration 2 s; scan speed ~7′ s⁻¹ | Paul et al. (2025), Sec. 2 | **Match** | |
+| `paul2025_meerklass_uhf_dr1.md` | DR1 deepest RMS is ~35 μJy beam⁻¹ at median resolution ~32″ × 17″; catalogue contains 95,483 unique sources | Paul et al. (2025), Abstract, Sec. 5.1, Sec. 8 | **Match** | |
+| `paul2025_meerklass_uhf_dr1.md` | The full MeerKLASS programme targets 10,000 deg² over ~2,500 hr of nighttime UHF observing; ~270 hr of UHF pilot data have been acquired since the 2022 transition from L-band | Paul et al. (2025), Sec. 1 | **Match** | The same 2,500 hr / 10,000 deg² target is the authoritative XLP configuration in Cunnington et al. (2025), Table 2 |
+| `cunnington2025_meerklass_overview.md` | Cumulative MeerKLASS observations through 2024: L-band 85 hr / 500 deg² (RFI-restricted to 0.39 < z < 0.46); UHF 380 hr / 1,600 deg² (0.40 < z < 1.45) | Cunnington et al. (2025), Sec. 2, Table 1 | **Match** | UHF 2025 in-progress increment to ~880 hr / ~3,600 deg² is also tabulated |
+| `cunnington2025_meerklass_overview.md` | Awarded XLP target by end of 2028: 2,500 hr / 10,000 deg² UHF; all forecasts assume a survey efficiency $\varepsilon = 0.5$ → 1,250 hr useable | Cunnington et al. (2025), Sec. 2, Sec. 6, Table 2 | **Match** | This is the basis for `RADIO_TELESCOPES['MeerKLASS_XLP_2028']` |
+| `cunnington2025_meerklass_overview.md` | The L-band deep-field is 41 repeated scans over 236 deg² totalling 62 hr/dish before flagging, > 4σ cross-correlation with GAMA at 0.39 < z < 0.46 | Cunnington et al. (2025), Sec. 5.1; original MeerKLASS Collaboration et al. (2025), arXiv:2407.21626 | **Match** | The 2407.21626 paper is referenced but not yet ingested into `docs/papers/`; basis for `RADIO_TELESCOPES['MeerKLASS_L_deepfield']` |
+| `cunnington2025_meerklass_overview.md` | Mean HI brightness temperature is modelled as $\bar T_\mathrm{HI}(z) = 180\,\Omega_\mathrm{HI}\,h\,(1+z)^2/(H/H_0)$ mK (180 mK prefactor) | Cunnington et al. (2025), Eq. A4 | **Match** | The pipeline `hi_model.T_bar_b` uses 188 mK following Padmanabhan 2017 / Pinetti 2020; both Cunnington 2023 (Eq. 15) and Cunnington 2025 (Eq. A4) use 180 mK following Battye+2013 |
+| `cunnington2025_meerklass_overview.md` | The forecast Ω_HI(z) polynomial is $\Omega_\mathrm{HI}(z) = 6.7432\times10^{-4} + 3.9\times10^{-4} z - 6.5\times10^{-5} z^2$ | Cunnington et al. (2025), Eq. A5 | **Match** | Adapted from SKA Cosmology SWG 2020 with the latest MeerKLASS constraints |
+| `cunnington2025_meerklass_overview.md` | The forecast HI bias polynomial is $b_\mathrm{HI}(z) = 0.842 + 0.693\,z - 0.0459\,z^2$ | Cunnington et al. (2025), Eq. A3 | **Match** | Fit to Villaescusa-Navarro et al. (2018) hydrodynamic simulations |
+| `cunnington2025_meerklass_overview.md` | Forecast multipoles used are $\{P_0, P_2, P_4\}$ to break the $b_\mathrm{HI}$–$f$ degeneracy; public Fisher code is `MeerFish` | Cunnington et al. (2025), Sec. 6.1, Sec. 6.1.1 | **Match** | github.com/meerklass/MeerFish |
 | `pinetti2022_thesis.md` | The thesis defines the full HI x UGRB cross-correlation framework including window functions, Limber projection, and source-class decomposition | Pinetti (2022), arXiv:2212.00125, Chapters 3-5 | **Match** | |
 | `pinetti2022_thesis.md` | The thesis Eq. C.4 LDDE evolution uses negative exponents $[r^{-p_1}+r^{-p_2}]^{-1}$ | Pinetti (2022), Eq. C.4 | **Match** | |
 | `pinetti2022_thesis.md` | The thesis uses $q=0.75$ for the Sheth-Tormen mass function and bias | Pinetti (2022), Eq. 3.33 | **Match** | |
@@ -113,7 +128,7 @@ Current audit result:
 
 | Status | Count |
 |--------|-------|
-| **Match** | 68 |
+| **Match** | 84 |
 | **Minor** | 0 |
 
 No outstanding literature-summary mismatches remain in the audited claim set above.
