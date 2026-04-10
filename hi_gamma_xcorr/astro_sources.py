@@ -10,6 +10,8 @@ GLF sources:
 - SFG: Gruppioni et al. (2013) + Ackermann et al. (2012) — IR LF → gamma
 """
 
+from functools import lru_cache
+
 import numpy as np
 
 from scipy.integrate import quad
@@ -595,8 +597,16 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
                                unresolved_only, unresolved_mode)
 
 
+@lru_cache(maxsize=16384)
 def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode):
-    """Core implementation of W_gamma_astro."""
+    """Core implementation of W_gamma_astro.
+
+    Item 2.1 of clever-beaming-creek plan: in-memory lru_cache keyed on the
+    five hashable scalars (E_GeV, z, source_class, unresolved_only, unresolved_mode).
+    Cache is reset on every Python process start. Caveat: if `cfg` astro-source
+    parameters or `cfg.F_SENS` are mutated at runtime, the cache becomes stale —
+    callers should not mutate the config dict.
+    """
     if z <= 0:
         return 0.0
 
@@ -691,7 +701,8 @@ def mean_intensity(E_GeV, source_class, z_max=2.5, n_z=300):
     z_arr = np.linspace(0.01, z_max, n_z)
     W_arr = np.array([W_gamma_astro(E_GeV, z, source_class) for z in z_arr])
 
-    H_arr = np.array([cosmo.H(z) for z in z_arr])
+    # Item 1.4: vectorised over z_arr
+    H_arr = cosmo.H(np.asarray(z_arr, dtype=float))
     dchi_dz = cfg.C_LIGHT_KM_S * cfg.h / H_arr  # [Mpc/h]
     Mpc_h_cm = cfg.MPC_TO_M * 100.0 / cfg.h     # [cm / (Mpc/h)]
 

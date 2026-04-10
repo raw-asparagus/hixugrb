@@ -269,12 +269,23 @@ RADIO_TELESCOPES = {
             'L':   {'z_min': 0.0, 'z_max': 0.58},
         },
         'f_sky': 0.097,
+        # Pinetti+(2020/2022) forecast target — use Pinetti's generic T_sys
+        # and her fixed Omega_HI = 2.45e-4 for apples-to-apples comparison
+        # against Pinetti+2020 Table 4.
+        'T_sys_model': 'pinetti',
+        'default_hi_brightness': 'fixed_omega',
     },
-    'MeerKLASS_DR0': {
-        # Cunnington, Li et al. (2023), MNRAS 518, 6262 (arXiv:2206.01579).
+    'MeerKLASS_L_pilot': {
+        # 2019 MeerKLASS L-band pilot survey. The observational paper is
+        # Wang et al. (2021), MNRAS 505, 3698; the first cosmological
+        # cross-correlation detection (the result this entry corresponds to)
+        # is Cunnington, Li et al. (2023), MNRAS 518, 6262 (arXiv:2206.01579).
         # See docs/literature/cunnington2023.md.
         # First MeerKAT single-dish HI intensity-mapping x WiggleZ detection,
         # 7 x 1.5 hr L-band scans on the WiggleZ 11hr field, 0.400 < z < 0.459.
+        # (Was 'MeerKLASS_DR0' in earlier versions of this config — renamed
+        # to avoid the misleading 'DR0' label, which collided semantically
+        # with the formal 'DR1' continuum-imaging entries below.)
         'survey_area_deg2': 200.0,       # Sec. 2 of Cunnington+2023
         't_obs_hours': 10.5,             # 7 x 1.5 hr scans (Sec. 2)
         'n_dishes': 60,                  # avg usable dishes per time block (Sec. 2)
@@ -288,6 +299,9 @@ RADIO_TELESCOPES = {
             'L': {'z_min': 0.400, 'z_max': 0.459},   # 973.2-1014.6 MHz used
         },
         'f_sky': 200.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     # NOTE — the two MeerKLASS DR1 entries below mirror the *interferometric
     # continuum* DR1 papers (Mangla+2025 L-band, Paul+2025 UHF). The published
@@ -317,6 +331,9 @@ RADIO_TELESCOPES = {
             'L': {'z_min': 0.0,  'z_max': 0.66},
         },
         'f_sky': 268.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     'MeerKLASS_DR1_UHF': {
         # Paul et al. (2025), arXiv:2512.11964 — MeerKLASS UHF OTF DR1.
@@ -337,17 +354,23 @@ RADIO_TELESCOPES = {
             'UHF': {'z_min': 0.31, 'z_max': 1.61},   # 544-1088 MHz (Sec. 2)
         },
         'f_sky': 800.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     'MeerKLASS_L_deepfield': {
-        # MeerKLASS L-band deep-field, reported in MeerKLASS Collaboration
-        # et al. (2025), arXiv:2407.21626 (not yet ingested into docs/papers/).
-        # Summarised in Cunnington et al. (2025), arXiv:2510.27549, Sec. 5.1
-        # (see docs/literature/cunnington2025_meerklass_overview.md).
-        # 41 repeated scans over 236 deg^2, totalling 62 hr per dish before
-        # flagging — the deepest L-band single-dish HI integration to date.
-        # Cross-correlation with GAMA: > 4 sigma at 0.39 < z < 0.46.
-        'survey_area_deg2': 236.0,       # Cunnington+2025 Sec. 5.1
-        't_obs_hours': 62.0,             # 41 scans, 62 hr per dish (Sec. 5.1)
+        # MeerKLASS L-band deep-field, MeerKLASS Collaboration et al. (2025),
+        # arXiv:2407.21626, "L-band deep-field intensity maps: entering the
+        # HI dominated regime". See docs/literature/meerklass2025_lband_deepfield.md
+        # (also summarised in Cunnington+2025 Sec. 5.1, the MeerKLASS overview).
+        # 41 attempted scan blocks over 236 deg^2 in the southern sky
+        # (RA 330-360, Dec -36 to -25), 27 surviving after RFI flagging,
+        # 62 hr per dish before flagging — deepest L-band single-dish HI
+        # integration to date. Median map noise 1.21 mK (1.2x theoretical).
+        # Cross-correlation with 2,269 GAMA G23 galaxies: > 4 sigma at
+        # 0.39 < z < 0.46. Best-fit T_HI = 0.166 mK at z ~ 0.43.
+        'survey_area_deg2': 236.0,       # MeerKLASS Collab. (2025), Sec. 2.1
+        't_obs_hours': 62.0,             # 41 scans, 62 hr per dish (Sec. 2.1)
         'n_dishes': 64,
         'd_dish_m': 13.5,
         'd_interf_km': 1.0,
@@ -357,10 +380,14 @@ RADIO_TELESCOPES = {
         'n_u': 0.0005,
         'bands': {
             # L-band cosmologically useable window is RFI-restricted to
-            # 971-1023 MHz (Cunnington+2025 Sec. 2), z = 0.39-0.46.
+            # 971.2-1023.6 MHz (MeerKLASS Collab. 2025 Sec. 2.4 / 2.5),
+            # z = 0.39 - 0.46.
             'L': {'z_min': 0.39, 'z_max': 0.46},
         },
         'f_sky': 236.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     'MeerKLASS_2024_HI': {
         # Cumulative MeerKLASS UHF single-dish HI total at end of 2024,
@@ -382,6 +409,9 @@ RADIO_TELESCOPES = {
             'UHF': {'z_min': 0.40, 'z_max': 1.45},
         },
         'f_sky': 1600.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     'MeerKLASS_XLP_2028': {
         # Authoritative full-programme forecast configuration, taken directly
@@ -406,6 +436,9 @@ RADIO_TELESCOPES = {
             'UHF': {'z_min': 0.40, 'z_max': 1.45},  # Table 2
         },
         'f_sky': 10000.0 / 41253.0,
+        # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
+        'T_sys_model': 'meerkat',
+        'default_hi_brightness': 'cunnington',
     },
     'SKA1': {
         'survey_area_deg2': 25000.0,
@@ -422,6 +455,9 @@ RADIO_TELESCOPES = {
             'Band2': {'z_min': 0.0,  'z_max': 0.5},
         },
         'f_sky': 0.61,
+        # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
+        'T_sys_model': 'pinetti',
+        'default_hi_brightness': 'fixed_omega',
     },
     'SKA2': {
         'survey_area_deg2': 30000.0,
@@ -438,15 +474,35 @@ RADIO_TELESCOPES = {
             'Band2': {'z_min': 0.0,  'z_max': 0.5},
         },
         'f_sky': 0.72,
+        # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
+        'T_sys_model': 'pinetti',
+        'default_hi_brightness': 'fixed_omega',
     },
 }
 
-# Radio system temperature model: T_sys = T_inst + T_sky
-# T_sky = 60 * (300 MHz / nu)^2.55  [K]
-# T_inst ~ 30 K (hardcoded constant in noise_model.T_sys)
+# Radio system temperature models — see hi_gamma_xcorr/noise_model.py for use.
+#
+# (a) Pinetti+(2020/2022) generic-radio model (= Camera et al. 2013):
+#     T_sys = 30 K + 60 K * (300 MHz / nu)^{2.55}
+#     Used by telescope entries with T_sys_model='pinetti' (the default), so
+#     the legacy MeerKAT/SKA1/SKA2 forecasts compare apples-to-apples with
+#     Pinetti+2020 Table 4. The 30 K constant is hardcoded inside
+#     noise_model.T_sys_pinetti; the rest are configurable here:
 T_SKY_COEFF = 60.0             # [K]
 T_SKY_NU_REF = 300.0           # [MHz]
 T_SKY_INDEX = 2.55
+#
+# (b) MeerKLASS 2025 / Wang+2021 canonical MeerKAT receiver model:
+#     T_sys(nu) = T_rx(nu) + T_spl + T_CMB + T_gal(nu)
+#     T_rx(nu) = 7.5 K + 10 K * (nu/GHz - 0.75)^2
+#     T_gal(nu) = 25 K * (408 MHz / nu)^{2.75}
+#     Source: MeerKLASS Collab. (2025), arXiv:2407.21626, Eqs. 21-22
+#     (citing Cunnington 2022 and Wang et al. 2021).
+#     Gives ~16 K at L-band and ~17 K at the UHF band centre, ~factor of 2
+#     lower than the Pinetti generic formula. Used by telescope entries with
+#     T_sys_model='meerkat', i.e. the new MeerKLASS_* HI single-dish entries.
+T_SPL_MEERKAT_K = 3.0          # spillover [K] (MeerKLASS Collab. 2025 Eq. 21)
+T_CMB_K = 2.725                # CMB [K] (MeerKLASS Collab. 2025 Eq. 21)
 
 # HI 21-cm rest frequency
 NU_21CM = 1420.405              # [MHz]

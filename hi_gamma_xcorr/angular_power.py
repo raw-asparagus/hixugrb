@@ -234,6 +234,114 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
 
 
 # ---------------------------------------------------------------------------
+# Multi-energy Limber driver — Item 3.1 of clever-beaming-creek plan
+# ---------------------------------------------------------------------------
+
+def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
+                           m_chi_GeV=100.0, sigma_v=None, channel='bb',
+                           source_classes=None, include_DM=True,
+                           n_z=200, n_k_M=100, hi_brightness='padmanabhan'):
+    """Multi-energy Limber driver: computes ``C_ell_HI_gamma`` for each energy
+    in ``E_arr`` while doing the redshift loop only once.
+
+    The Limber kernel ``(chi, H, dchi/dz, W_HI, k_arr, P_HI_DM_2h, P_HI_astro_2h)``
+    depends on ``(z, ell, telescope, band, hi_brightness)`` but **not** on the
+    photon energy. Only the gamma-ray windows ``W_gamma_astro(E, z, src)`` and
+    ``W_gamma_DM(E, z, m_chi, ...)`` vary with energy. By looping over redshift
+    once and varying only the gamma-ray window in the inner energy loop, we
+    avoid recomputing the (very expensive) halo-integral cross-power kernel
+    once per energy bin.
+
+    The per-energy result is mathematically identical to calling
+    ``C_ell_HI_gamma`` once per energy, modulo floating-point accumulation order
+    (rel-tol < 1e-13 typical).
+
+    Parameters
+    ----------
+    ell : array
+        Multipoles. Same `ell` array is used for every energy.
+    E_arr : array
+        Photon energies [GeV]. One Limber output per element.
+    Other parameters: see ``C_ell_HI_gamma``.
+
+    Returns
+    -------
+    results : list of dict
+        ``results[i]`` is the same dict ``C_ell_HI_gamma`` would have returned
+        for ``E_GeV = E_arr[i]``: keys ``'total'``, ``'DM'`` (if include_DM),
+        ``'BL_Lac'``, ``'FSRQ'``, ``'mAGN'``, ``'SFG'`` (subset by source_classes).
+    """
+    if source_classes is None:
+        source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
+
+    ell = np.atleast_1d(np.asarray(ell, dtype=float))
+    E_arr = np.atleast_1d(np.asarray(E_arr, dtype=float))
+    n_E = len(E_arr)
+
+    z_arr = np.linspace(max(z_min, 0.01), z_max, n_z)
+    dz = z_arr[1] - z_arr[0]
+
+    # One result dict per energy
+    results = []
+    for _ in range(n_E):
+        r = {src: np.zeros_like(ell) for src in source_classes}
+        if include_DM:
+            r['DM'] = np.zeros_like(ell)
+        results.append(r)
+
+    for z in z_arr:
+        # ----- E-independent Limber kernel -----
+        chi_z = cosmo.chi(z)  # Mpc/h
+        if chi_z <= 0:
+            continue
+        H_z = cosmo.H(z)
+        dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h
+
+        W_hi = hi.W_HI(z, z_min, z_max, hi_brightness=hi_brightness)  # mK
+        if W_hi <= 0:
+            continue
+
+        k_arr = (ell + 0.5) / chi_z
+        weight = dchi_dz / chi_z**2 * dz
+
+        # Per-source 2-halo cross-power (E-independent — depends only on z, k, hi_brightness)
+        P_cross_by_src = {}
+        for src in source_classes:
+            P_cross_by_src[src] = P_HI_astro_2h(k_arr, z, src, n_M=n_k_M,
+                                                hi_brightness=hi_brightness)
+
+        # DM 2-halo cross-power (E-independent)
+        if include_DM:
+            P_dm = P_HI_DM_2h(k_arr, z, n_M=n_k_M, hi_brightness=hi_brightness)
+        else:
+            P_dm = None
+
+        # ----- E-dependent inner loop -----
+        for iE, E_GeV in enumerate(E_arr):
+            E_GeV = float(E_GeV)
+            r = results[iE]
+
+            # Astrophysical contributions
+            for src in source_classes:
+                W_gamma = astro.W_gamma_astro(E_GeV, z, src)
+                if W_gamma <= 0:
+                    continue
+                r[src] += W_hi * W_gamma * P_cross_by_src[src] * weight
+
+            # DM contribution
+            if include_DM:
+                W_dm = dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
+                if W_dm > 0:
+                    r['DM'] += W_hi * W_dm * P_dm * weight
+
+    # Total per energy
+    for r in results:
+        r['total'] = sum(r[k] for k in r)
+
+    return results
+
+
+# ---------------------------------------------------------------------------
 # HI auto-power C_l^{HI,HI} (needed for noise/variance computation)
 # ---------------------------------------------------------------------------
 
@@ -340,12 +448,14 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
 
     # c*h/H(z) converts per-chi window to per-z: W^(z) = W^(chi) * dchi/dz
     # where dchi/dz = c*h/H in [Mpc/h per unit z].
-    c_h_over_H = np.array([cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z) for z in z_arr])
+    # Item 1.4: vectorised over z_arr (cosmo.H is array-aware)
+    c_h_over_H = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(np.asarray(z_arr, dtype=float))
 
     # --- Build extended normalization grid [0, z_norm_max] ---
     z_ext = np.linspace(0.001, z_norm_max, _N_Z_NORM)
     dz_ext = z_ext[1] - z_ext[0]
-    c_h_over_H_ext = np.array([cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z) for z in z_ext])
+    # Item 1.4: vectorised over z_ext
+    c_h_over_H_ext = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(np.asarray(z_ext, dtype=float))
 
     result = {'z': z_arr}
 

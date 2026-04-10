@@ -86,7 +86,7 @@ following Chatterjee et al. (2025), Sec. 6.4.
 
 ## Repository Use
 
-This paper is the *interferometric continuum* sibling release to the MeerKLASS single-dish HI intensity mapping pipeline. The corresponding HI single-dish overview is Cunnington et al. (2025), arXiv:2510.27549 (see `docs/literature/cunnington2025_meerklass_overview.md`), which reports a much larger cumulative HI integration: 62 hr/dish over 236 deg² for the L-band deep-field (MeerKLASS Collaboration 2025, arXiv:2407.21626), and 380 hr / 1,600 deg² UHF as of end-2024. **This paper is *not* an HI intensity-mapping data product**, and the 13.5 hr usable on-source time refers to interferometric continuum DR1 only — it is *not* the cumulative single-dish HI integration time on the MeerKLASS L-band field.
+This paper is the *interferometric continuum* sibling release to the MeerKLASS single-dish HI intensity mapping pipeline. The corresponding HI single-dish overview is Cunnington et al. (2025), arXiv:2510.27549 (see `docs/literature/cunnington2025_meerklass_overview.md`), which reports a much larger cumulative HI integration: 62 hr/dish over 236 deg² for the L-band deep-field (MeerKLASS Collaboration 2025, arXiv:2407.21626 — see `docs/literature/meerklass2025_lband_deepfield.md`), and 380 hr / 1,600 deg² UHF as of end-2024. **This paper is *not* an HI intensity-mapping data product**, and the 13.5 hr usable on-source time refers to interferometric continuum DR1 only — it is *not* the cumulative single-dish HI integration time on the MeerKLASS L-band field.
 
 For the HI×UGRB cross-correlation pipeline this paper is used to:
 

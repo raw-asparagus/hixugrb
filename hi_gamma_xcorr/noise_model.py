@@ -8,6 +8,8 @@ Two Fermi-LAT beam modes:
 - Exact King function (beam_fermi_exact): data-analysis-grade, from Ammazzalorso+(2018)
 """
 
+from functools import lru_cache
+
 import numpy as np
 from scipy.integrate import quad
 from scipy.special import eval_legendre
@@ -19,15 +21,73 @@ from . import cosmology as cosmo
 # Radio system temperature
 # ---------------------------------------------------------------------------
 
-def T_sys(nu_MHz):
-    """System temperature [K] at observing frequency nu [MHz] (Eq. 8.1).
+def T_sys_pinetti(nu_MHz):
+    """Pinetti+(2020/2022) generic-radio system temperature [K] at frequency nu [MHz].
 
-    T_sys = 30 + 60 * (300 MHz / nu)^{2.55} K
+    T_sys = 30 K + 60 K * (300 MHz / nu)^{2.55}
 
-    The 30 K constant approximates T_inst; the 60 K term is Galactic sky temperature.
+    Pinetti+2020 Eq. 3.18 / Pinetti+2022 thesis Eq. 5.26, originally from
+    Camera, Santos, Ferreira & Ferramacho (2013), Phys. Rev. Lett. 111, 171302
+    (arXiv:1305.6928). The 30 K constant approximates T_inst; the 60 K term is
+    a Galactic synchrotron sky temperature with the Cane (1979) spectral index.
+
+    Used by `noise_dish` / `noise_interf` for telescope entries with
+    `T_sys_model = 'pinetti'` (the default), i.e. the legacy `MeerKAT`,
+    `SKA1`, `SKA2` forecast targets that compare against Pinetti+2020 Table 4.
     """
     nu_MHz = np.asarray(nu_MHz, dtype=float)
     return 30.0 + cfg.T_SKY_COEFF * (cfg.T_SKY_NU_REF / nu_MHz)**cfg.T_SKY_INDEX
+
+
+def T_sys_meerkat(nu_MHz):
+    """Canonical MeerKAT system temperature [K] at frequency nu [MHz].
+
+    Uses the actually-measured MeerKAT receiver model from MeerKLASS
+    Collaboration (2025), arXiv:2407.21626, Eqs. 21-22 (which itself follows
+    Cunnington 2022 and Wang et al. 2021):
+
+        T_sys(nu) = T_rx(nu) + T_spl + T_CMB + T_gal(nu)
+
+    with:
+        T_rx(nu)  = 7.5 K + 10 K * (nu/GHz - 0.75)^2     receiver
+        T_spl     = 3 K                                  spillover
+        T_CMB     = 2.725 K
+        T_gal(nu) = 25 K * (408 MHz / nu)^{2.75}         Galactic synchrotron
+
+    Returns ~16 K at the L-band cosmological window (971-1023 MHz) and ~17 K
+    at the UHF cosmological window mid-frequency (~800 MHz). This is roughly
+    factor-of-2 *lower* than the Pinetti generic formula, which translates
+    into factor-of-4 *less* radio noise per mode (since N propto T_sys^2).
+
+    Used by `noise_dish` / `noise_interf` for telescope entries with
+    `T_sys_model = 'meerkat'`, i.e. the new `MeerKLASS_*` HI single-dish
+    forecast entries that match the actually-measured MeerKAT receiver
+    performance from Wang+2021 / MeerKLASS Collab. 2025.
+    """
+    nu_MHz = np.asarray(nu_MHz, dtype=float)
+    nu_GHz = nu_MHz / 1000.0
+    T_rx = 7.5 + 10.0 * (nu_GHz - 0.75)**2
+    T_spl = cfg.T_SPL_MEERKAT_K
+    T_CMB = cfg.T_CMB_K
+    T_gal = 25.0 * (408.0 / nu_MHz)**2.75
+    return T_rx + T_spl + T_CMB + T_gal
+
+
+def T_sys(nu_MHz, model='pinetti'):
+    """Dispatcher for system temperature models. See `T_sys_pinetti` and
+    `T_sys_meerkat` for the two available implementations.
+
+    `noise_dish` / `noise_interf` consult the per-telescope `T_sys_model`
+    field in `cfg.RADIO_TELESCOPES[telescope]` to choose; the default is
+    `'pinetti'` for back-compat.
+    """
+    if model in ('meerkat', 'cunnington2022', 'wang2021'):
+        return T_sys_meerkat(nu_MHz)
+    if model in ('pinetti', 'pinetti2020', 'pinetti2022', 'camera2013'):
+        return T_sys_pinetti(nu_MHz)
+    raise ValueError(
+        f"T_sys_model must be 'pinetti' or 'meerkat' (got {model!r})"
+    )
 
 
 def nu_obs(z):
@@ -77,13 +137,20 @@ def noise_dish(z, telescope, band_name):
     N_dish = T_sys^2 * S / (N_d * t * Delta_nu * N_b * N_pol * eta^2)
 
     Returns a scalar noise level (ell-independent white noise).
+
+    The T_sys model used is selected by the per-telescope
+    `T_sys_model` field in cfg.RADIO_TELESCOPES (default 'pinetti'),
+    so legacy MeerKAT/SKA1/SKA2 entries get the Pinetti+2020 generic
+    formula and MeerKLASS_* entries get the canonical MeerKAT model
+    from MeerKLASS Collab. 2025 / Wang+2021. See `T_sys_pinetti` and
+    `T_sys_meerkat` for the two implementations.
     """
     tel = cfg.RADIO_TELESCOPES[telescope]
     band = tel['bands'][band_name]
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
 
     nu = nu_obs(z_mid)
-    Tsys = T_sys(nu)
+    Tsys = T_sys(nu, model=tel.get('T_sys_model', 'pinetti'))
 
     # Survey area in steradians
     S_sr = tel['survey_area_deg2'] * (np.pi / 180.0)**2
@@ -113,14 +180,15 @@ def noise_interf(z, ell, telescope, band_name):
 
     N_interf = T_sys^2 * S * FoV / (n(u) * t * Delta_nu * N_b * N_pol * eta^2)
 
-    Valid only for ell >= ell_cut.
+    Valid only for ell >= ell_cut. Same per-telescope T_sys_model dispatch
+    as `noise_dish` (see its docstring).
     """
     tel = cfg.RADIO_TELESCOPES[telescope]
     band = tel['bands'][band_name]
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
 
     nu = nu_obs(z_mid)
-    Tsys = T_sys(nu)
+    Tsys = T_sys(nu, model=tel.get('T_sys_model', 'pinetti'))
     lam = lambda_obs(z_mid)
 
     S_sr = tel['survey_area_deg2'] * (np.pi / 180.0)**2
@@ -160,12 +228,26 @@ def noise_radio_combined(ell, telescope, band_name):
     """Combined radio noise: min(N_dish, N_interf) at each multipole.
 
     Returns N_l [mK^2 sr] as array matching ell.
+
+    Item 2.2 of clever-beaming-creek plan: tuple-key lru_cache wrapper. The
+    underlying computation depends only on (ell-tuple, telescope, band_name)
+    and is independent of the HI brightness mode, so the cache is hit 3x
+    across the (cunnington, padmanabhan, fixed_omega) modes for the same
+    (telescope, band). The returned array is .copy()'d to prevent caller
+    mutation aliasing into the cache.
     """
+    ell_t = tuple(np.asarray(ell, dtype=float).tolist())
+    return _noise_radio_combined_cached(ell_t, telescope, band_name).copy()
+
+
+@lru_cache(maxsize=128)
+def _noise_radio_combined_cached(ell_t, telescope, band_name):
+    """Cached body of noise_radio_combined keyed on (tuple(ell), telescope, band_name)."""
     tel = cfg.RADIO_TELESCOPES[telescope]
     band = tel['bands'][band_name]
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
 
-    ell = np.asarray(ell, dtype=float)
+    ell = np.asarray(ell_t, dtype=float)
     N_d = noise_dish(z_mid, telescope, band_name)
     N_i = noise_interf(z_mid, ell, telescope, band_name)
     l_cut = ell_cut(telescope, band_name)
@@ -264,8 +346,20 @@ def beam_fermi_exact(ell, E_GeV):
     -------
     W_ell : array
         Beam window function at each multipole.
+
+    Item 2.3 of clever-beaming-creek plan: tuple-key lru_cache wrapper. The
+    integer ell values are stable, and E_GeV always comes from a fixed
+    config array (FERMI_E_B / AMMAZZALORSO_E_B), so float keys compare equal
+    on repeated reads. Returned array is .copy()'d to prevent aliasing.
     """
-    ell = np.asarray(ell, dtype=float)
+    ell_t = tuple(np.asarray(ell).astype(int).tolist())
+    return _beam_fermi_exact_cached(ell_t, float(E_GeV)).copy()
+
+
+@lru_cache(maxsize=512)
+def _beam_fermi_exact_cached(ell_t, E_GeV):
+    """Cached body of beam_fermi_exact keyed on (tuple(int_ell), float(E_GeV))."""
+    ell = np.asarray(ell_t, dtype=float)
     gamma_king = cfg.FERMI_PSF_GAMMA_KING
 
     # 68% containment angle from the parametric formula

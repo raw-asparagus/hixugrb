@@ -52,7 +52,7 @@ The text quotes the **current state** as "over 650 hr of UHF data reaching nearl
 | Detection | Reference | Data | Significance | Constraint |
 |-----------|-----------|------|--------------|------------|
 | MeerKAT × WiggleZ pilot | Cunnington et al. 2023a (arXiv:2206.01579) | 10.5 hr L-band, ~200 deg², 0.400 < z < 0.459 | 7.7σ | $\Omega_\mathrm{HI} b_\mathrm{HI} r = (0.86 \pm 0.10_\mathrm{stat} \pm 0.12_\mathrm{sys}) \times 10^{-3}$ at $k_\mathrm{eff} \sim 0.13\,h\,\mathrm{Mpc}^{-1}$ |
-| MeerKLASS L-band deep-field × GAMA | MeerKLASS Collaboration 2025 (arXiv:2407.21626) | 41 scans, 236 deg², **62 hr per dish** before flagging | > 4σ | 0.39 < z < 0.46 |
+| MeerKLASS L-band deep-field × GAMA | MeerKLASS Collaboration 2025 (arXiv:2407.21626; see `meerklass2025_lband_deepfield.md`) | 41 scans, 236 deg², **62 hr per dish** before flagging | > 4σ | 0.39 < z < 0.46 |
 | MeerKLASS pilot × WiggleZ re-analysis | Carucci et al. 2025 (arXiv:2412.06750) | Same data as Cunnington+2023, mPCA pipeline | ~6σ (without signal-loss correction) | $\Omega_\mathrm{HI} b_\mathrm{HI} r = (0.93 \pm 0.17) \times 10^{-3}$, robust over $0.04 \lesssim k \lesssim 0.3\,h\,\mathrm{Mpc}^{-1}$ |
 
 The L-band deep field crosses into the regime where thermal noise is no longer dominant compared to HI fluctuations, requiring more sophisticated covariance estimation.
@@ -125,7 +125,7 @@ This is the *authoritative* MeerKLASS single-dish HI intensity-mapping reference
 
 In `config.RADIO_TELESCOPES` it is used to populate:
 
-1. **`MeerKLASS_L_deepfield`** — 62 hr / 236 deg² L-band deep-field HI integration (Sec. 5.1, citing MeerKLASS Collaboration 2025 = arXiv:2407.21626 for the original dataset; the latter is not yet ingested into `docs/papers/`).
+1. **`MeerKLASS_L_deepfield`** — 62 hr / 236 deg² L-band deep-field HI integration (Sec. 5.1, citing MeerKLASS Collaboration 2025 = arXiv:2407.21626; the source paper is now ingested at `docs/literature/meerklass2025_lband_deepfield.md`).
 2. **`MeerKLASS_2024_HI`** — 380 hr / 1,600 deg² UHF, the cumulative single-dish HI total at end of 2024 (Table 1).
 3. **`MeerKLASS_XLP_2028`** — 2,500 hr / 10,000 deg² UHF nominal with $\varepsilon = 0.5$ → 1,250 hr effective, the same configuration the paper uses for all its public forecasts (Table 2, Sec. 6).
 

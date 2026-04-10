@@ -162,8 +162,15 @@ def _rho_HI_scalar(z, M_min, M_max):
     return val
 
 
+@_cache_stable(module=__name__)
 def _b_HI_default(z):
-    """b_HI at default mass limits."""
+    """b_HI at default mass limits.
+
+    Cached via joblib (Item 1.3 of clever-beaming-creek plan): structurally
+    identical to the cached _rho_HI_default above; deterministic in the
+    single hashable float `z`. After source edits, run
+    `rm -rf .joblib-cache` to flush stale entries.
+    """
     rho = _rho_HI_default(z)
     if rho <= 0:
         return 0.0

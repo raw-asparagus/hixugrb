@@ -69,7 +69,7 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
 def compute_SNR(telescope, band_name, fermissimo=False,
                 ell_min=10, ell_max=1000, n_ell=100,
                 source_classes=None, n_z=100, n_M=60,
-                analysis_mode='forecast', hi_brightness='padmanabhan'):
+                analysis_mode='forecast', hi_brightness=None):
     """Compute the total signal-to-noise ratio for detecting the cross-correlation.
 
     SNR^2 = sum over (l, E-bins) of [C_l^{HI x gamma_astro} / Delta C_l]^2
@@ -85,9 +85,15 @@ def compute_SNR(telescope, band_name, fermissimo=False,
     analysis_mode : str
         'forecast': Pinetti+(2020) treatment (12 bins, Gaussian beam, no l cuts)
         'data': Ammazzalorso+(2018) treatment (11 bins, exact beam, l cuts)
-    hi_brightness : str
-        HI brightness prescription: 'padmanabhan' uses the halo-integral
-        Omega_HI(z); 'fixed_omega' uses config.OMEGA_HI_FIXED.
+    hi_brightness : str, optional
+        HI brightness prescription: 'padmanabhan', 'fixed_omega', or
+        'cunnington' (= 'meerfish'). If None (default), the canonical value
+        is read from `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']`
+        — falling back to 'padmanabhan' if the entry has no canonical setting.
+        This makes Pinetti+(2020/2022) legacy entries (MeerKAT, SKA1, SKA2)
+        default to 'fixed_omega' (matching Pinetti's Omega_HI = 2.45e-4
+        assumption) and the new MeerKLASS_* entries default to 'cunnington'
+        (matching the actually-measured Cunnington+2025 polynomial).
 
     Returns
     -------
@@ -97,6 +103,8 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
 
     tel = cfg.RADIO_TELESCOPES[telescope]
+    if hi_brightness is None:
+        hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
@@ -127,6 +135,17 @@ def compute_SNR(telescope, band_name, fermissimo=False,
 
     # Radio noise and beam
     N_HI = nm.noise_radio_combined(ell_arr, telescope, band_name)
+
+    # Item 3.1: hoist the Limber kernel out of the energy loop. The Limber
+    # kernel (chi, H, dchi/dz, W_HI, P_HI_*_2h) does not depend on the photon
+    # energy, only the gamma-ray windows do. Computing all energies in a
+    # single multi-E driver call shares the cross-power computation across
+    # the n_bins energy bins (5-10x speedup on compute_SNR).
+    multi_E_signal = ap.C_ell_HI_gamma_multi_E(
+        ell_arr, E_b_arr[:n_bins], z_min, z_max, telescope, band_name,
+        source_classes=source_classes, include_DM=False,
+        n_z=n_z, n_k_M=n_M, hi_brightness=hi_brightness,
+    )
 
     SNR2_total = 0.0
 
@@ -164,14 +183,8 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         sigma_Cl = variance_Cl(ell_bin, C_HI[ell_mask], N_HI[ell_mask],
                                B_HI, N_gamma, B_gamma, f_sky)
 
-        # Signal: C_l from astrophysical sources only
-        C_signal = ap.C_ell_HI_gamma(
-            ell_bin, E_b, z_min, z_max, telescope, band_name,
-            source_classes=source_classes, include_DM=False,
-            n_z=n_z, n_k_M=n_M, hi_brightness=hi_brightness
-        )
-
-        C_astro = C_signal['total']
+        # Signal: astrophysical-only C_l from the multi-E driver
+        C_astro = multi_E_signal[ie]['total'][ell_mask]
 
         # SNR contribution
         mask = sigma_Cl > 0
@@ -192,14 +205,20 @@ def _closest_pinetti_bin(E_GeV):
 def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
                channel='bb', fermissimo=False,
                ell_min=10, ell_max=1000, n_ell=100,
-               n_z=100, n_M=60, hi_brightness='padmanabhan'):
+               n_z=100, n_M=60, hi_brightness=None):
     """Compute Delta chi^2 for a given DM mass and cross-section.
 
     Delta chi^2 = sum_l,E [(C_l^{astro+DM} / sigma)^2 - (C_l^{astro} / sigma)^2]
 
     Since C_DM is proportional to sigma_v, this is a simple function.
+
+    If `hi_brightness` is None, the canonical mode is read from
+    `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']` (see
+    `compute_SNR` docstring for the convention).
     """
     tel = cfg.RADIO_TELESCOPES[telescope]
+    if hi_brightness is None:
+        hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
@@ -214,6 +233,17 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
         hi_brightness=hi_brightness
     )
     N_HI = nm.noise_radio_combined(ell_arr, telescope, band_name)
+
+    # Item 3.1+3.2: single multi-energy call with include_DM=True. The astro-only
+    # C_l is recovered by summing the source-class keys (numerically more robust
+    # than total - DM when C_DM << C_astro). This halves the number of Limber
+    # driver calls inside delta_chi2 and shares the kernel across energy bins.
+    multi_E = ap.C_ell_HI_gamma_multi_E(
+        ell_arr, cfg.FERMI_E_B[:cfg.FERMI_N_BINS], z_min, z_max, telescope, band_name,
+        m_chi_GeV=m_chi_GeV, sigma_v=sigma_v, channel=channel,
+        include_DM=True, n_z=n_z, n_k_M=n_M,
+        hi_brightness=hi_brightness,
+    )
 
     dchi2 = 0.0
 
@@ -232,19 +262,12 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
         B_HI = nm.beam_radio(ell_arr, z_mid, tel['d_dish_m'])
         sigma_Cl = variance_Cl(ell_arr, C_HI, N_HI, B_HI, N_gamma, B_gamma, f_sky)
 
-        # Compute C_l with and without DM
-        C_with_DM = ap.C_ell_HI_gamma(
-            ell_arr, E_b, z_min, z_max, telescope, band_name,
-            m_chi_GeV=m_chi_GeV, sigma_v=sigma_v, channel=channel,
-            include_DM=True, n_z=n_z, n_k_M=n_M,
-            hi_brightness=hi_brightness
-        )['total']
-
-        C_no_DM = ap.C_ell_HI_gamma(
-            ell_arr, E_b, z_min, z_max, telescope, band_name,
-            include_DM=False, n_z=n_z, n_k_M=n_M,
-            hi_brightness=hi_brightness
-        )['total']
+        # C_l with DM is already in multi_E[ie]['total'].
+        # C_l without DM is the sum of source-class contributions
+        # (avoids subtracting C_DM from C_total — exact and well-conditioned).
+        C_bin = multi_E[ie]
+        C_with_DM = C_bin['total']
+        C_no_DM = sum(C_bin[k] for k in C_bin if k not in ('total', 'DM'))
 
         mask = sigma_Cl > 0
         dchi2 += np.sum(
@@ -262,10 +285,14 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
 def exclusion_curve(telescope, band_name, channel='bb',
                     fermissimo=False, CL='95',
                     m_chi_arr=None, n_ell=50, n_z=50, n_M=30,
-                    hi_brightness='padmanabhan'):
+                    hi_brightness=None):
     """Compute the DM exclusion curve: sigma_v vs m_chi.
 
     For each m_chi, find sigma_v where Delta chi^2 = threshold.
+
+    If `hi_brightness` is None, the canonical mode is read from
+    `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']` (see
+    `compute_SNR` docstring for the convention).
 
     Parameters
     ----------
@@ -277,6 +304,10 @@ def exclusion_curve(telescope, band_name, channel='bb',
     m_chi_arr : array [GeV]
     sigma_v_arr : array [cm^3/s]
     """
+    if hi_brightness is None:
+        hi_brightness = cfg.RADIO_TELESCOPES[telescope].get(
+            'default_hi_brightness', 'padmanabhan'
+        )
     from scipy.optimize import brentq
 
     threshold = 4.0 if CL == '95' else 25.0

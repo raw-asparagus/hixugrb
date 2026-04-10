@@ -60,11 +60,23 @@ The important distinction is that Eq. 2.7 is the general variance expression, wh
 
 ## Forecast Results
 
-- MeerKAT + Fermi-LAT: astrophysical cross-correlation forecast at **SNR ≈ 3.6–3.7**
-- SKA1 + Fermi-LAT: **SNR > 5** in Band 2
-- SKA2 + Fermi-LAT: **SNR ≈ 6.7–8.2**
+**Table 4** (page 19) — full SNR forecast for the cross-correlation between HI intensity mapping and the unresolved gamma-ray background, by (telescope, band):
+
+| Telescope | Band | Single-dish | Dish + Interferometer |
+|---|---|---|---|
+| MeerKAT | L-band (low-z, 0–0.58) | 3.6 | 3.6 |
+| MeerKAT | UHF-band (high-z, 0.4–1.45) | 3.7 | 3.7 |
+| SKA-1 | Band 1 (high-z, 0.35–3) | 4.5 | **4.6** |
+| SKA-1 | Band 2 (low-z, 0–0.5) | 5.7 | 5.7 |
+| SKA-2 | Band 1 (high-z, 0.35–3) | 7.1 | **8.2** |
+| SKA-2 | Band 2 (low-z, 0–0.5) | 6.7 | **7.0** |
+
+The dish+interferometer column is the canonical "best" forecast and is used in all the cross-correlation figures (Pinetti+2020 §5, p18). For SKA the **Band 1 → high redshift** and **Band 2 → low redshift** convention is opposite from MeerKAT (where UHF is high-z and L-band is low-z). Per §5, the lower-redshift band is "the one more promising for investigating DM since the window function for unresolved gamma rays is prominently peaked at low redshift, while for astrophysical sources it has a peak at intermediate redshift".
+
 - With Fermi-LAT-class gamma-ray data, SKA1 can probe thermal WIMPs up to about **130 GeV**, and SKA2 up to about **200 GeV**
 - With a next-generation gamma-ray instrument plus SKA2, sensitivity extends toward the **TeV scale**
+
+The abstract reports the *maximum* SNR per telescope: 3.7 (MeerKAT), 5.7 (SKA1), 8.2 (SKA2) — but all six band entries exist in Table 4 and are populated as red-star targets in the SNR forecast bar chart of `notebooks/pipeline_validation.ipynb` cell 17.
 
 ## Instrument Specifications
 

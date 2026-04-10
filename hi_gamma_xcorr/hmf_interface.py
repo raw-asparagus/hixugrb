@@ -20,37 +20,55 @@ warnings.filterwarnings('ignore', category=DeprecationWarning, module='hmf')
 # ---------------------------------------------------------------------------
 
 _mf_cache = {}      # keyed by round(z, 4)
-_bias_cache = {}    # keyed by round(z, 4): interp1d for b(M)
 _hmf_imported = False
 _MassFunction = None
+_cosmo_fingerprint = None  # set on first init; invalidates _mf_cache if cfg changes
 
-# hmf configuration: Sheth-Mo-Tormen (2001) mass function (q=0.707, p=0.3, A=0.3222)
-# with Planck 2018 cosmology. See docs/literature/sheth_mo_tormen2001.md.
-_HMF_KWARGS = dict(
-    Mmin=np.log10(cfg.M_MIN) if cfg.M_MIN > 0 else 4.0,
-    Mmax=np.log10(cfg.M_MAX) if cfg.M_MAX < 1e20 else 18.0,
-    dlog10m=0.02,
-    hmf_model='SMT',
-    hmf_params={'a': cfg.SMT_Q, 'p': cfg.SMT_P, 'A': cfg.SMT_A},
-    cosmo_params={
-        'H0': cfg.H0,
-        'Om0': cfg.OMEGA_M,
-        'Ob0': cfg.OMEGA_B,
-    },
-    sigma_8=cfg.SIGMA_8,
-    n=cfg.N_S,
-    transfer_model='CAMB',
-    transfer_params={'extrapolate_with_eh': True},
-)
+def _hmf_kwargs():
+    """Build the hmf MassFunction kwargs dict from the current cfg state.
+
+    Item 4.2 of clever-beaming-creek plan: read-on-call instead of capturing
+    the values at module-import time, so that mutating cfg.H0 / cfg.OMEGA_M /
+    etc. at runtime is respected (combined with the fingerprint guard in
+    _ensure_hmf, this invalidates the cached MassFunction instances).
+    """
+    return dict(
+        Mmin=np.log10(cfg.M_MIN) if cfg.M_MIN > 0 else 4.0,
+        Mmax=np.log10(cfg.M_MAX) if cfg.M_MAX < 1e20 else 18.0,
+        dlog10m=0.02,
+        hmf_model='SMT',
+        hmf_params={'a': cfg.SMT_Q, 'p': cfg.SMT_P, 'A': cfg.SMT_A},
+        cosmo_params={
+            'H0': cfg.H0,
+            'Om0': cfg.OMEGA_M,
+            'Ob0': cfg.OMEGA_B,
+        },
+        sigma_8=cfg.SIGMA_8,
+        n=cfg.N_S,
+        transfer_model='CAMB',
+        transfer_params={'extrapolate_with_eh': True},
+    )
+
+
+def _current_cosmo_fingerprint():
+    return (cfg.H0, cfg.OMEGA_M, cfg.OMEGA_B, cfg.SIGMA_8, cfg.N_S,
+            cfg.SMT_Q, cfg.SMT_P, cfg.SMT_A, cfg.M_MIN, cfg.M_MAX)
 
 
 def _ensure_hmf():
-    """Lazy import of hmf."""
-    global _hmf_imported, _MassFunction
+    """Lazy import of hmf and per-cosmology cache invalidation."""
+    global _hmf_imported, _MassFunction, _cosmo_fingerprint
     if not _hmf_imported:
         from hmf import MassFunction as MF
         _MassFunction = MF
         _hmf_imported = True
+    fp = _current_cosmo_fingerprint()
+    if _cosmo_fingerprint is None:
+        _cosmo_fingerprint = fp
+    elif _cosmo_fingerprint != fp:
+        # cosmology changed at runtime; flush the per-z cache
+        _mf_cache.clear()
+        _cosmo_fingerprint = fp
 
 
 def get_mass_function(z):
@@ -63,7 +81,7 @@ def get_mass_function(z):
     if z_key not in _mf_cache:
         if len(_mf_cache) == 0:
             # First call: create fresh instance
-            mf = _MassFunction(z=float(z), **_HMF_KWARGS)
+            mf = _MassFunction(z=float(z), **_hmf_kwargs())
         else:
             # Subsequent calls: update existing (reuses transfer function)
             ref_key = next(iter(_mf_cache))
