@@ -240,7 +240,8 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
 def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
                            m_chi_GeV=100.0, sigma_v=None, channel='bb',
                            source_classes=None, include_DM=True,
-                           n_z=200, n_k_M=100, hi_brightness='padmanabhan'):
+                           n_z=200, n_k_M=100, hi_brightness='padmanabhan',
+                           unresolved_mode='pinetti_constant'):
     """Multi-energy Limber driver: computes ``C_ell_HI_gamma`` for each energy
     in ``E_arr`` while doing the redshift loop only once.
 
@@ -262,6 +263,13 @@ def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
         Multipoles. Same `ell` array is used for every energy.
     E_arr : array
         Photon energies [GeV]. One Limber output per element.
+    unresolved_mode : str
+        Source-completeness threshold convention passed to
+        ``astro.W_gamma_astro``. Default ``'pinetti_constant'`` matches the
+        legacy Pinetti+2020/2022 forecast convention; use ``'4fgl_dr4_psf'``
+        for the actually-measured 4FGL-DR4 baseline + Ammazzalorso+2018b
+        PSF-area scaling. ``compute_SNR`` reads the canonical value from
+        ``cfg.RADIO_TELESCOPES[telescope]['default_unresolved_mode']``.
     Other parameters: see ``C_ell_HI_gamma``.
 
     Returns
@@ -323,7 +331,8 @@ def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
 
             # Astrophysical contributions
             for src in source_classes:
-                W_gamma = astro.W_gamma_astro(E_GeV, z, src)
+                W_gamma = astro.W_gamma_astro(E_GeV, z, src,
+                                              unresolved_mode=unresolved_mode)
                 if W_gamma <= 0:
                     continue
                 r[src] += W_hi * W_gamma * P_cross_by_src[src] * weight

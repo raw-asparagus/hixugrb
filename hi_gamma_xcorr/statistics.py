@@ -105,6 +105,7 @@ def compute_SNR(telescope, band_name, fermissimo=False,
     tel = cfg.RADIO_TELESCOPES[telescope]
     if hi_brightness is None:
         hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
+    unresolved_mode = tel.get('default_unresolved_mode', 'pinetti_constant')
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
@@ -145,6 +146,7 @@ def compute_SNR(telescope, band_name, fermissimo=False,
         ell_arr, E_b_arr[:n_bins], z_min, z_max, telescope, band_name,
         source_classes=source_classes, include_DM=False,
         n_z=n_z, n_k_M=n_M, hi_brightness=hi_brightness,
+        unresolved_mode=unresolved_mode,
     )
 
     SNR2_total = 0.0
@@ -219,6 +221,7 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
     tel = cfg.RADIO_TELESCOPES[telescope]
     if hi_brightness is None:
         hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
+    unresolved_mode = tel.get('default_unresolved_mode', 'pinetti_constant')
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
@@ -243,6 +246,7 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
         m_chi_GeV=m_chi_GeV, sigma_v=sigma_v, channel=channel,
         include_DM=True, n_z=n_z, n_k_M=n_M,
         hi_brightness=hi_brightness,
+        unresolved_mode=unresolved_mode,
     )
 
     dchi2 = 0.0

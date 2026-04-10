@@ -108,7 +108,49 @@ ASTRO_SOURCES = {
 }
 
 # Fermi-LAT flux sensitivity threshold [cm^{-2} s^{-1}] (1-100 GeV)
-F_SENS = 1e-10
+#
+# Two canonical baseline values are used in the pipeline, dispatched per
+# telescope via the `default_unresolved_mode` field of RADIO_TELESCOPES:
+#
+# (a) F_SENS_PINETTI = 1e-10 cm^{-2} s^{-1} — the constant threshold assumed
+#     by Pinetti+(2020/2022) for the legacy MeerKAT/SKA1/SKA2 forecasts.
+#     Conservative; corresponds approximately to the early Fermi 1FGL/2FGL
+#     completeness limit. Used in `unresolved_mode = 'pinetti_constant'`.
+#
+# (b) F_SENS_4FGL_DR4 = 7.3e-11 cm^{-2} s^{-1} — the actually-measured
+#     Fermi-LAT 14-year 4FGL-DR4 high-Galactic-latitude completeness
+#     threshold (Ballet et al. 2023, arXiv:2307.12546; see
+#     docs/literature/ballet2023_4fgl_dr4.md). Used as the baseline for
+#     `unresolved_mode = '4fgl_dr4_psf'`, with the per-energy PSF-area
+#     scaling of `astro_sources.F_sens_energy` applied on top (the scaling
+#     form follows Ammazzalorso, Fornengo, Horiuchi & Regis 2018,
+#     arXiv:1808.09225, Sec. II.A — see docs/literature/ammazzalorso2018b_fermi_2mpz.md).
+#
+#     The directly-quoted Ballet+2023 value is "1e-12 erg cm^{-2} s^{-1}
+#     in the 100 MeV - 100 GeV band" (their §5, p12). The conversion to
+#     photon flux in the pipeline's 1-100 GeV convention depends on the
+#     source spectral index alpha:
+#
+#       Source class   alpha    F_ph(1-100 GeV) [cm^-2 s^-1]
+#       BL Lac         2.11     8.97e-11
+#       FSRQ           2.44     7.26e-11
+#       mAGN           2.37     7.78e-11
+#       SFG            2.70     5.17e-11
+#       MEAN of 4                7.30e-11   <-- value used here
+#
+#     This is only ~0.73x Pinetti's value (NOT 25x lower as a naive
+#     erg-vs-photon comparison would suggest). The previous F_SENS_4FGL_DR4
+#     = 4e-12 was a units-confusion error and has been corrected.
+#
+# F_SENS_4FGL_DR4_ERG_CGS holds the directly-quoted Ballet+2023 energy-flux
+# value for reference; the pipeline uses the photon-flux equivalent above.
+#
+# F_SENS is kept as an alias for the Pinetti value to preserve back-compat
+# with code that reads `cfg.F_SENS` directly.
+F_SENS_PINETTI = 1e-10
+F_SENS_4FGL_DR4 = 7.3e-11
+F_SENS_4FGL_DR4_ERG_CGS = 1.0e-12  # Ballet+2023 §5, p12 (erg cm^-2 s^-1, 100 MeV - 100 GeV)
+F_SENS = F_SENS_PINETTI
 
 # Thermal relic cross-section [cm^3/s]
 SIGMA_V_THERMAL = 3e-26
@@ -274,6 +316,7 @@ RADIO_TELESCOPES = {
         # against Pinetti+2020 Table 4.
         'T_sys_model': 'pinetti',
         'default_hi_brightness': 'fixed_omega',
+        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
     'MeerKLASS_L_pilot': {
         # 2019 MeerKLASS L-band pilot survey. The observational paper is
@@ -302,6 +345,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     # NOTE — the two MeerKLASS DR1 entries below mirror the *interferometric
     # continuum* DR1 papers (Mangla+2025 L-band, Paul+2025 UHF). The published
@@ -334,6 +378,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_DR1_UHF': {
         # Paul et al. (2025), arXiv:2512.11964 — MeerKLASS UHF OTF DR1.
@@ -357,6 +402,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_L_deepfield': {
         # MeerKLASS L-band deep-field, MeerKLASS Collaboration et al. (2025),
@@ -388,6 +434,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_2024_HI': {
         # Cumulative MeerKLASS UHF single-dish HI total at end of 2024,
@@ -412,6 +459,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_XLP_2028': {
         # Authoritative full-programme forecast configuration, taken directly
@@ -439,6 +487,7 @@ RADIO_TELESCOPES = {
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
         'T_sys_model': 'meerkat',
         'default_hi_brightness': 'cunnington',
+        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'SKA1': {
         'survey_area_deg2': 25000.0,
@@ -458,6 +507,7 @@ RADIO_TELESCOPES = {
         # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
         'T_sys_model': 'pinetti',
         'default_hi_brightness': 'fixed_omega',
+        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
     'SKA2': {
         'survey_area_deg2': 30000.0,
@@ -477,6 +527,7 @@ RADIO_TELESCOPES = {
         # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
         'T_sys_model': 'pinetti',
         'default_hi_brightness': 'fixed_omega',
+        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
 }
 

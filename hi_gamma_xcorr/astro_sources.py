@@ -24,7 +24,7 @@ from . import ebl as ebl_mod
 # Luminosity threshold from Fermi sensitivity
 # ---------------------------------------------------------------------------
 
-def L_sens(z, E_GeV=None, alpha=None):
+def L_sens(z, E_GeV=None, alpha=None, F_sens_baseline=None):
     """Energy-luminosity threshold for Fermi-LAT detection at redshift z.
 
     Converts the integral photon-flux sensitivity F_SENS [cm^{-2} s^{-1}]
@@ -51,18 +51,28 @@ def L_sens(z, E_GeV=None, alpha=None):
         Redshift.
     E_GeV : float, optional
         Photon energy [GeV] for energy-dependent sensitivity (data mode).
-        If None, uses the constant F_SENS (forecast mode).
+        If None, uses the constant baseline (forecast mode).
     alpha : float, optional
         Source spectral index for the K-correction.  Required for the
         photon-to-energy luminosity conversion.
+    F_sens_baseline : float, optional
+        Baseline F_sens value [cm^{-2} s^{-1}] used when E_GeV is None.
+        Defaults to ``cfg.F_SENS`` (= cfg.F_SENS_PINETTI = 1e-10).
+        Set to ``cfg.F_SENS_4FGL_DR4`` (= 4e-12) for the actually-measured
+        4FGL-DR4 high-Galactic-latitude completeness threshold. Also passed
+        through to ``F_sens_energy`` when E_GeV is given so the PSF-area
+        scaling is anchored to the right baseline.
     """
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
 
+    if F_sens_baseline is None:
+        F_sens_baseline = cfg.F_SENS
+
     if E_GeV is not None:
-        F_sens_E = F_sens_energy(E_GeV)
+        F_sens_E = F_sens_energy(E_GeV, F_sens_baseline=F_sens_baseline)
     else:
-        F_sens_E = cfg.F_SENS
+        F_sens_E = F_sens_baseline
 
     L_phot = 4.0 * np.pi * dL_cm**2 * F_sens_E  # [photons/s]
 
@@ -106,22 +116,37 @@ def _J_alpha_ebl(z, alpha, E_min, E_max, n_pts=50):
     return np.trapezoid(integrand, E_arr)
 
 
-def F_sens_energy(E_GeV):
+def F_sens_energy(E_GeV, F_sens_baseline=None):
     """Energy-dependent Fermi-LAT flux sensitivity [cm^{-2} s^{-1}].
 
-    Scales the reference sensitivity F_SENS by the PSF solid angle ratio:
-        F_sens(E) = F_SENS * [sigma_0(E) / sigma_0(E_ref)]^2
+    Scales the reference baseline by the PSF solid-angle ratio (Ammazzalorso,
+    Fornengo, Horiuchi & Regis 2018, arXiv:1808.09225, Sec. II.A — see
+    docs/literature/ammazzalorso2018b_fermi_2mpz.md):
+
+        F_sens(E) = F_sens_baseline * [sigma_0(E) / sigma_0(E_ref)]^2
 
     At low energies (poor PSF), fewer sources are resolved → higher threshold.
     At high energies (good PSF), more sources are resolved → lower threshold.
 
     Reference energy E_ref = 5 GeV chosen near Fermi's optimal sensitivity.
+
+    Parameters
+    ----------
+    E_GeV : float
+        Photon energy [GeV].
+    F_sens_baseline : float, optional
+        Baseline F_sens value [cm^{-2} s^{-1}] at E_ref. Defaults to
+        ``cfg.F_SENS`` (= cfg.F_SENS_PINETTI = 1e-10). Set to
+        ``cfg.F_SENS_4FGL_DR4`` (= 4e-12) for the actually-measured 4FGL-DR4
+        14-year high-Galactic-latitude completeness threshold.
     """
     from . import noise_model as nm
+    if F_sens_baseline is None:
+        F_sens_baseline = cfg.F_SENS
     E_ref = 5.0  # GeV — near Fermi's optimal sensitivity
     sigma_E = nm.sigma_psf_fermi(E_GeV)
     sigma_ref = nm.sigma_psf_fermi(E_ref)
-    return cfg.F_SENS * (sigma_E / sigma_ref)**2
+    return F_sens_baseline * (sigma_E / sigma_ref)**2
 
 
 # ---------------------------------------------------------------------------
@@ -565,7 +590,7 @@ def glf(L, z, source_class):
 # ---------------------------------------------------------------------------
 
 def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
-                  unresolved_mode='forecast'):
+                  unresolved_mode='pinetti_constant'):
     """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
     Per-chi convention: W(chi) is returned in the pipeline's h-dependent
@@ -589,9 +614,28 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
         survey-independent).
     unresolved_mode : str
         Controls how the unresolved threshold is computed (only used when
-        unresolved_only=True):
-        - 'forecast': constant F_sens = 10^{-10} cm^{-2} s^{-1} (Pinetti 2020)
-        - 'data': energy-dependent F_sens(E) scaled by PSF area (Ammazzalorso 2018)
+        unresolved_only=True). The pipeline ships with two canonical modes
+        plus two legacy aliases:
+
+        - ``'pinetti_constant'`` (alias ``'forecast'``): constant F_sens
+          = ``cfg.F_SENS_PINETTI`` = 1e-10 cm^{-2} s^{-1}, the conservative
+          early-Fermi 1FGL/2FGL completeness limit assumed by Pinetti+2020/2022.
+          Used by the legacy MeerKAT/SKA1/SKA2 forecast entries for
+          apples-to-apples comparison against Pinetti+2020 Table 4.
+
+        - ``'4fgl_dr4_psf'`` (alias ``'data'``): the Ammazzalorso, Fornengo,
+          Horiuchi & Regis (2018, arXiv:1808.09225) PSF-area scaling
+          ``F_sens(E) = F_baseline * [sigma_0(E)/sigma_0(E_ref)]^2`` anchored
+          at the 4FGL-DR4 14-year high-Galactic-latitude completeness
+          threshold ``cfg.F_SENS_4FGL_DR4 = 7.3e-11 cm^-2 s^-1`` (1-100 GeV
+          source-class average; converted from the directly-quoted
+          ``cfg.F_SENS_4FGL_DR4_ERG_CGS = 1e-12 erg cm^-2 s^-1`` in the
+          100 MeV - 100 GeV band, Ballet et al. 2023 §5/p12, arXiv:2307.12546;
+          see docs/literature/ballet2023_4fgl_dr4.md). The 4FGL-DR4 baseline
+          is only ~0.73x Pinetti's value (NOT 25x lower); with the PSF
+          scaling on top, low-energy bins are additionally conservative
+          due to PSF degradation. Used by the new ``MeerKLASS_*`` canonical
+          entries.
     """
     return _W_gamma_astro_impl(float(E_GeV), float(z), source_class,
                                unresolved_only, unresolved_mode)
@@ -616,10 +660,21 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
     L_max = params['L_max']
 
     if unresolved_only:
-        if unresolved_mode == 'data':
-            L_thr = L_sens(z, E_GeV=E_GeV, alpha=alpha)
+        # Dispatch on unresolved_mode (see W_gamma_astro docstring for the
+        # full mode list and per-mode rationale).
+        if unresolved_mode in ('4fgl_dr4_psf', 'data'):
+            # 4FGL-DR4 baseline + Ammazzalorso+2018b PSF-area scaling
+            L_thr = L_sens(z, E_GeV=E_GeV, alpha=alpha,
+                           F_sens_baseline=cfg.F_SENS_4FGL_DR4)
+        elif unresolved_mode in ('pinetti_constant', 'forecast'):
+            # Pinetti+2020/2022 constant baseline
+            L_thr = L_sens(z, alpha=alpha,
+                           F_sens_baseline=cfg.F_SENS_PINETTI)
         else:
-            L_thr = L_sens(z, alpha=alpha)
+            raise ValueError(
+                f"unresolved_mode must be 'pinetti_constant' or '4fgl_dr4_psf' "
+                f"(got {unresolved_mode!r})"
+            )
         L_up = min(L_max, L_thr)
     else:
         L_up = L_max
