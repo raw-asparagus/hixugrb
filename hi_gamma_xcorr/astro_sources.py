@@ -58,10 +58,12 @@ def L_sens(z, E_GeV=None, alpha=None, F_sens_baseline=None):
     F_sens_baseline : float, optional
         Baseline F_sens value [cm^{-2} s^{-1}] used when E_GeV is None.
         Defaults to ``cfg.F_SENS`` (= cfg.F_SENS_PINETTI = 1e-10).
-        Set to ``cfg.F_SENS_4FGL_DR4`` (= 4e-12) for the actually-measured
-        4FGL-DR4 high-Galactic-latitude completeness threshold. Also passed
-        through to ``F_sens_energy`` when E_GeV is given so the PSF-area
-        scaling is anchored to the right baseline.
+        Set to ``cfg.F_SENS_4FGL_DR4`` (= 7.3e-11, the photon-flux equivalent
+        in 1-100 GeV of the Ballet+2023 4FGL-DR4 high-Galactic-latitude
+        completeness threshold; see docs/literature/ballet2023_4fgl_dr4.md
+        for the per-source-class conversion table). Also passed through to
+        ``F_sens_energy`` when E_GeV is given so the PSF-area scaling is
+        anchored to the right baseline.
     """
     dL_Mpc = cosmo.d_L(z) / cfg.h  # physical Mpc
     dL_cm = dL_Mpc * cfg.MPC_TO_M * 100.0  # cm
@@ -137,8 +139,9 @@ def F_sens_energy(E_GeV, F_sens_baseline=None):
     F_sens_baseline : float, optional
         Baseline F_sens value [cm^{-2} s^{-1}] at E_ref. Defaults to
         ``cfg.F_SENS`` (= cfg.F_SENS_PINETTI = 1e-10). Set to
-        ``cfg.F_SENS_4FGL_DR4`` (= 4e-12) for the actually-measured 4FGL-DR4
-        14-year high-Galactic-latitude completeness threshold.
+        ``cfg.F_SENS_4FGL_DR4`` (= 7.3e-11, the source-class-averaged
+        photon-flux equivalent in 1-100 GeV of the Ballet+2023 4FGL-DR4
+        14-year high-Galactic-latitude completeness threshold).
     """
     from . import noise_model as nm
     if F_sens_baseline is None:

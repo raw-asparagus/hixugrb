@@ -543,17 +543,21 @@ T_SKY_COEFF = 60.0             # [K]
 T_SKY_NU_REF = 300.0           # [MHz]
 T_SKY_INDEX = 2.55
 #
-# (b) MeerKLASS 2025 / Wang+2021 canonical MeerKAT receiver model:
+# (b) Cunnington+2025 canonical MeerKAT receiver model:
 #     T_sys(nu) = T_rx(nu) + T_spl + T_CMB + T_gal(nu)
 #     T_rx(nu) = 7.5 K + 10 K * (nu/GHz - 0.75)^2
-#     T_gal(nu) = 25 K * (408 MHz / nu)^{2.75}
-#     Source: MeerKLASS Collab. (2025), arXiv:2407.21626, Eqs. 21-22
-#     (citing Cunnington 2022 and Wang et al. 2021).
-#     Gives ~16 K at L-band and ~17 K at the UHF band centre, ~factor of 2
+#     T_gal(nu) = 15 K * (408 MHz / nu)^{2.75}
+#     Source: Cunnington et al. (2025), arXiv:2510.27549, Appendix A,
+#     Eqs. A19/A20. The T_rx(nu) functional form follows Cunnington (2022),
+#     itself tuned to the MeerKAT pilot survey of Wang et al. (2021); the
+#     T_gal coefficient is the paper's own derivation tuned to the average
+#     sky temperature for |b| > 10 deg. (See conventions.md D16 and the
+#     digest at docs/literature/cunnington2025_meerklass_overview.md.)
+#     Gives ~14 K at L-band and ~16 K at the UHF band centre, ~factor of 2
 #     lower than the Pinetti generic formula. Used by telescope entries with
 #     T_sys_model='meerkat', i.e. the new MeerKLASS_* HI single-dish entries.
-T_SPL_MEERKAT_K = 3.0          # spillover [K] (MeerKLASS Collab. 2025 Eq. 21)
-T_CMB_K = 2.725                # CMB [K] (MeerKLASS Collab. 2025 Eq. 21)
+T_SPL_MEERKAT_K = 3.0          # spillover [K] (Cunnington+2025 Eq. A19)
+T_CMB_K = 2.725                # CMB [K] (Cunnington+2025 Eq. A19 cites 2.73)
 
 # HI 21-cm rest frequency
 NU_21CM = 1420.405              # [MHz]

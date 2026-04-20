@@ -42,19 +42,25 @@ def T_sys_pinetti(nu_MHz):
 def T_sys_meerkat(nu_MHz):
     """Canonical MeerKAT system temperature [K] at frequency nu [MHz].
 
-    Uses the actually-measured MeerKAT receiver model from MeerKLASS
-    Collaboration (2025), arXiv:2407.21626, Eqs. 21-22 (which itself follows
-    Cunnington 2022 and Wang et al. 2021):
+    Uses the explicit T_sys decomposition from Cunnington et al. (2025),
+    arXiv:2510.27549, Appendix A, Eq. A19/A20:
 
         T_sys(nu) = T_rx(nu) + T_spl + T_CMB + T_gal(nu)
 
     with:
-        T_rx(nu)  = 7.5 K + 10 K * (nu/GHz - 0.75)^2     receiver
+        T_rx(nu)  = 7.5 K + 10 K * (nu/GHz - 0.75)^2     receiver (Eq. A20;
+                                                          tuned by Cunnington
+                                                          2022 to match the
+                                                          MeerKAT pilot, Wang
+                                                          et al. 2021)
         T_spl     = 3 K                                  spillover
-        T_CMB     = 2.725 K
-        T_gal(nu) = 25 K * (408 MHz / nu)^{2.75}         Galactic synchrotron
+        T_CMB     = 2.73 K                               CMB
+        T_gal(nu) = 15 K * (408 MHz / nu)^{2.75}         Galactic synchrotron,
+                                                          tuned to match average
+                                                          sky temperature for
+                                                          |b| > 10 deg
 
-    Returns ~16 K at the L-band cosmological window (971-1023 MHz) and ~17 K
+    Returns ~14 K at the L-band cosmological window (971-1023 MHz) and ~16 K
     at the UHF cosmological window mid-frequency (~800 MHz). This is roughly
     factor-of-2 *lower* than the Pinetti generic formula, which translates
     into factor-of-4 *less* radio noise per mode (since N propto T_sys^2).
@@ -62,14 +68,14 @@ def T_sys_meerkat(nu_MHz):
     Used by `noise_dish` / `noise_interf` for telescope entries with
     `T_sys_model = 'meerkat'`, i.e. the new `MeerKLASS_*` HI single-dish
     forecast entries that match the actually-measured MeerKAT receiver
-    performance from Wang+2021 / MeerKLASS Collab. 2025.
+    performance from Wang+2021 / Cunnington+2025.
     """
     nu_MHz = np.asarray(nu_MHz, dtype=float)
     nu_GHz = nu_MHz / 1000.0
     T_rx = 7.5 + 10.0 * (nu_GHz - 0.75)**2
     T_spl = cfg.T_SPL_MEERKAT_K
     T_CMB = cfg.T_CMB_K
-    T_gal = 25.0 * (408.0 / nu_MHz)**2.75
+    T_gal = 15.0 * (408.0 / nu_MHz)**2.75
     return T_rx + T_spl + T_CMB + T_gal
 
 
