@@ -24,7 +24,7 @@ Determines the gamma-ray luminosity function of flat-spectrum radio quasars (FSR
 
 ## Assumed Cosmology
 
-WMAP-era: Ω_m ≈ 0.27, Ω_Λ ≈ 0.73, h ≈ 0.71. The paper does not explicitly state cosmological parameters; these are inferred from the contemporary Fermi-LAT analysis conventions.
+WMAP-era: H₀ = 71 km/s/Mpc, Ω_M = 0.27, Ω_Λ = 0.73 (explicitly stated in Sec. 1: "standard concordance cosmology").
 
 ## Equations and Parameters Used (Table 3, LDDE model)
 

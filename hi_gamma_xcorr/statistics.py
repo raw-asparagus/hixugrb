@@ -312,8 +312,6 @@ def exclusion_curve(telescope, band_name, channel='bb',
         hi_brightness = cfg.RADIO_TELESCOPES[telescope].get(
             'default_hi_brightness', 'padmanabhan'
         )
-    from scipy.optimize import brentq
-
     threshold = 4.0 if CL == '95' else 25.0
 
     if m_chi_arr is None:

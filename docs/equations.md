@@ -20,7 +20,16 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 1.10 | $W(x) = 3\frac{\sin x - x\cos x}{x^3}$ (top-hat window) | Standard | `_tophat_W(kR)` |
 | 1.11 | $R(M) = (3M / 4\pi\bar\rho_m)^{1/3}$ | Mass–radius relation | `sigma_M(M, z)` |
 
-**[Planck 2018](literature/planck2018.md) parameters** (`config.py`): $h=0.6736$, $\Omega_bh^2=0.02237$, $\Omega_ch^2=0.1200$, $n_s=0.9649$, $\sigma_8=0.8111$, $A_s=2.1\times10^{-9}$, $\Omega_M=0.3153$, $T_\text{CMB}=2.7255$ K, $\tau=0.0544$.
+**[Planck 2018](literature/planck2018.md) parameters** (`config.py`): $h=0.6736$, $\Omega_bh^2=0.02237$, $\Omega_ch^2=0.1200$, $n_s=0.9649$, $\sigma_8=0.8111$, $A_s=2.1\times10^{-9}$, $\Omega_M=0.3153$, $T_\text{CMB}=2.7255$ K, $\tau=0.0544$. *Note:* $\tau$ is hardcoded in `cosmology.py::init()` (not stored in `config.py`).
+
+**Performance splines.** After CAMB initialisation, `init()` builds two cubic splines for fast evaluation:
+
+- `_chi_interp`: cumulative-Simpson spline over a 4096-point uniform grid on $[0, Z_\text{MAX}+0.5]$. Reproduces the `quad`-based `_chi_scalar(z)` to machine precision ($\lesssim10^{-12}$ rel).
+- `_growth_interp`: spline over a 2048-point `quad`-evaluated grid on $[0, 5]$. Grid-aligned points are bit-identical to the legacy scalar code; only between-grid interpolation is new.
+
+Out-of-range $z$ falls through to the original `quad`-based scalar implementations.
+
+**Mutation guard.** `_cosmo_fingerprint` (a tuple of `(H0, OMEGA_B_H2, OMEGA_CDM_H2, A_S, N_S, T_CMB)`) is set at `init()` time. `_ensure_init()` compares it against the live `config` values and forces CAMB re-initialisation if any parameter has changed at runtime.
 
 ---
 
@@ -55,11 +64,22 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 3.6 | $\bar\rho_\text{HI}(z) = \int\frac{dn}{dM}\,M_\text{HI}(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.2 | `rho_HI_mean(z)` |
 | 3.7 | $\Omega_\text{HI}(z) = \bar\rho_\text{HI}^\text{com}(z)/\rho_c$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.3 motivates the density ratio; D5: the implementation computes $\Omega_\text{HI}$ from the halo integral's comoving density directly, rather than using a fixed constant | `Omega_HI(z)` |
 | 3.8 | $\bar T_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)}$ mK | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.4 | `T_bar_b(z)` |
-| 3.9 | $b_\text{HI}(z) = \frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,M_\text{HI}\,b(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.6 | `b_HI(z)` |
+| 3.9 | $b_\text{HI}(z) = \frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,M_\text{HI}\,b(M,z)\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.6; when `hi_brightness='cunnington'`, dispatches to `b_HI_cunnington(z)` (eq 3.13b) instead of the halo integral; D15 | `b_HI(z, hi_brightness)` |
 | 3.10 | $P_\text{HI}^\text{1h}(k,z) = \frac{1}{\bar\rho_\text{HI}^2}\int\frac{dn}{dM}\,M_\text{HI}^2\,\tilde u_\text{HI}^2\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.12 | `P_HI_1h` |
-| 3.11 | $P_\text{HI}^\text{2h}(k,z) = \left[\frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,b\,M_\text{HI}\,\tilde u_\text{HI}\,dM\right]^2 P_\text{lin}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.13 | `P_HI_2h` |
-| 3.12 | $W_\text{HI}(\chi) = \bar T_b(z)\,\phi(z)\,\frac{H(z)}{ch}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eqs. 3.15–3.16 for the paper form; current implementation keeps $b_\text{HI}$ in $P_\text{HI}$ rather than in `W_HI()` | `W_HI(z, z_min, z_max)` |
+| 3.11 | $P_\text{HI}^\text{2h}(k,z) = \left[\frac{1}{\bar\rho_\text{HI}}\int\frac{dn}{dM}\,b\,M_\text{HI}\,\tilde u_\text{HI}\,dM\right]^2 P_\text{lin}$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 3.13; in Cunnington mode (D15) collapses to $b_\text{HI,cunn}^2(z)\,P_\text{lin}(k,z)$ — no halo-model integral | `P_HI_2h(k, z, hi_brightness)` |
+| 3.12 | $W_\text{HI}(\chi) = \bar T_b(z)\,\phi(z)\,\frac{H(z)}{ch}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eqs. 3.15–3.16 for the paper form; current implementation keeps $b_\text{HI}$ in $P_\text{HI}$ rather than in `W_HI()`; `hi_brightness` selects the $\bar T_b$ model via `T_bar_b_for_model` (D15) | `W_HI(z, z_min, z_max, hi_brightness)` |
 |   | $\phi(z) = 1/(z_\text{max}-z_\text{min})$ (top-hat selection) | | |
+
+### Cunnington et al. (2025) HI Brightness Mode (D15)
+
+When `hi_brightness='cunnington'` (alias `'meerfish'`, `'cunnington2025'`), the pipeline substitutes the Padmanabhan+2017 halo-integral HI quantities with the polynomial fits from [Cunnington et al. (2025)](literature/cunnington2025_meerklass_overview.md), originally calibrated against the Villaescusa-Navarro+2018 hydrodynamic simulations and adapted for the public MeerFish forecast code. The brightness-temperature prefactor is 180 mK (Battye+2013), not the 188 mK form used by the default `T_bar_b` (Padmanabhan 2017 / Pinetti 2020 convention).
+
+| # | Equation | Source | Function |
+|---|----------|--------|----------|
+| 3.13a | $\Omega_\text{HI}^\text{cunn}(z) = 6.7432\times10^{-4} + 3.9\times10^{-4}\,z - 6.5\times10^{-5}\,z^2$ | [Cunnington+ (2025)](literature/cunnington2025_meerklass_overview.md) Eq. A5 | `Omega_HI_cunnington(z)` |
+| 3.13b | $b_\text{HI}^\text{cunn}(z) = 0.842 + 0.693\,z - 0.0459\,z^2$ | [Cunnington+ (2025)](literature/cunnington2025_meerklass_overview.md) Eq. A3 | `b_HI_cunnington(z)` |
+| 3.13c | $\bar T_b^\text{cunn}(z) = 180\,h\,\Omega_\text{HI}^\text{cunn}(z)\,\frac{(1+z)^2}{E(z)}$ mK | [Cunnington+ (2025)](literature/cunnington2025_meerklass_overview.md) Eq. A4; 180 mK Battye+2013 prefactor | `T_bar_b_cunnington(z)` |
+| 3.13d | `T_bar_b_for_model(z, hi_brightness)` — dispatcher: `'padmanabhan'`→`T_bar_b` (eq 3.8), `'fixed_omega'`→`T_bar_b_fixed_omega`, `'cunnington'`→`T_bar_b_cunnington` (eq 3.13c) | | `T_bar_b_for_model` |
 
 ---
 
@@ -84,7 +104,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 5.1 | $L_\text{sens}(z) = F_\text{sens}\,4\pi d_L^2\,\frac{G_\text{eV→erg}\,I_\alpha}{(1+z)^{2-\alpha}\,J_\alpha^\text{EBL}(z)}$; $F_\text{sens}=10^{-10}$ cm⁻²s⁻¹ (1–100 GeV band) | [Pinetti (2022)](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76 | `L_sens(z)` |
+| 5.1 | $L_\text{sens}(z) = F_\text{sens}\,4\pi d_L^2\,\frac{G_\text{eV→erg}\,I_\alpha}{(1+z)^{2-\alpha}\,J_\alpha^\text{EBL}(z)}$ | [Pinetti (2022)](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76; D17: `F_sens_baseline` selects the completeness threshold — `cfg.F_SENS_PINETTI` $= 10^{-10}$ cm⁻²s⁻¹ (Pinetti+2020/2022 forecast) or `cfg.F_SENS_4FGL_DR4` $= 7.3\times10^{-11}$ cm⁻²s⁻¹ ([Ballet+ 2023](literature/ballet2023_4fgl_dr4.md) 4FGL-DR4 14-yr high-|b| completeness) | `L_sens(z, E_GeV, alpha, F_sens_baseline)` |
 |   | $I_\alpha = \int_{0.1}^{100} E^{1-\alpha}dE$ (rest-frame luminosity band); $J_\alpha^\text{EBL}(z) = \int_1^{100} E^{-\alpha}\,e^{-\tau(E,z)}dE$ (Fermi sensitivity band with EBL; $\tau$ at observed energy $E$) | | `_J_alpha_ebl` |
 | 5.2 | $\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1}+(L/L_c)^{\gamma_2}}$ | LDDE double power-law | `_ldde_glf` |
 |   | Conversion: $d\Phi/dL = (d\Phi/d\log L)/(L\ln10)$ | | |
@@ -119,7 +139,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
 | 5.12 | $\phi_\text{IR} = \phi_\text{spiral} + \phi_\text{starburst} + \phi_\text{SF-AGN}$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) | `_gruppioni_ir_lf` |
-| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) modified Schechter; [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.23; D4: SF-AGN $k_{R2}$ sign corrected from thesis typo; D13: $z=1.1$ break applied uniformly to all 3 components | `_gruppioni_component` |
+| 5.13 | $\phi_i = \phi_{0,i}(z)(L_\text{IR}/L_{0,i})^{1-\gamma_i}\exp[-\log_{10}^2(1{+}L_\text{IR}/L_{0,i})/(2\sigma_i^2)]$ | [Gruppioni+ (2013)](literature/gruppioni2013.md) modified Schechter; [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.23; D4: SF-AGN $k_{R2}$ sign corrected from thesis typo; ~~D13~~: resolved — $z=1.1$ break now applied only to spiral per Gruppioni (2013) Table 8 | `_gruppioni_component` |
 | 5.14 | $\log_{10} L_\gamma = 1.09\,\log_{10}(L_\text{IR}/10^{10}L_\odot) + 39.19$ | [Ackermann+ (2012)](literature/ackermann2012_sfg.md) | `_L_IR_from_Lgamma` |
 | 5.15 | $\phi_\gamma = \phi_\text{IR}\,\lvert d\log_{10}L_\text{IR}/d\log_{10}L_\gamma \rvert / (L_\gamma\ln10)$ | Eq. C.28 | `_glf_SFG` |
 
@@ -161,7 +181,10 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 
 | # | Equation | Source | Function |
 |---|----------|--------|----------|
-| 8.1 | $T_\text{sys}(\nu) = 30 + 60(300\text{ MHz}/\nu)^{2.55}$ K | Radio telescope formula | `T_sys(nu)` |
+| 8.1 | $T_\text{sys}^\text{Pin}(\nu) = 30 + 60(300\text{ MHz}/\nu)^{2.55}$ K | Camera, Santos+ (2013), as used by [Pinetti+](literature/pinetti2020.md) (2020) Eq. 3.18 | `T_sys_pinetti(nu)` |
+| 8.1b | $T_\text{sys}^\text{MK}(\nu) = T_\text{rx} + T_\text{spl} + T_\text{CMB} + T_\text{gal}$ | [Cunnington+ (2025)](literature/cunnington2025_meerklass_overview.md) Eq. A19; D16 | `T_sys_meerkat(nu)` |
+|   | $T_\text{rx}=7.5 + 10(\nu_\text{GHz}-0.75)^2$ K; $T_\text{spl}=3$ K; $T_\text{CMB}=2.725$ K; $T_\text{gal}=15(408/\nu_\text{MHz})^{2.75}$ K | | |
+| 8.1c | `T_sys(nu, model)` — dispatcher: `'pinetti'`→`T_sys_pinetti` (eq 8.1), `'meerkat'`→`T_sys_meerkat` (eq 8.1b). Per-telescope `T_sys_model` field in `cfg.RADIO_TELESCOPES` selects which formula is used; legacy entries default to `'pinetti'`, new `MeerKLASS_*` entries use `'meerkat'`. | | `T_sys` |
 | 8.2 | $B_\ell^\text{HI} = \exp(-\ell^2\sigma_\text{beam}^2/2)$; $\sigma_\text{beam}=1.22\lambda/(D\sqrt{8\ln2})$ | Gaussian beam; [Pinetti+](literature/pinetti2020.md) Eq. 3.17 | `beam_radio` |
 | 8.3 | $N_\text{dish}^\text{HI} = T_\text{sys}^2\,\Omega_S/(N_d\,t\,\Delta\nu\,N_b\,N_\text{pol}\,\eta^2)$ | [Pinetti+](literature/pinetti2020.md) Eq. 3.18 | `noise_dish` |
 | 8.4 | $N_\text{interf}^\text{HI} = T_\text{sys}^2\,\Omega_S\,\text{FoV}/(n(u)\,t\,\Delta\nu\,N_b\,N_\text{pol}\,\eta^2)$ | [Pinetti+](literature/pinetti2020.md) Eq. 3.19 | `noise_interf` |
@@ -176,7 +199,7 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 | 8.13 | $\langle W_\ell^k\rangle = \int W_\ell(E)E^{-\alpha}dE\,/\,\int E^{-\alpha}dE$; $\alpha=2.3$ | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 5 | `beam_fermi_bin_averaged` |
 | 8.14 | $W_\text{pix}(\ell) \approx \exp(-\ell^2\theta_\text{pix}^2/2)$; $\theta_\text{pix}=\sqrt{4\pi/12N_\text{side}^2}$ | HEALPix pixel window | `pixel_window` |
 | 8.15 | $\ell_\max$: $\langle W_{\ell_\max}^k\rangle = 0.61$ or $1000$ (whichever smaller) | [Ammazzalorso+](literature/ammazzalorso2018.md) Eq. 7; Table I | `ell_max_fermi` |
-| 8.16 | $F_\text{sens}(E) = F_\text{sens,ref}\,[\sigma_0(E)/\sigma_0(E_\text{ref})]^2$; $E_\text{ref}=5$ GeV | Energy-dependent sensitivity (data mode) | `F_sens_energy` (in `astro_sources.py`) |
+| 8.16 | $F_\text{sens}(E) = F_\text{sens,base}\,[\sigma_0(E)/\sigma_0(E_\text{ref})]^2$; $E_\text{ref}=5$ GeV | [Ammazzalorso+](literature/ammazzalorso2018.md) (2018) Sec. II.A; D17: `F_sens_baseline` selects the anchor — `F_SENS_PINETTI` (forecast) or `F_SENS_4FGL_DR4` (data); see eq 5.1 | `F_sens_energy(E, F_sens_baseline)` (in `astro_sources.py`) |
 
 ---
 
@@ -188,6 +211,7 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 | 9.2 | $P_{\text{HI}\times\text{DM}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde v}{\Delta^2}dM][\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eq. 5.2 | `P_HI_DM_2h` |
 | 9.3 | $P_{\text{HI}\times\text{astro}}^\text{2h} = [\int\frac{dn}{dM}b\frac{\tilde u_\text{HI}M_\text{HI}}{\bar\rho_\text{HI}}dM]\,b_\text{astro}\,P_\text{lin}$ | [Pinetti+](literature/pinetti2020.md) Eqs. 5.3–5.4 | `P_HI_astro_2h` |
 | 9.4 | $C_\ell^{ij} = \int\frac{d\chi}{\chi^2}\,W_i(\chi)\,W_j(\chi)\,P_{ij}(k{=}(\ell{+}\tfrac12)/\chi,\,z)$ | Limber approximation; [Pinetti+](literature/pinetti2020.md) Eq. 2.1; D8: thesis uses $k=\ell/\chi$ | `C_ell_HI_gamma` |
+| 9.5 | Same Limber integral as 9.4, evaluated for an array of energies $E_1,\dots,E_n$ in a single redshift loop. The E-independent kernel $(\chi, H, W_\text{HI}, P_\text{cross})$ is computed once per $z$-step; only the gamma-ray windows $W_\gamma(E,z)$ vary in the inner energy loop. Mathematically identical to calling `C_ell_HI_gamma` once per energy (rel-tol $< 10^{-13}$). | Performance optimisation | `C_ell_HI_gamma_multi_E` |
 
 ---
 
@@ -206,7 +230,9 @@ Models: `dominguez`, `franceschini`, `finke`, `saldana-lopez21`.
 
 - [Ajello et al. (2012)](literature/ajello2012.md), ApJ 751, 108 — FSRQ luminosity function
 - [Ajello et al. (2014)](literature/ajello2014.md), MNRAS 441, 1760 — BL Lac luminosity function
+- [Ballet et al. (2023)](literature/ballet2023_4fgl_dr4.md), arXiv:2307.12546 — 4FGL-DR4 sensitivity thresholds
 - [Cirelli et al. (2011)](literature/cirelli2011.md), JCAP 03, 051 — PPPC4DMID photon yield tables
+- [Cunnington et al. (2025)](literature/cunnington2025_meerklass_overview.md), arXiv:2510.27549 — MeerKLASS overview, MeerFish forecasts, HI brightness polynomials
 - [Di Mauro et al. (2013, 2014)](literature/dimauro2014.md), ApJ 780, 161 — mAGN gamma-ray emission
 - [[Dominguez](literature/dominguez2011.md) et al. (2011)](literature/dominguez2011.md), MNRAS 410, 2556 — EBL opacity model
 - [Gruppioni et al. (2013)](literature/gruppioni2013.md), MNRAS 432, 23 — IR luminosity function (SFG)

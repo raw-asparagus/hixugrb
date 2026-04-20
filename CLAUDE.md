@@ -159,10 +159,10 @@ Catches references in `docs/` that no longer point to anything real after the se
 
 | ID  | Check | Files | Pass |
 |-----|-------|-------|------|
-| 7.1 | **Dead function/symbol references**: every `function_name`, `module.symbol`, `cfg.CONSTANT`, line number, and file path mentioned in the synthesis and audit docs resolves to an actual symbol in current code. Particular attention to renames (e.g. `T_sys` → `T_sys_pinetti`, `MeerKLASS_DR0` → `MeerKLASS_L_pilot`). | `docs/equations.md`, `docs/conventions.md`, `docs/architecture.md`, `docs/scratch.md`, `docs/window-functions/*.md`, all `hi_gamma_xcorr/*.py` | All sampled refs resolve |
+| 7.1 | **Dead function/symbol references**: every `function_name`, `module.symbol`, `cfg.CONSTANT`, line number, and file path mentioned in the synthesis and audit docs resolves to an actual symbol in current code. Particular attention to renames (e.g. `T_sys` → `T_sys_pinetti`, `MeerKLASS_DR0` → `MeerKLASS_L_pilot`). | `docs/equations.md`, `docs/conventions.md`, `docs/architecture.md`, `docs/window-functions/*.md`, all `hi_gamma_xcorr/*.py` | All sampled refs resolve |
 | 7.2 | **Stale parameter values**: every numerical constant cited in docs (Planck params, Ω_HI, T_sys formula coefficients, F_sens, telescope area/time/η, spectral indices, mAGN chain values, Gruppioni params, Fermi bins) matches current `config.py`. Flag any drift. | All `docs/*.md`, `config.py` | All match to stated precision |
 | 7.3 | **Orphan literature digests**: every `literature/*.md` is referenced from at least one of `equations.md`, `conventions.md`, `literature_evidence_matrix.md`, or a `window-functions/*.md`. Flag orphans (digests added but never wired into the synthesis layer — currently expected for the 6 new MeerKLASS/4FGL-DR4 digests). Reverse: synthesis docs citing a digest that does not exist. | All `docs/literature/*.md`, all `docs/*.md` | No orphans, no dangling cites |
-| 7.4 | **Stale prose claims**: scan `scratch.md`, `architecture.md`, `conventions.md`, and `window-functions/*.md` narratives for outdated phrasing — e.g. "the pipeline uses Pinetti T_sys throughout" (no longer true after dispatch), "F_sens is a fixed constant" (no longer true), "188 mK is the only brightness convention" (no longer true after Cunnington mode), "MeerKLASS_DR0" (renamed), claims about energy-loop being a bottleneck (no longer true after `C_ell_HI_gamma_multi_E` hoist). | `docs/scratch.md`, `docs/architecture.md`, `docs/conventions.md`, `docs/window-functions/*.md` | All prose reflects current state |
+| 7.4 | **Stale prose claims**: scan `architecture.md`, `conventions.md`, and `window-functions/*.md` narratives for outdated phrasing — e.g. "the pipeline uses Pinetti T_sys throughout" (no longer true after dispatch), "F_sens is a fixed constant" (no longer true), "188 mK is the only brightness convention" (no longer true after Cunnington mode), "MeerKLASS_DR0" (renamed), claims about energy-loop being a bottleneck (no longer true after `C_ell_HI_gamma_multi_E` hoist). | `docs/architecture.md`, `docs/conventions.md`, `docs/window-functions/*.md` | All prose reflects current state |
 
 ### Phase 8: Stale Code Sweep (5 tasks, all parallel; depends on Phase 3)
 
@@ -242,7 +242,7 @@ For each external fit, identify the assumed cosmology and assess the mismatch. D
 |-----|----------------|---------------------|----------|
 | Correa c(M) | Planck 2013 (Ω_m=0.317, h=0.67) | D2: re-fit coefficients | Negligible |
 | Ajello 2012 FSRQ LDDE | WMAP-era | None | Small (~1-2% in d_L) |
-| Ajello 2014 BL Lac LDDE | Planck 2013-era | None | Negligible |
+| Ajello 2014 BL Lac LDDE | WMAP-era (H₀=71, Ω_M=0.27) | None | Small (~1-2% in d_L) |
 | Willott 2001 RLF | H0=50, empty universe | η(z) volume correction | Volume corrected; fit shape not re-derived |
 | Gruppioni 2013 IR LF | ΛCDM (unspecified) | None | Small |
 | Ackermann 2012 L_γ–L_IR | WMAP-era | None | Cosmology enters only through d_L |

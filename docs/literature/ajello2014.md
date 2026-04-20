@@ -10,7 +10,7 @@ Constructs the gamma-ray luminosity function of BL Lac objects using 211 sources
 
 ## Assumed Cosmology
 
-Planck 2013-era: Ω_m ≈ 0.315, Ω_Λ ≈ 0.685, h ≈ 0.67. The paper does not explicitly state cosmological parameters; these are inferred from the contemporary Fermi-LAT analysis conventions at the time of publication.
+WMAP-era: H₀ = 71 km/s/Mpc, Ω_M = 0.27, Ω_Λ = 0.73 (explicitly stated in Sec. 1: "standard concordance cosmology"). Despite being published in 2014, this paper uses WMAP-era cosmology, not Planck 2013.
 
 ## GLF Parameterization
 

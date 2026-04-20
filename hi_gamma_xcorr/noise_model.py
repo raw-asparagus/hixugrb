@@ -15,7 +15,6 @@ from scipy.integrate import quad
 from scipy.special import eval_legendre
 
 from . import config as cfg
-from . import cosmology as cosmo
 
 # ---------------------------------------------------------------------------
 # Radio system temperature
@@ -54,7 +53,7 @@ def T_sys_meerkat(nu_MHz):
                                                           MeerKAT pilot, Wang
                                                           et al. 2021)
         T_spl     = 3 K                                  spillover
-        T_CMB     = 2.73 K                               CMB
+        T_CMB     = 2.725 K                              CMB
         T_gal(nu) = 15 K * (408 MHz / nu)^{2.75}         Galactic synchrotron,
                                                           tuned to match average
                                                           sky temperature for

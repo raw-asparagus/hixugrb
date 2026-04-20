@@ -42,7 +42,7 @@ def c_HI(M, z):
 
     Padmanabhan+ (2017) Eq. 3, Table A1: c_HI,0=139, gamma=0.13.
     The mass pivot is 10^{11} M_sun (not M_sun/h), so M [M_sun/h] is
-    converted to M_sun via M_sun = M * h before applying the exponent.
+    converted to M_sun via M_phys = M / h before applying the exponent.
     """
     M = np.asarray(M, dtype=float)
     M_solar = M / cfg.h  # M_sun/h → M_sun: M_phys = M_code / h

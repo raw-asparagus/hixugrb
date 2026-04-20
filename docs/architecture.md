@@ -8,70 +8,78 @@
                         │             │  Fermi bins, mass/k/z grids
                         └──────┬──────┘
                                │
-                 ┌─────────────┼─────────────┐
-                 ▼             ▼             ▼
-          ┌────────────┐ ┌──────────┐ ┌──────────────┐
-          │cosmology.py│ │  ebl.py  │ │ pppc4dmid.py │
-          │ CAMB P(k,z)│ │ebltable  │ │ table reader │
-          │ H,χ,D,E(z) │ │ τ(E,z)  │ │ dN/dE(E,m,ch)│
-          └─────┬──────┘ └────┬─────┘ └──────┬───────┘
-                │             │              │
-                ▼             │              │
-       ┌────────────────┐    │              │
-       │hmf_interface.py│    │              │
-       │ hmf.MassFunction│   │              │
-       │ σ(M), dn/dM    │    │              │
-       └───────┬────────┘    │              │
-               ▼             │              │
-        ┌─────────────┐      │              │
-        │halo_model.py│      │              │
-        │ R_vir, v_c  │      │              │
-        │ bias, c(M)  │      │              │
-        │ ũ_NFW(k|M)  │      │              │
-        └──┬───────┬──┘      │              │
-           │       │         │              │
-     ┌─────▼──┐ ┌──▼─────────▼──────────────▼──┐
-     │hi_model│ │         dm_model.py           │
-     │ M_HI   │ │ ρ², ṽ(k|M), Δ², boost       │
-     │ ũ_HI   │ │ W_γ^DM(E,z,m_χ,σv)          │
-     │ ρ_HI   │ └──────────┬───────────────────┘
-     │ b_HI   │            │
-     │ P_HI   │  ┌──────────────────────────────┐
-     │ W_HI   │  │astro_sources.py              │
-     └───┬────┘  │ GLFs (4 sources)             │
-         │       │ W_γ^astro(E,z) × e^{-τ(E,z)}│
-         │       │ mean_intensity               │
-         │       └────────┬─────────────────────┘
-         │                │
-         ▼                ▼
-    ┌───────────────────────────┐     ┌───────────────┐
-    │    angular_power.py       │     │noise_model.py │
-    │ P_HI×DM, P_HI×astro (3D) │     │ T_sys, N^HI   │
-    │ C_ℓ Limber integration    │     │ N^γ, B_ℓ, PSF │
-    │ C_ℓ^{HI,HI} auto-power   │     └───────┬───────┘
-    │ (also imports config,     │             │
-    │  halo_model)              │             │
-    └────────────┬──────────────┘             │
-                 │                            │
-                 ▼                            ▼
-          ┌──────────────────────────────────────┐
-          │          statistics.py                │
-          │  variance_Cl  →  compute_SNR         │
-          │  delta_chi2   →  exclusion_curve     │
-          │  (also imports config)               │
-          └──────────────┬───────────────────────┘
-                         │
-               │
-               ▼
+           ┌───────────────────┼───────────────────┐
+           ▼                   ▼                   ▼
+    ┌────────────┐    ┌────────────────┐   ┌──────────┐   ┌──────────────┐
+    │cosmology.py│    │hmf_interface.py│   │  ebl.py  │   │ pppc4dmid.py │
+    │ CAMB P(k,z)│    │ hmf.MassFunc   │   │ebltable  │   │ table reader │
+    │ H,χ,D,E(z) │    │ σ(M), dn/dM   │   │ τ(E,z)  │   │ dN/dE(E,m,ch)│
+    └─────┬──────┘    └───────┬────────┘   └────┬─────┘   └──────┬───────┘
+          │                   │                  │               │
+          ▼                   ▼                  │               │
+    ┌──────────────────────────┐   ┌─────────┐   │               │
+    │     halo_model.py        │   │cache.py │   │               │
+    │ R_vir, v_c, bias, c(M)  │   │_cache_  │   │               │
+    │ ũ_NFW(k|M)              │   │ stable  │   │               │
+    └──┬───────────────────┬──┘   └──┬──┬───┘   │               │
+       │                   │         │  │       │               │
+       │   ┌───────────────▼─────────▼┐ │      │               │
+       │   │hi_model.py               │ │      │               │
+       │   │ M_HI, ũ_HI, ρ_HI, b_HI  │ │      │               │
+       │   │ P_HI, W_HI               │ │      │               │
+       │   │ Cunnington brightness     │ │      │               │
+       │   │ dispatch (T_bar_b_for_   │ │      │               │
+       │   │ model, b_HI_cunnington)  │ │      │               │
+       │   └───────────┬──────────────┘ │      │               │
+       │               │                │      │               │
+     ┌─▼───────────────│────────────────▼──────▼───────────────▼──┐
+     │              dm_model.py                                    │
+     │ ρ², ṽ(k|M), Δ², boost, W_γ^DM(E,z,m_χ,σv)                │
+     └────────────────────────────────┬───────────────────────────┘
+                                      │
+     ┌────────────────────────────────│──┐
+     │astro_sources.py                │  │
+     │ GLFs (4 sources), F_sens       │  │
+     │ dispatch, W_γ^astro × e^{-τ}  │  │
+     │ (imports: config, cosmology,   │  │
+     │  ebl)                          │  │
+     └────────────────┬───────────────│──┘
+                      │               │
+         ┌────────────▼───────────────▼──┐     ┌───────────────┐
+         │    angular_power.py           │     │noise_model.py │
+         │ P_HI×DM, P_HI×astro (3D)     │     │ T_sys dispatch │
+         │ C_ℓ Limber integration        │     │ N^HI, N^γ     │
+         │ C_ℓ^{HI,HI} auto-power       │     │ B_ℓ, PSF      │
+         │ C_ℓ_HI_gamma_multi_E batch    │     └───────┬───────┘
+         │ (also imports config,         │             │
+         │  cosmology, halo_model)       │             │
+         └────────────┬──────────────────┘             │
+                      │                                │
+                      ▼                                ▼
+          ┌──────────────────────────────────────────────┐
+          │          statistics.py                        │
+          │  variance_Cl  →  compute_SNR                 │
+          │  delta_chi2   →  exclusion_curve             │
+          │  per-telescope dispatch (hi_brightness,      │
+          │  unresolved_mode) from config                │
+          │  (also imports config)                       │
+          └──────────────────┬───────────────────────────┘
+                             │
+                             ▼
         ┌─────────────────────────────┐
         │notebooks/                   │
         │  pipeline_validation.ipynb  │
         │  validation plots           │
         │  SNR table, exclusion curves│
         └─────────────────────────────┘
+
+  Not shown above:
+    pinetti2022.py  — thesis-faithful validation module
+                      (imports: config, cosmology, halo_model, hmf_interface, hi_model)
+    plotting.py     — Matplotlib configuration (no intra-package imports)
 ```
 
-**Summary:** Config → Cosmology + Tables → Halo model (via hmf) → HI / DM / Astro tracers → 3D power spectra → Limber C_ℓ → Statistics (SNR, exclusion) → Plots / Validation
+**Summary:** Config → Cosmology + Tables → Halo model (via hmf) → HI / DM / Astro tracers (with per-telescope dispatch for brightness, T_sys, F_sens) → 3D power spectra → Limber C_ℓ → Statistics (SNR, exclusion) → Plots / Validation
 
 For the equation-level implementation reference, see [`equations.md`](equations.md). For paper summaries and source-specific provenance, see [`literature/`](literature/).
 
@@ -83,14 +91,15 @@ For the equation-level implementation reference, see [`equations.md`](equations.
 | `cosmology.py` | CAMB wrapper for P_lin(k,z); Hubble rate H(z), comoving distance χ(z), growth factor D(z) |
 | `hmf_interface.py` | Thin wrapper around the `hmf` package; cached MassFunction instances, σ(M), dn/dM |
 | `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M), NFW Fourier transform ũ(k, M) |
-| `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI |
+| `cache.py` | Joblib-based disk caching via `_cache_stable` decorator for expensive halo-model integrals |
+| `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI; Cunnington brightness dispatch (`T_bar_b_for_model`, `Omega_HI_cunnington`, `b_HI_cunnington`) |
 | `dm_model.py` | NFW ρ² profile and Fourier transform ṽ(k, M), substructure boost B(M), clumping factor Δ², DM window W_γ^DM, DM power spectra |
-| `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro (with EBL attenuation via `ebl.py`); mean UGRB intensity |
+| `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro (with EBL attenuation via `ebl.py`); mean UGRB intensity; F_sens dispatch (`F_sens_baseline` plumbing through `L_sens` and `F_sens_energy` for `'4fgl_dr4_psf'` vs `'pinetti_constant'` modes) |
 | `pppc4dmid.py` | PPPC4DMID photon yield table reader/interpolator; dN/dE for bb̄, τ⁺τ⁻, WW channels |
 | `ebl.py` | EBL opacity τ(E,z) via `ebltable` package (Dominguez+2011); analytic fallback |
-| `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs |
-| `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI} |
-| `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ) |
+| `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs; T_sys dispatch (`T_sys_pinetti` legacy vs `T_sys_meerkat` canonical, selected via `T_sys_model` key) |
+| `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI}; `C_ell_HI_gamma_multi_E` for batched multi-energy computation |
+| `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ); per-telescope dispatch of `default_hi_brightness` and `default_unresolved_mode` from config |
 | `pinetti2022.py` | Thesis-faithful parameter overrides (Correa cosmology, q=0.75 bias, k=ℓ/χ Limber, T̄_b=44 μK) for validation against Pinetti (2022) |
 | `plotting.py` | Matplotlib configuration: page widths, fonts, styling for publication figures |
 | `notebooks/pipeline_validation.ipynb` | Jupyter notebook with validation plots, window-function comparisons, SNR tables, and exclusion-curve outputs |
@@ -111,14 +120,19 @@ halo_model.py: dndM(M,z), bias(M,z), R_vir(M,z), v_circ(M,z)
 hi_model.py:
     ├─ M_HI(M,z)      ← [Padmanabhan+ (2017)](literature/padmanabhan2017.md) Eq. 3.7
     ├─ rho_HI_mean(z)  ← ∫ dndM × M_HI dM
-    ├─ Omega_HI(z)     ← rho_HI / rho_crit
-    ├─ T_bar_b(z)      ← Pinetti Eq. 3.4
-    ├─ b_HI(z)         ← mass-weighted bias, Eq. 3.6
+    ├─ Omega_HI(z)     ← rho_HI / rho_crit  [Padmanabhan mode]
+    │   OR Omega_HI_cunnington(z)             [Cunnington mode, polynomial fit]
+    ├─ T_bar_b_for_model(z, hi_brightness)
+    │   ├─ 'padmanabhan' → T_bar_b(z) = 188 h Ω_HI (1+z)² / E(z)
+    │   └─ 'cunnington'  → T_bar_b_cunnington(z) = 180 mK × polynomial
+    ├─ b_HI(z, hi_brightness)
+    │   ├─ 'padmanabhan' → mass-weighted bias, Eq. 3.6
+    │   └─ 'cunnington'  → b_HI_cunnington(z) polynomial
     └─ W_HI(z)         ← T_bar_b × φ(z) × H/(ch)  [pipeline form]
                            └─ φ(z) = 1/Δz (top-hat from radio band)
 ```
 
-**Survey-dependent:** φ(z) set by telescope band (MeerKAT UHF: z=0.4–1.45, L: z=0–0.58, etc.). The HI bias is computed separately and enters the 3D HI power spectra, not `W_HI()` itself.
+**Survey-dependent:** φ(z) set by telescope band (MeerKAT UHF: z=0.4–1.45, L: z=0–0.58, etc.). The HI bias is computed separately and enters the 3D HI power spectra, not `W_HI()` itself. The brightness convention (`hi_brightness`) is dispatched per telescope via `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']`: legacy telescopes use `'padmanabhan'` (halo-model Ω_HI), MeerKLASS entries use `'cunnington'` (polynomial fits from [Cunnington+ 2025](literature/cunnington2025_meerklass_overview.md)).
 
 ### W_γ^BL_Lac, W_γ^FSRQ, W_γ^mAGN, W_γ^SFG — Astrophysical gamma-ray sources
 
@@ -145,9 +159,9 @@ astro_sources.py:
                                [pipeline photon-emissivity form in (Mpc/h)^-3, with EBL]
 ```
 
-**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity ([Pinetti 2022](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76). `L_sens` includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation $e^{-\tau}$ in the Fermi 1–100 GeV sensitivity band via `_J_alpha_ebl(z)`. Two modes:
-- `unresolved_mode='forecast'`: constant F_sens = 10⁻¹⁰ cm⁻²s⁻¹ in 1–100 GeV ([Pinetti+ 2020](literature/pinetti2020.md))
-- `unresolved_mode='data'`: energy-dependent F_sens(E) scaled by PSF area ([Ammazzalorso+ 2018](literature/ammazzalorso2018.md))
+**Survey-dependent element:** Integration upper limit `min(L_max, L_sens(z))` uses Fermi-LAT sensitivity ([Pinetti 2022](literature/pinetti2022_thesis.md) Eqs. 3.75–3.76). `L_sens` includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation $e^{-\tau}$ in the Fermi 1–100 GeV sensitivity band via `_J_alpha_ebl(z)`. The `F_sens_baseline` parameter is dispatched per telescope via `cfg.RADIO_TELESCOPES[telescope]['default_unresolved_mode']`:
+- `unresolved_mode='pinetti_constant'` (or `'forecast'`): constant F_sens = `F_SENS_PINETTI` = 10⁻¹⁰ cm⁻²s⁻¹ in 1–100 GeV ([Pinetti+ 2020](literature/pinetti2020.md))
+- `unresolved_mode='4fgl_dr4_psf'` (or `'data'`): F_sens = `F_SENS_4FGL_DR4` = 7.3 × 10⁻¹¹ cm⁻²s⁻¹ from [Ballet+ 2023](literature/ballet2023_4fgl_dr4.md); energy-dependent `F_sens_energy(E)` scaled by PSF area ([Ammazzalorso+ 2018](literature/ammazzalorso2018.md))
 - `unresolved_only=False`: survey-independent total emission
 
 ### W_γ^DM — Dark matter annihilation
@@ -199,3 +213,4 @@ angular_power.py: C_ℓ^{HI×γ}
 - `hmf` — halo mass function computation (SMT, Tinker, etc.)
 - `ebltable` — EBL opacity models
 - `astropy` — cosmological constants and unit conversions
+- `joblib` — disk caching for expensive integrals (via `cache.py`)

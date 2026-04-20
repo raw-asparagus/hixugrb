@@ -9,8 +9,6 @@ All masses in M_sun/h, distances in Mpc/h, wavenumbers in h/Mpc.
 
 import numpy as np
 from scipy.special import sici
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
 
 from . import config as cfg
 from . import cosmology as cosmo

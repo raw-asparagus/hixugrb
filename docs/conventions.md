@@ -119,6 +119,11 @@ $$W^{(\chi)}(\chi) = W^{(z)}(z) \times \frac{H(z)}{c \cdot h}$$
 | W_γ^DM | (σv/8π)(ρ/m_χ)²(1+z)³Δ² dN/dE e^{-τ} | Same emissivity factors; the Limber measure supplies $d\chi/dz = c h/H$ |
 | W_γ^astro | val / (4π h³) | Pinetti 2020 Eq. 4.3 motivates the luminosity-function integral; the implementation uses the photon-number emissivity form and converts the GLF density from Mpc⁻³ to (Mpc/h)⁻³ |
 
+**HI brightness dispatch:** `W_HI()` now accepts an `hi_brightness` parameter (propagated from the per-telescope `default_hi_brightness` field) and delegates to `T_bar_b_for_model(z, hi_brightness)`:
+- `'padmanabhan'` (default for non-MeerKLASS entries): uses the halo-integral Ω_HI and the 188 mK prefactor (`T_bar_b`).
+- `'fixed_omega'`: uses the fixed `OMEGA_HI_FIXED = 2.45e-4` with the 188 mK prefactor.
+- `'cunnington'`: uses `T_bar_b_cunnington(z)` with the 180 mK prefactor and Cunnington+2025 polynomial Ω_HI(z) (see D15).
+
 **Important:** In the current implementation, `W_HI()` carries the $H/(c\cdot h)$ Jacobian but not $b_\text{HI}$, `W_gamma_DM()` does not include a baked-in $1/H(z)$ factor, and `W_gamma_astro()` returns the photon-emissivity form without the older $(1+z)^{-2}$ prefactor while converting the GLF density to h-dependent units. See [`equations.md`](equations.md) for the implementation-vs-literature mapping.
 
 ### Limber k-substitution
@@ -187,7 +192,7 @@ Two modes are available:
 |---|---|---|
 | Energy bins | 12 bins, 0.5–1000 GeV | 11 bins, 0.631–1000 GeV |
 | Beam | Gaussian approximation `beam_fermi()` | Exact King PSF `beam_fermi_exact()` |
-| Sensitivity | F_sens = 10⁻¹⁰ cm⁻²s⁻¹ in the **1–100 GeV** band (Pinetti 2022 Eq. 3.76); L_sens includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation in the photon-flux integral | F_sens(E) scaled by PSF area |
+| Sensitivity | F_SENS_PINETTI = 10⁻¹⁰ cm⁻²s⁻¹ in the **1–100 GeV** band (Pinetti 2022 Eq. 3.76); L_sens includes K-correction $(1+z)^{2-\alpha}$ and EBL attenuation in the photon-flux integral (`unresolved_mode='pinetti_constant'`) | F_SENS_4FGL_DR4 = 7.3×10⁻¹¹ cm⁻²s⁻¹ (Ballet+2023 4FGL-DR4, source-class-averaged photon-flux equivalent of 10⁻¹² erg cm⁻²s⁻¹ at 100 MeV–100 GeV), with PSF-area scaling on top per Ammazzalorso+2018b Sec. II.A (`unresolved_mode='4fgl_dr4_psf'`). See D17 |
 | ℓ range | No cuts | ℓ_min = 40, ℓ_max from W_ℓ = 0.61 |
 | Pixel window | Not applied | `pixel_window(ℓ, N_side)` |
 
@@ -200,11 +205,17 @@ Two modes are available:
 | Foreground signal loss | Not modeled | Transfer function T(k) |
 | Noise | Single z_mid evaluation | Per-channel T_sys(ν) |
 
+**T_sys model dispatch:** Each telescope entry carries a `T_sys_model` field that selects the system temperature formula used by `noise_dish` / `noise_interf`:
+- `'pinetti'` (default, legacy MeerKAT/SKA1/SKA2): `T_sys_pinetti(nu)` = 30 K + 60 K × (300 MHz / ν)^{2.55} (Pinetti+2020 Eq. 3.18 / Camera+2013).
+- `'meerkat'` (all `MeerKLASS_*` entries): `T_sys_meerkat(nu)` = T_rx(ν) + T_spl + T_CMB + T_gal(ν) per Cunnington+2025 Eq. A19 (see D16). Gives ~14 K at L-band and ~16 K at UHF centre — roughly half the Pinetti generic formula.
+
 ### Brightness temperature coefficient
 
 $$\bar{T}_b(z) = 188\,h\,\Omega_\text{HI}(z)\,\frac{(1+z)^2}{E(z)} \text{ mK}$$
 
 The coefficient 188 is from standard 21-cm references. The Pinetti paper's Eq. 3.4 gives an equivalent formulation with coefficient ~180 mK (a ~4% difference from rounding conventions, within systematic uncertainty on Ω_HI). The Cunnington et al. (2023) data analysis uses 180. See `pinetti2020.md` for details.
+
+**Cunnington brightness mode (D15):** When `hi_brightness='cunnington'`, the pipeline uses the 180 mK prefactor with the Cunnington+2025 polynomial Ω_HI(z) and b_HI(z), and collapses the two-halo HI power spectrum to b²P_lin (no halo-model integral). See §7 D15 for details.
 
 ---
 
@@ -225,7 +236,9 @@ The pipeline makes several deliberate choices that differ from the primary liter
 | D12 | BL Lac / FSRQ LDDE exponent form | Pipeline uses $[r^{-p_1}+r^{-p_2}]^{-1}$, matching both Ajello and thesis | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
 | ~~D13~~ | ~~SFG Gruppioni $L_0$ break applied uniformly~~ | **Resolved:** luminosity break at z=1.1 now applied only to spiral; starburst and SF-AGN use single power law per Gruppioni (2013) Table 8 | `sfg_evidence_matrix.md` |
 | D14 | EBL attenuation on astro windows | Now applied to all gamma-ray windows; thesis omitted EBL for astrophysical sources | `bl_lac_evidence_matrix.md`; `astro_sources.py::W_gamma_astro` |
+| D15 | Cunnington brightness mode | When `default_hi_brightness='cunnington'` (all `MeerKLASS_*` entries), the pipeline uses: (a) the 180 mK Battye+2013 prefactor (vs 188 mK Padmanabhan); (b) polynomial Ω_HI(z) from Cunnington+2025 Eq. A5: `6.7432e-4 + 3.9e-4 z − 6.5e-5 z²`; (c) polynomial b_HI(z) from Cunnington+2025 Eq. A3: `0.842 + 0.693 z − 0.0459 z²`; (d) two-halo HI power spectrum collapses to $b^2 P_\mathrm{lin}$ (no halo-model integral). Non-MeerKLASS entries default to `'padmanabhan'` (188 mK, halo-integral Ω_HI) or `'fixed_omega'` (188 mK, Ω_HI = 2.45×10⁻⁴). Dispatch via `hi_model.T_bar_b_for_model`, `hi_model.b_HI`, `hi_model.P_HI_2h`. | `hi_model.py::T_bar_b_cunnington`, `Omega_HI_cunnington`, `b_HI_cunnington`; `cunnington2025_meerklass_overview.md` |
 | D16 | MeerKAT canonical $T_\mathrm{sys}$ Galactic-synchrotron coefficient | `noise_model.T_sys_meerkat` uses $T_\mathrm{gal}(\nu) = 15\,\mathrm{K}\,(408\,\mathrm{MHz}/\nu)^{2.75}$ per Cunnington+2025 Eq. A19 (verified by direct PDF read of page 35), tuned to the average sky temperature for $\lvert b\rvert > 10°$. The pre-2026-04 implementation used a 25 K coefficient with no clear source attribution. The fix slightly reduces $T_\mathrm{sys}$ for all `MeerKLASS_*` entries and slightly increases their forecast SNRs. Affects only telescopes with `T_sys_model = 'meerkat'`; the Pinetti generic formula path is unchanged. | `noise_model.py::T_sys_meerkat`; `cunnington2025_meerklass_overview.md` |
+| D17 | 4FGL-DR4 $F_\mathrm{sens}$ dispatch | When `default_unresolved_mode='4fgl_dr4_psf'` (all `MeerKLASS_*` entries), the unresolved-source threshold uses `F_SENS_4FGL_DR4 = 7.3×10⁻¹¹` cm⁻²s⁻¹ — the source-class-averaged photon-flux equivalent of the Ballet+2023 4FGL-DR4 completeness threshold (1×10⁻¹² erg cm⁻²s⁻¹ at 100 MeV–100 GeV), with Ammazzalorso+2018b PSF-area scaling applied on top via `F_sens_energy(E, F_sens_baseline)`. When `default_unresolved_mode='pinetti_constant'` (legacy MeerKAT/SKA1/SKA2), uses `F_SENS_PINETTI = 1×10⁻¹⁰`. Dispatch routed through `astro_sources._W_gamma_astro_impl`. | `config.py::F_SENS_4FGL_DR4`; `astro_sources.py::F_sens_energy`, `_W_gamma_astro_impl`; `ballet2023_4fgl_dr4.md`; `ammazzalorso2018b_fermi_2mpz.md` |
 
 ### Resolved deviations
 
@@ -245,12 +258,18 @@ External fits used by the pipeline were derived under various cosmologies that d
 |-----|-------|-------------------|--------------------|--------------------|
 | Correa c(M,z) | Correa+ (2015) | Planck 2013 (Ω_m=0.317, h=0.67, σ₈=0.834) | D2: re-fit coefficients for Planck 2018 | Negligible |
 | FSRQ LDDE | Ajello+ (2012) | WMAP-era (Ω_m≈0.27, h≈0.71) | None | Small (~1–2% in d_L) |
-| BL Lac LDDE | Ajello+ (2014) | Planck 2013-era (Ω_m≈0.315, h≈0.67) | None | Negligible |
+| BL Lac LDDE | Ajello+ (2014) | WMAP-era (H₀=71, Ω_M=0.27, Ω_Λ=0.73; explicitly stated in Sec. 1) | None | Small (~1–2% in d_L) |
 | Willott RLF | Willott+ (2001) | H₀=50, Ω_M=0, Ω_Λ=0 (empty/Milne) | η(z) volume correction (§5) | Volume corrected; fit shape and L* not re-derived |
 | IR LF | Gruppioni+ (2013) | ΛCDM (H₀=70, Ω_m=0.3, Ω_Λ=0.7) | None | Small (enters through d_L and volume) |
 | L_γ–L_IR | Ackermann+ (2012) | WMAP-era (Ω_m≈0.27, h≈0.71) | None | Cosmology enters only through d_L; cancels in L–L scaling |
 | Boost B(M) | Moliné+ (2017) | Planck 2015 (Ω_m=0.309, h=0.677) | None | Negligible (N-body; weak cosmological dependence) |
 | HI model | Padmanabhan+ (2017) | WMAP-3/custom (Ω_m=0.281, h=0.71, σ₈=0.80) | None | Weak; pipeline substitutes Planck 2018 for f_Hc and HMF |
+| HI brightness polynomials | Cunnington+ (2025) | Planck 2018 (native) | None needed | None — same cosmology as the pipeline |
+| MeerKLASS L DR1 survey | Mangla+ (2025) | Planck 2018 (native) | None needed | None — same cosmology as the pipeline |
+| MeerKLASS UHF DR1 survey | Paul+ (2025) | Planck 2018 (native) | None needed | None — same cosmology as the pipeline |
+| MeerKLASS L deep-field | MeerKLASS Collab. (2025) | Planck 2018 (native) | None needed | None — same cosmology as the pipeline |
+| Fermi×2MPZ cross-corr | Ammazzalorso+ (2018b) | Planck 2015-era | None | Negligible (data-mode forecast input only; enters through PSF scaling, not distance ladder) |
+| 4FGL-DR4 thresholds | Ballet+ (2023) | Cosmology-independent (flux thresholds) | N/A | None — F_sens is a raw photon-flux observable |
 
 **Notes:**
 - The Willott volume correction η(z) corrects density (number per comoving volume) but not luminosity. This matches the Di Mauro+ (2014) methodology. A full luminosity rescaling would require re-fitting the RLF to original flux data — see §5 and `literature/willott2001.md`.

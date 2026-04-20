@@ -6,7 +6,6 @@ h-dependent units (M_sun/h, Mpc/h, h/Mpc) consistent with config.py.
 """
 
 import numpy as np
-from scipy.interpolate import interp1d
 import warnings
 
 from . import config as cfg

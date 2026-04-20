@@ -7,7 +7,6 @@ import numpy as np
 from scipy.integrate import quad
 
 from . import config as cfg
-from . import cosmology as cosmo
 from . import halo_model as hm
 from . import pppc4dmid
 from . import ebl as ebl_mod

@@ -52,10 +52,12 @@ Status legend:
 | `dimauro2014.md` | Core-radio to gamma-ray relation is $\log_{10} L_\gamma = 2.0 + 1.008 \log_{10} L_{\rm core}^{5\,GHz}$ | Di Mauro et al. (2014), Eq. 5 | **Match** | |
 | `dimauro2014.md` | Full mAGN luminosity function uses the paper's Eq. C.19 structure | Di Mauro et al. (2014), Eq. C.19 | **Match** | Note: "Eq. C.19" refers to Di Mauro's appendix, not the Pinetti thesis |
 | `dimauro2014.md` | Parameter $k = 3.05$ is quoted correctly | Di Mauro et al. (2014), Eq. C.19 discussion | **Match** | $\Gamma = 2.37$ is from Pinetti+ (2020) Table 3, not from Di Mauro (2014) |
+| `ajello2012.md` | Assumed cosmology is WMAP-era: $H_0 = 71$, $\Omega_M = 0.27$, $\Omega_\Lambda = 0.73$ | Ajello et al. (2012), Sec. 1 ("standard concordance cosmology") | **Match** | Corrected from earlier "inferred" attribution; the paper explicitly states these values |
 | `ajello2012.md` | The FSRQ sample contains 186 sources from the first-year Fermi-LAT catalog | Ajello et al. (2012), abstract and Table 3 context | **Match** | |
 | `ajello2012.md` | The luminosity function is the LDDE double power law in $d\Phi/d\log_{10}L$ quoted in the summary | Ajello et al. (2012), Table 3 model definition | **Match** | |
 | `ajello2012.md` | The redshift evolution is the smooth inverse-sum form of Eq. 15 with positive exponents | Ajello et al. (2012), Eq. 15 | **Match** | The summary now reflects the paper form directly |
 | `ajello2012.md` | Table 3 parameters $A = 3.06\times10^{-9}$, $\gamma_1 = 0.21$, $\gamma_2 = 1.58$, $L_\star = 0.84\times10^{48}$, $z_c^\star = 1.47$, $\alpha = 0.21$, $p_1 = 7.35$, $p_2 = -6.51$, $\mu = 2.44$ are quoted correctly | Ajello et al. (2012), Table 3, ALL row | **Match** | |
+| `ajello2014.md` | Assumed cosmology is WMAP-era: $H_0 = 71$, $\Omega_M = 0.27$, $\Omega_\Lambda = 0.73$ | Ajello et al. (2014), Sec. 1 ("standard concordance cosmology") | **Match** | Despite 2014 publication date, uses WMAP-era cosmology, not Planck 2013 |
 | `ajello2014.md` | The BL Lac sample contains 211 1LAC sources and identifies LDDE as the preferred model | Ajello et al. (2014), abstract and model-comparison discussion | **Match** | |
 | `ajello2014.md` | The local luminosity function uses the paper's Eq. C.2 form | Ajello et al. (2014), Eq. C.2 | **Match** | |
 | `ajello2014.md` | The LDDE evolution is the paper-form inverse sum with positive exponents | Ajello et al. (2014), Eq. 18 | **Match** | |
@@ -65,6 +67,7 @@ Status legend:
 | `gruppioni2013.md` | Each component uses the modified-Schechter form quoted in the summary | Gruppioni et al. (2013), functional form used for Table 8 fits | **Match** | |
 | `gruppioni2013.md` | Table 8 component parameters are quoted correctly for spiral and starburst populations | Gruppioni et al. (2013), Table 8 | **Match** | |
 | `gruppioni2013.md` | The SF-AGN density-evolution coefficient is $k_{R2} = -3.17$ | Gruppioni et al. (2013), Table 8 | **Match** | The literature summary now reflects the paper sign correctly |
+| `gruppioni2013.md` | The luminosity-break parameters $k_{L,2}$ and $z_{b,L}$ appear only in the spiral row of Table 8; starburst, SF-AGN, AGN1, AGN2 rows have blank entries (single power-law luminosity evolution, no break) | Gruppioni et al. (2013), Table 8 | **Match** | Resolved: the $z_{b,L} = 1.1$ break applies to spiral only; pipeline implementation confirmed correct |
 | `ackermann2012_sfg.md` | The summary uses the AGN-excluded IR-gamma scaling with $\alpha_{\rm IR} = 1.09$ and $\beta_{\rm IR} = 39.19$ | Ackermann et al. (2012), Table 5, excluding AGN row | **Match** | |
 | `ackermann2012_sfg.md` | The sample size and galaxy-population description are consistent with the paper | Ackermann et al. (2012), abstract and sample description | **Match** | |
 
@@ -149,7 +152,7 @@ Current audit result:
 
 | Status | Count |
 |--------|-------|
-| **Match** | 106 |
+| **Match** | 109 |
 | **Minor** | 0 |
 
 No outstanding literature-summary mismatches remain in the audited claim set above.

@@ -52,6 +52,7 @@ def init(force=False):
     if _camb_results is not None and not force:
         return
     _cosmo_fingerprint = _current_cosmo_fingerprint()
+    _sigma_interp.clear()
 
     import camb
 

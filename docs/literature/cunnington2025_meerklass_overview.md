@@ -90,7 +90,7 @@ A **conservative 50% RFI loss factor** is applied to the nominal 2,500 hr to obt
   $$T_\mathrm{sys}(\nu) = T_\mathrm{rx}(\nu) + T_\mathrm{spl} + T_\mathrm{CMB} + T_\mathrm{gal}(\nu)$$
   with $T_\mathrm{spl} = 3$ K (spillover), $T_\mathrm{CMB} = 2.725$ K, $T_\mathrm{rx}(\nu)$ tuned to match measured MeerKAT receiver noise (Cunnington 2022), and the **Galactic synchrotron contribution**
   $$T_\mathrm{gal}(\nu) = 15\,\mathrm{K}\,\left(\frac{408\,\mathrm{MHz}}{\nu}\right)^{2.75}$$
-  tuned to match the average sky temperature excluding $|b| < 10°$. **The 15 K coefficient is what Cunnington+2025 explicitly publishes**, *not* the 25 K coefficient sometimes used in earlier MeerKAT noise budgets. The pipeline currently uses 25 K in `noise_model.T_sys_meerkat` (lines 55, 72) — this is a discrepancy with this paper that needs reconciliation. See `docs/scratch.md` and the Phase 0 audit findings.
+  tuned to match the average sky temperature excluding $|b| < 10°$. **The 15 K coefficient is what Cunnington+2025 explicitly publishes**, *not* the 25 K coefficient sometimes used in earlier MeerKAT noise budgets. The pipeline's `noise_model.T_sys_meerkat` now uses the correct 15 K coefficient (D16), consistent with this paper.
 - Observed HI power spectrum (Eq. 19): $P_\mathrm{HI}^\mathrm{obs}(k,\mu) = P_\mathrm{HI}(k,\mu)\,B^2_\mathrm{beam}(k,\mu) + P_N$
 - Multipole expansion: monopole + quadrupole + hexadecapole $\{P_0, P_2, P_4\}$ used to break the $b_\mathrm{HI}$–$f$ degeneracy
 

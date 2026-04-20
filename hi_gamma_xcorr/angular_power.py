@@ -4,7 +4,6 @@ Computes C_l^{ij} for all cross-correlations between HI and gamma-ray sources.
 """
 
 import numpy as np
-from scipy.integrate import quad
 
 from . import config as cfg
 from . import cosmology as cosmo
