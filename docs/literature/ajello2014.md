@@ -26,7 +26,13 @@ where $z_c(L) = z_\star\,(L / 10^{48}\,\text{erg/s})^\beta$.
 
 This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll z_c$, peaks near $z_c$, then falls as $(1+z)^{p_2}$ for $z \gg z_c$.
 
-### Parameters (Table 3, LDDE1)
+### Parameters (Table 3, LDDE1 — τ=0 baseline variant)
+
+**Important:** Ajello+2014 reports two LDDE variants in Table 3:
+- **LDDE1** ($\tau=0$ baseline) — listed below
+- **LDDE2** ($\tau$-varied) — the paper's *preferred* fit (improves on PLE3 by ~3σ via AIC)
+
+The values tabulated below are **LDDE1**, which is what the pipeline uses (inherited from Pinetti 2022 PhD thesis Table C.1, which adopted LDDE1 to keep the BL Lac LDDE in the same simple 4-parameter $[r^{-p_1}+r^{-p_2}]^{-1}$ form as the FSRQ Ajello+2012 fit). The LDDE2 best-fit values differ materially: $A\!\approx\!3.39\times10^{-9}$, $\gamma_1\!\approx\!0.27$, $\gamma_2\!\approx\!1.86$, $L_\star\!\approx\!0.28\times10^{48}$ erg/s, $z_\star\!\approx\!1.34$, $p_1^\star\!\approx\!2.24$, $p_2\!\approx\!-7.37$, $\tau\!\approx\!4.92$, $\alpha\!\approx\!4.53\times10^{-2}$. See Ajello+2014 §5 / Table 3 for the full LDDE2 entry; not used by this pipeline.
 
 | Parameter | Value | Unit |
 |-----------|-------|------|
@@ -42,6 +48,7 @@ This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll
 ## Key Results
 
 - LDDE provides best fit among PDE, PLE, LDDE models
+- LDDE2 (τ-varied) is the paper's preferred LDDE variant; LDDE1 (τ=0) is the simpler baseline used by this pipeline via Pinetti 2022 Table C.1
 - HSP BL Lacs: negative evolution (density increases toward z=0)
 - LISP (ISP+LSP): positive evolution peaking at $z \sim 1.2$
 - Combined BL Lac population: peaks at $z \sim 1.2$–$1.7$ (luminosity-dependent)
@@ -50,4 +57,4 @@ This is a smooth double power-law in redshift: rises as $(1+z)^{p_1}$ for $z \ll
 
 ## Repository Use
 
-Used by the repository as the primary source for the BL Lac luminosity-function parameters in `astro_sources.py`.
+Used by the repository as the primary source for the BL Lac luminosity-function parameters in `astro_sources.py` (`_BL_LAC_PARAMS`, lines 176–186). The proximate source for the parameter values is Pinetti 2022 PhD thesis Table C.1, which adopted Ajello+2014 LDDE1 (not LDDE2). The choice of LDDE1 over LDDE2 is a tracking decision following the thesis, not a deviation from Ajello+2014 per se — both variants are reported by the paper.

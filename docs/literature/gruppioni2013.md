@@ -59,7 +59,7 @@ For interpretation of the star-forming / AGN-mixed class, `SF-AGN` is also split
 | AGN2 | $1.20 \pm 0.20$ | $0.70 \pm 0.20$ | $10.80 \pm 0.20$ | $-5.14 \pm 0.17$ |
 | AGN1 | $1.40 \pm 0.30$ | $0.70 \pm 0.20$ | $10.50 \pm 0.20$ | $-5.21 \pm 0.11$ |
 
-Table 8 also gives the redshift evolution parameters for each class. In particular, the spiral population has explicit breaks at $z_{b,L}=1.1$ and $z_{b,\rho}=0.53$, while the starburst and SF-AGN fits use breaks at $z=1.1$.
+Table 8 also gives the redshift evolution parameters for each class. **There is a documentation/code conflict that needs PDF verification:** an automated audit reading of Table 8 reports that *all three* star-forming populations (spiral, starburst, SF-AGN) have an explicit luminosity break at $z_{b,L}=1.1$ — i.e. spiral $k_{L,1}=4.49$, $k_{L,2}=0.00$ ($z_{b,L}=1.1$); starburst $k_{L,1}=1.96$, $k_{L,2}=3.79$ ($z_{b,L}=1.1$); SF-AGN $k_{L,1}=3.17$, $k_{L,2}=0.67$ ($z_{b,L}=1.1$). The current pipeline implementation in `astro_sources._gruppioni_component()` (lines 371–379) applies the break only to the spiral component and uses a single power-law for starburst and SF-AGN, citing "Table 8 has no kL,2/zb,L" for the latter two — which conflicts with the audit reading. This should be re-checked against the source PDF (Table 8). If the audit reading is correct, both starburst and SF-AGN should also break at $z_{b,L}=1.1$. If the code comment is correct, the digest needs to be updated to explicitly note the spiral-only break. **Status: pending PDF verification.** Until resolved, treat this as an OPEN ISSUE; D13 (the resolved L_0-break-uniform-vs-spiral-only deviation) may need to be re-opened.
 
 ## Key Results
 

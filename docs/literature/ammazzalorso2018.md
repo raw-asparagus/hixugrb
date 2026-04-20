@@ -4,6 +4,8 @@
 **Journal:** Phys. Rev. D 98, 103007 (2018)
 **arXiv:** [1808.09225](https://arxiv.org/abs/1808.09225)
 
+> **Companion digest:** [`ammazzalorso2018b_fermi_2mpz.md`](ammazzalorso2018b_fermi_2mpz.md) covers the same paper but focuses on the **Fermi-LAT data-analysis methodology** (11-bin energy scheme, beam-window correction, foreground subtraction, point-source mask) and how each ingredient maps onto the pipeline's `analysis_mode='data'` path. The present digest focuses on the **halo-model science results** (mAGN/SFG/blazar/DM decomposition, HOD parameterization, DM bounds). The two digests are deliberately split by scope, not duplicated; this organisation is intentional.
+
 ## Abstract
 
 Cross-correlates 9 years of Fermi-LAT gamma-ray data (0.631–1000 GeV, Pass 8 ULTRACLEANVETO) with the 2MPZ galaxy catalog (~10⁶ galaxies, distribution peaked at z = 0.07) to characterize the local (z < 0.2) unresolved gamma-ray background. Using a halo model with halo occupation distribution (HOD), the authors decompose the signal into contributions from misaligned AGN, star-forming galaxies, blazars, and dark matter annihilation. mAGN are identified as the dominant contributor, with 95% CL DM bounds reaching near the thermal relic cross-section for m_χ ~ 10 GeV.

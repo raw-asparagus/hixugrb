@@ -225,6 +225,7 @@ The pipeline makes several deliberate choices that differ from the primary liter
 | D12 | BL Lac / FSRQ LDDE exponent form | Pipeline uses $[r^{-p_1}+r^{-p_2}]^{-1}$, matching both Ajello and thesis | `equations.md` 5.4; `bl_lac_evidence_matrix.md`; `fsrq_evidence_matrix.md` |
 | ~~D13~~ | ~~SFG Gruppioni $L_0$ break applied uniformly~~ | **Resolved:** luminosity break at z=1.1 now applied only to spiral; starburst and SF-AGN use single power law per Gruppioni (2013) Table 8 | `sfg_evidence_matrix.md` |
 | D14 | EBL attenuation on astro windows | Now applied to all gamma-ray windows; thesis omitted EBL for astrophysical sources | `bl_lac_evidence_matrix.md`; `astro_sources.py::W_gamma_astro` |
+| D16 | MeerKAT canonical $T_\mathrm{sys}$ Galactic-synchrotron coefficient | `noise_model.T_sys_meerkat` uses $T_\mathrm{gal}(\nu) = 15\,\mathrm{K}\,(408\,\mathrm{MHz}/\nu)^{2.75}$ per Cunnington+2025 Eq. A19 (verified by direct PDF read of page 35), tuned to the average sky temperature for $\lvert b\rvert > 10°$. The pre-2026-04 implementation used a 25 K coefficient with no clear source attribution. The fix slightly reduces $T_\mathrm{sys}$ for all `MeerKLASS_*` entries and slightly increases their forecast SNRs. Affects only telescopes with `T_sys_model = 'meerkat'`; the Pinetti generic formula path is unchanged. | `noise_model.py::T_sys_meerkat`; `cunnington2025_meerklass_overview.md` |
 
 ### Resolved deviations
 

@@ -39,7 +39,7 @@ The fourth incremental release of the Fermi-LAT Fourth Source Catalog, **4FGL-DR
 - **Total sources**: **7,194** (up from 6,658 in DR3)
 - **New sources**: 546
 - **Deleted from DR3**: 14
-- **New extended sources**: 4 (Cygnus Loop, Puppis A, SNR G292.2−0.5, SNR G51.3+0.1, plus 3C 58 and CTB 80 — see Table 2)
+- **Extended sources changed in DR4**: 6 total (Table 2): **4 new** (3C 58, SNR G292.2−0.5, SNR G51.3+0.1, CTB 80) + **2 modified** existing (Cygnus Loop, Puppis A)
 - **Sources at TS > 100 (new in DR4)**: 11, of which 8 are blazars
 
 ### Detection Threshold (Sec. 5, p12) — most relevant for the pipeline
@@ -62,15 +62,17 @@ $$\langle E_\mathrm{ph} \rangle = \frac{F_E}{F_\mathrm{ph}} = \frac{(E_2^{2-\alp
 
 and the photon flux is $F_\mathrm{ph} = F_E / \langle E_\mathrm{ph} \rangle$. To convert from $F_E$ in 100 MeV - 100 GeV (as quoted by 4FGL-DR4) to $F_\mathrm{ph}$ in 1-100 GeV (Pinetti's convention), additionally apply the photon-band fraction.
 
+The per-source-class spectral indices used in the table below are **not** from Ballet+2023 — they are the population-mean spectral indices adopted by the pipeline from the GLF literature (BL Lac: Ajello+2014 LDDE1 photon index $\mu_\star=2.12$ rounded to 2.11 in `cfg.ASTRO_SOURCES`; FSRQ: Ajello+2012; mAGN: Di Mauro+2014 mean $\Gamma=2.37$; SFG: Ackermann+2012 + Gruppioni IR-LF chain, mean $\Gamma=2.70$). The Ballet+2023 paper itself only provides the broad-band $1\times10^{-12}$ erg cm⁻² s⁻¹ value; the source-class breakdown below is the pipeline's bridge between that energy-flux threshold and the per-class photon-flux threshold actually used by `astro_sources.L_sens`.
+
 For each source class in the pipeline:
 
-| Source class | $\alpha$ | $\langle E_\mathrm{ph} \rangle$ in 0.1-100 GeV | $F_\mathrm{ph}$ in 0.1-100 GeV [cm⁻² s⁻¹] | $F_\mathrm{ph}$ in **1-100 GeV** [cm⁻² s⁻¹] |
+| Source class | $\alpha$ (source) | $\langle E_\mathrm{ph} \rangle$ in 0.1-100 GeV | $F_\mathrm{ph}$ in 0.1-100 GeV [cm⁻² s⁻¹] | $F_\mathrm{ph}$ in **1-100 GeV** [cm⁻² s⁻¹] |
 |---|---|---|---|---|
-| BL Lac | 2.11 | 0.537 GeV | $1.16 \times 10^{-9}$ | $\mathbf{8.97 \times 10^{-11}}$ |
-| FSRQ | 2.44 | 0.312 GeV | $2.00 \times 10^{-9}$ | $\mathbf{7.26 \times 10^{-11}}$ |
-| mAGN | 2.37 | 0.342 GeV | $1.83 \times 10^{-9}$ | $\mathbf{7.78 \times 10^{-11}}$ |
-| SFG | 2.70 | 0.241 GeV | $2.59 \times 10^{-9}$ | $\mathbf{5.17 \times 10^{-11}}$ |
-| UGRB-average | 2.30 | 0.379 GeV | $1.65 \times 10^{-9}$ | $8.24 \times 10^{-11}$ |
+| BL Lac | 2.11 (Ajello+2014) | 0.537 GeV | $1.16 \times 10^{-9}$ | $\mathbf{8.97 \times 10^{-11}}$ |
+| FSRQ | 2.44 (Ajello+2012) | 0.312 GeV | $2.00 \times 10^{-9}$ | $\mathbf{7.26 \times 10^{-11}}$ |
+| mAGN | 2.37 (Di Mauro+2014) | 0.342 GeV | $1.83 \times 10^{-9}$ | $\mathbf{7.78 \times 10^{-11}}$ |
+| SFG | 2.70 (Ackermann+2012 / Gruppioni+2013) | 0.241 GeV | $2.59 \times 10^{-9}$ | $\mathbf{5.17 \times 10^{-11}}$ |
+| UGRB-average | 2.30 (Fornasa & Sánchez-Conde 2015 review value) | 0.379 GeV | $1.65 \times 10^{-9}$ | $8.24 \times 10^{-11}$ |
 
 **Mean over the four source classes: $7.3 \times 10^{-11}$ photon cm⁻² s⁻¹**.
 
