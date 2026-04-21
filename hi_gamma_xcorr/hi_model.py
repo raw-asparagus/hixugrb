@@ -14,6 +14,16 @@ from . import cosmology as cosmo
 from . import halo_model as hm
 from .cache import _cache_stable
 
+# Modified NFW inner slope: rho_HI propto 1 / [(r + a*r_s)(r + r_s)^2]
+_HI_PROFILE_INNER_SLOPE = 0.75
+
+
+def _m_limits(M_min, M_max):
+    """Resolve None mass limits to config defaults."""
+    return (cfg.M_MIN_HI if M_min is None else M_min,
+            cfg.M_MAX_HI if M_max is None else M_max)
+
+
 # ---------------------------------------------------------------------------
 # HI mass–halo mass relation (Pinetti et al. Eq. 3.7)
 # ---------------------------------------------------------------------------
@@ -54,33 +64,17 @@ def c_HI(M, z):
 # ---------------------------------------------------------------------------
 
 def _hi_profile_norm_integral(c_hi):
-    """Analytic integral of rho_HI(r) * 4*pi*r^2 dr / (rho_0 * r_s^3) from 0 to R_vir.
+    """Analytic integral of the modified NFW HI profile normalization.
 
-    rho_HI = rho_0 * r_s^3 / [(r + 0.75*r_s)(r + r_s)^2]
+    Computes 4*pi * integral_0^c x^2 / [(x+a)(x+1)^2] dx  with a = 0.75,
+    where x = r/r_s and c = c_HI = R_vir/r_s.
 
-    With substitution x = r / r_s and R_vir/r_s = c_HI:
-    integral = 4*pi * r_s^3 * integral_0^c (rho_0 * r_s^3 * x^2) /
-               [(x + 0.75)(x + 1)^2 * r_s^3] * r_s dx / (rho_0 * r_s^3)
-    = 4*pi * integral_0^c x^2 / [(x + 0.75)(x + 1)^2] dx
-
-    Use partial fraction decomposition:
-    x^2 / [(x + 0.75)(x + 1)^2] = A/(x+0.75) + B/(x+1) + C/(x+1)^2
-
-    Solving: A = (0.75)^2 / (0.75-1)^2... let me just do this numerically.
-    Actually: x^2 / [(x+a)(x+1)^2] where a=0.75.
-    A = a^2 / (a-1)^2 = 0.5625 / 0.0625 = 9
-    For B and C, expand: x^2 = A(x+1)^2 + B(x+0.75)(x+1) + C(x+0.75)
-    At x=-1: 1 = C*(-1+0.75) = -0.25*C → C = -4
-    At x=0: 0 = A + 0.75*B + 0.75*C → 0 = 9 + 0.75*B - 3 → B = -8
-    Check: A+B = 9-8 = 1, and 2A + 1.75B + 0.75C = 18-14-3 = 1... hmm.
-    Let me verify: coefficient of x^2: A + B = 9 + (-8) = 1 ✓
-    coefficient of x: 2A + (0.75+1)B + C = 18 + (-8)*1.75 + (-4) = 18 - 14 - 4 = 0 ✓
-    constant: A + 0.75B + 0.75C = 9 - 6 - 3 = 0 ✓
-
-    So integral = 4*pi * [9*ln(x+0.75) - 8*ln(x+1) + 4/(x+1)]_0^c
+    Uses partial fraction decomposition of x^2 / [(x+a)(x+1)^2]:
+    A=9, B=-8, C=-4, giving:
+    integral = 4*pi * [9*ln((c+a)/a) - 8*ln(c+1) + 4*(1/(c+1) - 1)]
     """
     c = float(c_hi)
-    a = 0.75
+    a = _HI_PROFILE_INNER_SLOPE
     val = (9.0 * np.log((c + a) / a)
            - 8.0 * np.log((c + 1.0) / 1.0)
            + 4.0 * (1.0 / (c + 1.0) - 1.0))
@@ -126,7 +120,7 @@ def u_HI(k, M, z):
             continue
 
         def integrand(r):
-            rho = rho_0 * rs**3 / ((r + 0.75 * rs) * (r + rs)**2)
+            rho = rho_0 * rs**3 / ((r + _HI_PROFILE_INNER_SLOPE * rs) * (r + rs)**2)
             return r**2 * rho * np.sin(kk * r) / (kk * r)
 
         val, _ = quad(integrand, 0.0, Rv, limit=200, epsrel=1e-6)
@@ -139,26 +133,25 @@ def u_HI(k, M, z):
 # Mean HI density, Omega_HI, brightness temperature, bias
 # ---------------------------------------------------------------------------
 
+def _rho_HI_integrand(lnM, z):
+    """Integrand for mean comoving HI density: dn/dM * M_HI * M (in lnM)."""
+    M = np.exp(lnM)
+    return hm.dndM(M, z) * M_HI(M, z) * M
+
+
 @_cache_stable(module=__name__)
 def _rho_HI_default(z):
     """rho_HI_mean at default mass limits."""
-    def integrand(lnM):
-        M = np.exp(lnM)
-        return hm.dndM(M, z) * M_HI(M, z) * M
-    val, _ = quad(integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
-                  limit=200, epsrel=1e-5)
+    val, _ = quad(_rho_HI_integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
+                  args=(z,), limit=200, epsrel=1e-5)
     return val
 
 
 @_cache_stable(module=__name__)
 def _rho_HI_scalar(z, M_min, M_max):
     """rho_HI_mean at explicit mass limits for scalar inputs."""
-    def integrand(lnM):
-        M = np.exp(lnM)
-        return hm.dndM(M, z) * M_HI(M, z) * M
-
-    val, _ = quad(integrand, np.log(M_min), np.log(M_max),
-                  limit=200, epsrel=1e-5)
+    val, _ = quad(_rho_HI_integrand, np.log(M_min), np.log(M_max),
+                  args=(z,), limit=200, epsrel=1e-5)
     return val
 
 
@@ -172,8 +165,6 @@ def _b_HI_default(z):
     `rm -rf .joblib-cache` to flush stale entries.
     """
     rho = _rho_HI_default(z)
-    if rho <= 0:
-        return 0.0
     def integrand(lnM):
         M = np.exp(lnM)
         return hm.dndM(M, z) * M_HI(M, z) * hm.bias(M, z) * M
@@ -192,11 +183,7 @@ def rho_HI_mean(z, M_min=None, M_max=None):
     if M_min is None and M_max is None:
         return _rho_HI_default(z)
 
-    if M_min is None:
-        M_min = cfg.M_MIN_HI
-    if M_max is None:
-        M_max = cfg.M_MAX_HI
-
+    M_min, M_max = _m_limits(M_min, M_max)
     return _rho_HI_scalar(z, float(M_min), float(M_max))
 
 
@@ -282,16 +269,21 @@ def T_bar_b_cunnington(z):
     return 180.0 * cfg.h * OHI * (1.0 + np.asarray(z, dtype=float))**2 / cosmo.E(z)
 
 
+_PADMANABHAN_MODES = frozenset(('padmanabhan', 'computed', 'halo_integral'))
+_FIXED_OMEGA_MODES = frozenset(('fixed_omega', 'omega_fixed', 'pinetti_omega'))
+_CUNNINGTON_MODES  = frozenset(('cunnington', 'meerfish', 'cunnington2025'))
+
+
 def _is_cunnington_mode(hi_brightness):
     """Return True if `hi_brightness` selects the Cunnington 2025 / MeerFish mode."""
-    return hi_brightness in ('cunnington', 'meerfish', 'cunnington2025')
+    return hi_brightness in _CUNNINGTON_MODES
 
 
 def _is_known_mode(hi_brightness):
     return (
-        hi_brightness in ('padmanabhan', 'computed', 'halo_integral')
-        or hi_brightness in ('fixed_omega', 'omega_fixed', 'pinetti_omega')
-        or _is_cunnington_mode(hi_brightness)
+        hi_brightness in _PADMANABHAN_MODES
+        or hi_brightness in _FIXED_OMEGA_MODES
+        or hi_brightness in _CUNNINGTON_MODES
     )
 
 
@@ -318,11 +310,11 @@ def T_bar_b_for_model(z, hi_brightness='padmanabhan'):
           Eq. A3 polynomial b_HI(z), so the brightness and the clustering
           stay self-consistent across the whole pipeline.
     """
-    if hi_brightness in ('padmanabhan', 'computed', 'halo_integral'):
+    if hi_brightness in _PADMANABHAN_MODES:
         return T_bar_b(z)
-    if hi_brightness in ('fixed_omega', 'omega_fixed', 'pinetti_omega'):
+    if hi_brightness in _FIXED_OMEGA_MODES:
         return T_bar_b_fixed_omega(z)
-    if _is_cunnington_mode(hi_brightness):
+    if hi_brightness in _CUNNINGTON_MODES:
         return T_bar_b_cunnington(z)
     raise ValueError(
         "hi_brightness must be 'padmanabhan', 'fixed_omega' or 'cunnington' "
@@ -362,16 +354,12 @@ def b_HI(z, M_min=None, M_max=None, hi_brightness='padmanabhan'):
         )
 
     if _is_cunnington_mode(hi_brightness):
-        return float(b_HI_cunnington(float(z)))
+        return float(b_HI_cunnington(z))
 
     if M_min is None and M_max is None:
         return _b_HI_default(float(z))
 
-    if M_min is None:
-        M_min = cfg.M_MIN_HI
-    if M_max is None:
-        M_max = cfg.M_MAX_HI
-
+    M_min, M_max = _m_limits(M_min, M_max)
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
     if rho <= 0:
         return 0.0
@@ -393,11 +381,7 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
 
     P_HI^{1h} = (1/rho_HI^2) * integral (dn/dM) * M_HI^2 * u_HI^2 dM
     """
-    if M_min is None:
-        M_min = cfg.M_MIN_HI
-    if M_max is None:
-        M_max = cfg.M_MAX_HI
-
+    M_min, M_max = _m_limits(M_min, M_max)
     k = np.atleast_1d(np.asarray(k, dtype=float))
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
     if rho <= 0:
@@ -408,9 +392,9 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
 
     for M in M_arr:
         dn = hm.dndM(M, z)
-        mhi = M_HI(M, z)
-        if mhi <= 0 or dn <= 0:
+        if dn <= 0:
             continue
+        mhi = M_HI(M, z)
         u = u_HI(k, M, z)
         # Rectangle rule in log-mass
         result += dn * mhi**2 * u**2 * M  # M from d(lnM)
@@ -444,14 +428,10 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160, hi_brightness='padmanabhan'):
         )
 
     if _is_cunnington_mode(hi_brightness):
-        b = float(b_HI_cunnington(float(z)))
+        b = float(b_HI_cunnington(z))
         return b * b * cosmo.P_lin(k, z)
 
-    if M_min is None:
-        M_min = cfg.M_MIN_HI
-    if M_max is None:
-        M_max = cfg.M_MAX_HI
-
+    M_min, M_max = _m_limits(M_min, M_max)
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
     if rho <= 0:
         return np.zeros_like(k)
@@ -461,10 +441,10 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160, hi_brightness='padmanabhan'):
 
     for M in M_arr:
         dn = hm.dndM(M, z)
+        if dn <= 0:
+            continue
         mhi = M_HI(M, z)
         b = hm.bias(M, z)
-        if mhi <= 0 or dn <= 0:
-            continue
         u = u_HI(k, M, z)
         I_2h += dn * b * mhi * u * M  # M from d(lnM)
 

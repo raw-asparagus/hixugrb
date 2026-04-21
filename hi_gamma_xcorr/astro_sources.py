@@ -21,10 +21,21 @@ from . import cosmology as cosmo
 from . import ebl as ebl_mod
 
 # ---------------------------------------------------------------------------
+# Module-level constants for dispatch and characteristic values
+# ---------------------------------------------------------------------------
+
+_4FGL_DR4_MODES = frozenset(('4fgl_dr4_psf', 'data'))
+_PINETTI_CONST_MODES = frozenset(('pinetti_constant', 'forecast'))
+
+_BLAZAR_HALO_MASS = 1e13
+_MAGN_CHAR_LGAMMA = 1e44
+_SFG_CHAR_LGAMMA = 1e39
+
+# ---------------------------------------------------------------------------
 # Luminosity threshold from Fermi sensitivity
 # ---------------------------------------------------------------------------
 
-def L_sens(z, E_GeV=None, alpha=None, F_sens_baseline=None):
+def L_sens(z, E_GeV=None, *, alpha, F_sens_baseline=None):
     """Energy-luminosity threshold for Fermi-LAT detection at redshift z.
 
     Converts the integral photon-flux sensitivity F_SENS [cm^{-2} s^{-1}]
@@ -52,9 +63,8 @@ def L_sens(z, E_GeV=None, alpha=None, F_sens_baseline=None):
     E_GeV : float, optional
         Photon energy [GeV] for energy-dependent sensitivity (data mode).
         If None, uses the constant baseline (forecast mode).
-    alpha : float, optional
-        Source spectral index for the K-correction.  Required for the
-        photon-to-energy luminosity conversion.
+    alpha : float
+        Source spectral index for the K-correction.
     F_sens_baseline : float, optional
         Baseline F_sens value [cm^{-2} s^{-1}] used when E_GeV is None.
         Defaults to ``cfg.F_SENS`` (= cfg.F_SENS_PINETTI = 1e-10).
@@ -75,11 +85,6 @@ def L_sens(z, E_GeV=None, alpha=None, F_sens_baseline=None):
         F_sens_E = F_sens_energy(E_GeV, F_sens_baseline=F_sens_baseline)
     else:
         F_sens_E = F_sens_baseline
-
-    L_phot = 4.0 * np.pi * dL_cm**2 * F_sens_E  # [photons/s]
-
-    if alpha is None:
-        return L_phot  # legacy fallback (photon luminosity)
 
     # Convert photon luminosity to energy luminosity [erg/s].
     # I_alpha: rest-frame energy band 0.1–100 GeV (luminosity definition, Eq. 3.67)
@@ -224,7 +229,7 @@ def _willott_rlf(L_151, z):
     f_h = np.exp(-0.5 * ((z - cfg.WILLOTT_Z_H_STAR) / z_h0)**2)
     rho_h *= f_h
 
-    return max(rho_l + rho_h, 0.0)
+    return rho_l + rho_h
 
 
 def _willott_volume_correction(z):
@@ -255,9 +260,6 @@ def _willott_volume_correction(z):
     H_pipeline = cosmo.H(z)    # [km/s/Mpc]
     dV = cfg.C_LIGHT_KM_S * dL**2 / (H_pipeline * (1.0 + z)**2)
 
-    if dV <= 0 or dV_W <= 0:
-        return 1.0
-
     return dV_W / dV
 
 
@@ -279,16 +281,13 @@ def _L151_from_Lgamma(L_gamma):
     dL151_dLgamma : float
         Jacobian dL_151/dL_gamma.
     """
-    NU_5GHZ = 5.0e9     # Hz
-    W_TO_ERG = 1.0e7     # erg/s per W
-
     # Step 1: L_gamma [erg/s] → nuL_nu_core [erg/s] via Di Mauro Eq. C.13
     # log L_gamma = 2 + 1.008 * log(nuL_nu_core)  [both in erg/s]
     log_nuLnu_core = (np.log10(L_gamma) - cfg.DIMAURO_GAMMA_RADIO_A) / cfg.DIMAURO_GAMMA_RADIO_B
     nuLnu_core = 10.0**log_nuLnu_core  # erg/s
 
     # Convert nuL_nu [erg/s] → L_core [W/Hz]: L_WHZ = nuLnu / (nu * 1e7)
-    L_core_WHZ = nuLnu_core / (NU_5GHZ * W_TO_ERG)
+    L_core_WHZ = nuLnu_core / (cfg.NU_5GHZ * cfg.W_TO_ERG)
     log_Lcore_WHZ = np.log10(L_core_WHZ)
 
     # Step 2: L_core^{5GHz} [W/Hz] → L_tot^{1.4GHz} [W/Hz] via Lara Eq. C.14
@@ -321,9 +320,6 @@ def _glf_mAGN(L, z):
 
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
-    if L <= 0 or z < 0:
-        return 0.0
-
     L_151, dL151_dLgamma = _L151_from_Lgamma(L)
 
     if L_151 <= 0:
@@ -340,7 +336,7 @@ def _glf_mAGN(L, z):
     phi_gamma = (cfg.DIMAURO_K * eta * K_corr
                  * dPhi_dL151 * abs(dL151_dLgamma))
 
-    return max(phi_gamma, 0.0)
+    return phi_gamma
 
 
 # ---------------------------------------------------------------------------
@@ -400,7 +396,7 @@ def _gruppioni_component(L_IR, z, comp_name):
     log_arg = np.log10(1.0 + ratio)
     phi = phi_0 * ratio**(1.0 - gamma) * np.exp(-log_arg**2 / (2.0 * sigma**2))
 
-    return max(phi, 0.0)
+    return phi
 
 
 def _gruppioni_ir_lf(L_IR, z):
@@ -436,8 +432,7 @@ def _L_IR_from_Lgamma(L_gamma):
     """
     log_Lgamma = np.log10(L_gamma)
     log_x = (log_Lgamma - cfg.ACKERMANN_BETA_IR) / cfg.ACKERMANN_ALPHA_IR
-    L_IR = 1e10 * cfg.L_SUN * 10.0**log_x  # [erg/s] → convert to L_sun below
-    L_IR_Lsun = L_IR / cfg.L_SUN            # [L_sun]
+    L_IR_Lsun = 1e10 * 10.0**log_x  # [L_sun]
 
     dlogLIR_dlogLgamma = 1.0 / cfg.ACKERMANN_ALPHA_IR
 
@@ -451,9 +446,6 @@ def _glf_SFG(L, z):
 
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
-    if L <= 0 or z < 0:
-        return 0.0
-
     L_IR_Lsun, dlogLIR_dlogLgamma = _L_IR_from_Lgamma(L)
 
     if L_IR_Lsun <= 0:
@@ -467,7 +459,7 @@ def _glf_SFG(L, z):
     # Convert to dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}]
     phi_gamma = phi_gamma_logL / (L * np.log(10.0))
 
-    return max(phi_gamma, 0.0)
+    return phi_gamma
 
 
 # ---------------------------------------------------------------------------
@@ -542,7 +534,7 @@ def _ldde_glf(L, z, params, evolution_form='piecewise'):
     else:
         raise ValueError(f"Unknown evolution_form: {evolution_form}")
 
-    return max(phi_L * e_z, 0.0)
+    return phi_L * e_z
 
 
 # ---------------------------------------------------------------------------
@@ -596,12 +588,30 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
                   unresolved_mode='pinetti_constant'):
     """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
+    Thin wrapper that casts arguments to hashable types and delegates to
+    ``_W_gamma_astro_impl``. See ``_W_gamma_astro_impl`` for full parameter
+    documentation and the ``unresolved_mode`` dispatch semantics.
+    """
+    return _W_gamma_astro_impl(float(E_GeV), float(z), source_class,
+                               unresolved_only, unresolved_mode)
+
+
+@lru_cache(maxsize=16384)
+def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode):
+    """Core implementation of W_gamma_astro.
+
     Per-chi convention: W(chi) is returned in the pipeline's h-dependent
     comoving units [photons s^-1 sr^-1 GeV^-1 (Mpc/h)^-3].
 
     The luminosity functions in this module are defined in physical
     [Mpc^-3 (erg/s)^-1], so the final emissivity is converted to
     [(Mpc/h)^-3] before returning.
+
+    In-memory lru_cache keyed on the five hashable scalars
+    (E_GeV, z, source_class, unresolved_only, unresolved_mode).
+    Cache is reset on every Python process start. Caveat: if `cfg` astro-source
+    parameters or `cfg.F_SENS` are mutated at runtime, the cache becomes stale --
+    callers should not mutate the config dict.
 
     Parameters
     ----------
@@ -633,26 +643,12 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
           threshold ``cfg.F_SENS_4FGL_DR4 = 7.3e-11 cm^-2 s^-1`` (1-100 GeV
           source-class average; converted from the directly-quoted
           ``cfg.F_SENS_4FGL_DR4_ERG_CGS = 1e-12 erg cm^-2 s^-1`` in the
-          100 MeV - 100 GeV band, Ballet et al. 2023 §5/p12, arXiv:2307.12546;
+          100 MeV - 100 GeV band, Ballet et al. 2023 S5/p12, arXiv:2307.12546;
           see docs/literature/ballet2023_4fgl_dr4.md). The 4FGL-DR4 baseline
           is only ~0.73x Pinetti's value (NOT 25x lower); with the PSF
           scaling on top, low-energy bins are additionally conservative
           due to PSF degradation. Used by the new ``MeerKLASS_*`` canonical
           entries.
-    """
-    return _W_gamma_astro_impl(float(E_GeV), float(z), source_class,
-                               unresolved_only, unresolved_mode)
-
-
-@lru_cache(maxsize=16384)
-def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode):
-    """Core implementation of W_gamma_astro.
-
-    Item 2.1 of clever-beaming-creek plan: in-memory lru_cache keyed on the
-    five hashable scalars (E_GeV, z, source_class, unresolved_only, unresolved_mode).
-    Cache is reset on every Python process start. Caveat: if `cfg` astro-source
-    parameters or `cfg.F_SENS` are mutated at runtime, the cache becomes stale —
-    callers should not mutate the config dict.
     """
     if z <= 0:
         return 0.0
@@ -665,11 +661,11 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
     if unresolved_only:
         # Dispatch on unresolved_mode (see W_gamma_astro docstring for the
         # full mode list and per-mode rationale).
-        if unresolved_mode in ('4fgl_dr4_psf', 'data'):
+        if unresolved_mode in _4FGL_DR4_MODES:
             # 4FGL-DR4 baseline + Ammazzalorso+2018b PSF-area scaling
             L_thr = L_sens(z, E_GeV=E_GeV, alpha=alpha,
                            F_sens_baseline=cfg.F_SENS_4FGL_DR4)
-        elif unresolved_mode in ('pinetti_constant', 'forecast'):
+        elif unresolved_mode in _PINETTI_CONST_MODES:
             # Pinetti+2020/2022 constant baseline
             L_thr = L_sens(z, alpha=alpha,
                            F_sens_baseline=cfg.F_SENS_PINETTI)
@@ -688,13 +684,12 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
     # Compute the physical comoving emissivity j(E_rest, z)
     # [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}].
     #
-    # Each source emits: dn/dE_rest = L / (GeV_to_erg * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
+    # Each source emits: dn/dE_rest = L / (GEV_TO_ERG * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
     # where L [erg/s] is the rest-frame 0.1-100 GeV energy luminosity.
     #
     # The emissivity is: j = (1/4pi) integral phi(L) * dn/dE_rest dL
     E_min_band = 0.1     # 100 MeV [GeV]
     E_max_band = 100.0   # 100 GeV [GeV]
-    GeV_to_erg = cfg.GEV_TO_ERG
 
     # Energy integral: integral E^{1-alpha} dE [GeV^{2-alpha}]
     if abs(alpha - 2.0) > 0.01:
@@ -709,8 +704,8 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
         L = np.exp(lnL)
         phi = glf(L, z, source_class)  # [Mpc^{-3} (erg/s)^{-1}]
         # Photon emission rate per source at rest-frame energy E_rest:
-        # dn/dE = L / (GeV_to_erg * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
-        dn_dE = L / (GeV_to_erg * energy_integral) * E_rest**(-alpha)
+        # dn/dE = L / (cfg.GEV_TO_ERG * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
+        dn_dE = L / (cfg.GEV_TO_ERG * energy_integral) * E_rest**(-alpha)
         # Integrand: phi * dn_dE * L (extra L from d(lnL) Jacobian)
         return phi * dn_dE * L
 
@@ -732,7 +727,7 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
     # (PRD 73:023521) Eqs. 1-3 and Ando & Pavlidou 2009 (MNRAS 400:2122) Eq. 6.
     #
     # EBL attenuation at observed energy (same convention as W_gamma_DM)
-    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
+    atten = float(ebl_mod.attenuation(E_GeV, z)[0])
 
     # Convert the GLF/emissivity density from physical [Mpc^-3] to the
     # pipeline's h-dependent [(Mpc/h)^-3] convention so the Limber integral and
@@ -787,10 +782,10 @@ def bias_astro(z, source_class):
     from . import halo_model as hm
 
     if source_class in ('BL_Lac', 'FSRQ'):
-        return hm.bias(1e13, z)
+        return hm.bias(_BLAZAR_HALO_MASS, z)
 
     if source_class == 'mAGN':
-        L_char = 1e44  # characteristic mAGN L_gamma [erg/s]
+        L_char = _MAGN_CHAR_LGAMMA
         M_star = cfg.MAGN_MSTAR_NORM * (L_char / cfg.MAGN_MSTAR_LNORM)**cfg.MAGN_MSTAR_SLOPE
         M_halo_phys = 1e13 * (
             M_star / (cfg.MAGN_MHALO_PIVOT * (1.0 + z)**cfg.MAGN_MHALO_Z_EXP)
@@ -799,7 +794,7 @@ def bias_astro(z, source_class):
         return hm.bias(M_halo_phys / cfg.h, z)
 
     if source_class == 'SFG':
-        L_char = 1e39  # characteristic SFG L_gamma [erg/s]
+        L_char = _SFG_CHAR_LGAMMA
         M_halo_phys = (
             cfg.SFG_MHALO_NORM
             / (1.0 + z)**cfg.SFG_MHALO_Z_EXP

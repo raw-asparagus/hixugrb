@@ -16,21 +16,19 @@ from .cache import _cache_stable
 # NFW rho^2 profile: analytic expressions
 # ---------------------------------------------------------------------------
 
-def _rho_s(M, z, c_func=None):
+def _rho_s(M, z):
     """NFW scale density rho_s [M_sun/h / (Mpc/h)^3].
 
     rho_s = M / (4 pi r_s^3 f(c))
     """
-    if c_func is None:
-        c_func = hm.concentration
-    c = float(c_func(np.atleast_1d(M), z).ravel()[0])
+    c = float(hm.concentration(M, z))
     Rv = float(hm.R_vir(M, z))
     rs = Rv / c
     fc = np.log(1.0 + c) - c / (1.0 + c)
     return M / (4.0 * np.pi * rs**3 * fc)
 
 
-def rho2_integral_analytic(M, z, c_func=None):
+def rho2_integral_analytic(M, z):
     """Analytic integral of rho_NFW^2 over the halo volume.
 
     integral_0^{R_vir} 4 pi r^2 rho_NFW^2(r) dr
@@ -38,12 +36,10 @@ def rho2_integral_analytic(M, z, c_func=None):
 
     Returns the integral in units of [(M_sun/h)^2 / (Mpc/h)^3].
     """
-    if c_func is None:
-        c_func = hm.concentration
-    c = float(c_func(np.atleast_1d(M), z).ravel()[0])
+    c = float(hm.concentration(M, z))
     Rv = float(hm.R_vir(M, z))
     rs = Rv / c
-    rho_s_val = _rho_s(M, z, c_func)
+    rho_s_val = _rho_s(M, z)
     return (4.0 * np.pi / 3.0) * rho_s_val**2 * rs**3 * (1.0 - 1.0 / (1.0 + c)**3)
 
 
@@ -51,7 +47,7 @@ def rho2_integral_analytic(M, z, c_func=None):
 # Fourier transform of rho^2 profile (numerical)
 # ---------------------------------------------------------------------------
 
-def v_tilde(k, M, z, c_func=None):
+def v_tilde(k, M, z):
     """Fourier transform of rho^2(r|M) / rho_bar^2  [(Mpc/h)^3].
 
     v_tilde(k|M) = (4 pi / rho_bar^2) integral_0^{R_vir} r^2 rho_NFW^2(r) sin(kr)/(kr) dr
@@ -59,14 +55,11 @@ def v_tilde(k, M, z, c_func=None):
     Returns [(Mpc/h)^3]: the volume-weighted profile transform, analogous to
     u_nfw but for rho^2.  At k→0, v_tilde = rho2_integral / rho_bar^2.
     """
-    if c_func is None:
-        c_func = hm.concentration
-
     k = np.asarray(k, dtype=float)
-    c = float(c_func(np.atleast_1d(M), z).ravel()[0])
+    c = float(hm.concentration(M, z))
     Rv = float(hm.R_vir(M, z))
     rs = Rv / c
-    rho_s_val = _rho_s(M, z, c_func)
+    rho_s_val = _rho_s(M, z)
     rho_bar2 = cfg.RHO_BAR**2
 
     result = np.empty_like(k)
@@ -74,7 +67,7 @@ def v_tilde(k, M, z, c_func=None):
     for ik, kk in enumerate(k.ravel()):
         if kk < 1e-10:
             # k→0 limit: just the volume integral
-            result.ravel()[ik] = rho2_integral_analytic(M, z, c_func) / rho_bar2
+            result.ravel()[ik] = rho2_integral_analytic(M, z) / rho_bar2
             continue
 
         def integrand(r):
@@ -109,9 +102,6 @@ def boost_moline(M, z, M_min_sub=1e-6):
     """
     M = np.asarray(M, dtype=float)
 
-    if M_min_sub <= 0:
-        return np.zeros_like(M)
-
     # Convert M_sun/h → M_sun: M_phys = M_code / h
     M_solar = M / cfg.h
 
@@ -137,7 +127,7 @@ def boost_moline(M, z, M_min_sub=1e-6):
     # Zero out below M_min_sub for conservative scenario
     B = np.where(mask, B, 0.0)
 
-    return np.clip(B, 0.0, 1000.0)
+    return np.maximum(B, 0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -160,8 +150,7 @@ def _clumping_compute(z, M_min, M_max, boost_scenario):
     val, _ = quad(integrand, np.log(M_min), np.log(M_max),
                   limit=300, epsrel=1e-4)
 
-    result = val / cfg.RHO_BAR**2 / (1.0 + z)**3
-    return max(result, 0.0)
+    return val / cfg.RHO_BAR**2 / (1.0 + z)**3
 
 
 def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate'):
@@ -210,13 +199,11 @@ def _W_gamma_DM_impl(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario):
     if dNdE <= 0:
         return 0.0
 
-    atten = ebl_mod.attenuation(np.atleast_1d(E_GeV), z)[0]
+    atten = float(ebl_mod.attenuation(E_GeV, z)[0])
     Delta2 = clumping_factor(z, boost_scenario=boost_scenario)
 
-    M_sun_GeV = 1.116e57
     Mpc_cm = cfg.MPC_TO_M * 100.0
-    rho_DM = cfg.OMEGA_DM * cfg.RHO_CRIT
-    rho_DM_GeV_cm3 = rho_DM * M_sun_GeV * cfg.h**2 / Mpc_cm**3
+    rho_DM_GeV_cm3 = cfg.OMEGA_DM * cfg.RHO_CRIT * cfg.M_SUN_GEV * cfg.h**2 / Mpc_cm**3
 
     prefactor = sigma_v / (8.0 * np.pi)
     particle = (rho_DM_GeV_cm3 / m_chi_GeV)**2

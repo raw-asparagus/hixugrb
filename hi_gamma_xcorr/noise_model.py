@@ -17,6 +17,15 @@ from scipy.special import eval_legendre
 from . import config as cfg
 
 # ---------------------------------------------------------------------------
+# Module-level constants
+# ---------------------------------------------------------------------------
+
+_RAYLEIGH = 1.22
+
+_MEERKAT_T_SYS_MODELS = frozenset(('meerkat', 'cunnington2022', 'wang2021'))
+_PINETTI_T_SYS_MODELS = frozenset(('pinetti', 'pinetti2020', 'pinetti_2022', 'camera2013'))
+
+# ---------------------------------------------------------------------------
 # Radio system temperature
 # ---------------------------------------------------------------------------
 
@@ -74,7 +83,7 @@ def T_sys_meerkat(nu_MHz):
     T_rx = 7.5 + 10.0 * (nu_GHz - 0.75)**2
     T_spl = cfg.T_SPL_MEERKAT_K
     T_CMB = cfg.T_CMB_K
-    T_gal = 15.0 * (408.0 / nu_MHz)**2.75
+    T_gal = cfg.T_GAL_COEFF_MEERKAT * (cfg.T_GAL_NU_REF_MEERKAT / nu_MHz)**cfg.T_GAL_INDEX_MEERKAT
     return T_rx + T_spl + T_CMB + T_gal
 
 
@@ -86,9 +95,9 @@ def T_sys(nu_MHz, model='pinetti'):
     field in `cfg.RADIO_TELESCOPES[telescope]` to choose; the default is
     `'pinetti'` for back-compat.
     """
-    if model in ('meerkat', 'cunnington2022', 'wang2021'):
+    if model in _MEERKAT_T_SYS_MODELS:
         return T_sys_meerkat(nu_MHz)
-    if model in ('pinetti', 'pinetti2020', 'pinetti2022', 'camera2013'):
+    if model in _PINETTI_T_SYS_MODELS:
         return T_sys_pinetti(nu_MHz)
     raise ValueError(
         f"T_sys_model must be 'pinetti' or 'meerkat' (got {model!r})"
@@ -127,7 +136,7 @@ def beam_radio(ell, z, D_m):
     """
     ell = np.asarray(ell, dtype=float)
     lam = lambda_obs(z)
-    theta_FWHM = 1.22 * lam / D_m  # radians
+    theta_FWHM = _RAYLEIGH * lam / D_m  # radians
     sigma_beam = theta_FWHM / np.sqrt(8.0 * np.log(2.0))
     return np.exp(-ell**2 * sigma_beam**2 / 2.0)
 
@@ -226,7 +235,7 @@ def ell_cut(telescope, band_name):
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
     lam = lambda_obs(z_mid)
     D_short = 2.0 * tel['d_dish_m']
-    return np.pi * D_short / (1.22 * lam)
+    return np.pi * D_short / (_RAYLEIGH * lam)
 
 
 def noise_radio_combined(ell, telescope, band_name):

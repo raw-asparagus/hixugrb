@@ -25,6 +25,9 @@ KPC_TO_M = 3.0856775814913673e19  # 1 kpc in meters
 KM_TO_MPC = 1.0 / (MPC_TO_M / 1e3)  # km to Mpc
 ERG_TO_GEV = 624.151            # 1 erg in GeV
 GEV_TO_ERG = 1.0 / ERG_TO_GEV  # 1 GeV in erg
+M_SUN_GEV = 1.116e57            # Solar mass in GeV/c^2
+W_TO_ERG = 1.0e7                # 1 Watt in erg/s
+NU_5GHZ = 5.0e9                 # 5 GHz in Hz (Di Mauro mAGN chain)
 CM2_TO_M2 = 1e-4               # cm^2 to m^2
 SR_TO_DEG2 = (180.0 / np.pi)**2  # 1 sr in deg^2
 
@@ -44,6 +47,7 @@ OMEGA_CDM = OMEGA_CDM_H2 / h**2  # CDM density parameter
 OMEGA_DM = OMEGA_M - OMEGA_B   # DM density parameter (CDM ≈ DM here)
 OMEGA_LAMBDA = 1.0 - OMEGA_M   # Dark energy density (flat universe)
 T_CMB = 2.7255                  # CMB temperature today [K]
+TAU_REIO = 0.0544               # Reionization optical depth
 
 # Derived cosmological quantities
 # Critical density today: rho_c = 3 H0^2 / (8 pi G)  [kg/m^3]
@@ -558,6 +562,9 @@ T_SKY_INDEX = 2.55
 #     T_sys_model='meerkat', i.e. the new MeerKLASS_* HI single-dish entries.
 T_SPL_MEERKAT_K = 3.0          # spillover [K] (Cunnington+2025 Eq. A19)
 T_CMB_K = 2.725                # CMB [K] (Cunnington+2025 Eq. A19 cites 2.73)
+T_GAL_COEFF_MEERKAT = 15.0    # Galactic synchrotron amplitude [K] (Cunnington+2025 Eq. A19)
+T_GAL_NU_REF_MEERKAT = 408.0  # Galactic synchrotron reference freq [MHz]
+T_GAL_INDEX_MEERKAT = 2.75    # Galactic synchrotron spectral index
 
 # HI 21-cm rest frequency
 NU_21CM = 1420.405              # [MHz]

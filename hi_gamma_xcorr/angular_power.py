@@ -99,7 +99,7 @@ def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
 
     if hi._is_cunnington_mode(hi_brightness):
         b_hi = float(hi.b_HI_cunnington(float(z)))
-        return b_hi * b_astro * cosmo.P_lin(k, z) * np.ones_like(k)
+        return b_hi * b_astro * cosmo.P_lin(k, z)
 
     rho_HI = hi.rho_HI_mean(z)
     if rho_HI <= 0:
@@ -457,13 +457,13 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
     # c*h/H(z) converts per-chi window to per-z: W^(z) = W^(chi) * dchi/dz
     # where dchi/dz = c*h/H in [Mpc/h per unit z].
     # Item 1.4: vectorised over z_arr (cosmo.H is array-aware)
-    c_h_over_H = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(np.asarray(z_arr, dtype=float))
+    c_h_over_H = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z_arr)
 
     # --- Build extended normalization grid [0, z_norm_max] ---
     z_ext = np.linspace(0.001, z_norm_max, _N_Z_NORM)
     dz_ext = z_ext[1] - z_ext[0]
     # Item 1.4: vectorised over z_ext
-    c_h_over_H_ext = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(np.asarray(z_ext, dtype=float))
+    c_h_over_H_ext = cfg.C_LIGHT_KM_S * cfg.h / cosmo.H(z_ext)
 
     result = {'z': z_arr}
 

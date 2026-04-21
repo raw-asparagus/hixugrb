@@ -11,6 +11,13 @@ from . import angular_power as ap
 from . import noise_model as nm
 
 # ---------------------------------------------------------------------------
+# Module-level constants
+# ---------------------------------------------------------------------------
+
+_DCHI2_95CL = 4.0
+_DCHI2_5SIGMA = 25.0
+
+# ---------------------------------------------------------------------------
 # Gaussian variance (Eq. 5.5)
 # ---------------------------------------------------------------------------
 
@@ -59,7 +66,7 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
     noise_HI_eff = C_HI_auto + N_HI / B_HI**2
 
     var = noise_gamma_eff * noise_HI_eff / ((2.0 * ell + 1.0) * f_sky)
-    return np.sqrt(np.maximum(var, 0.0))
+    return np.sqrt(var)
 
 
 # ---------------------------------------------------------------------------
@@ -312,7 +319,12 @@ def exclusion_curve(telescope, band_name, channel='bb',
         hi_brightness = cfg.RADIO_TELESCOPES[telescope].get(
             'default_hi_brightness', 'padmanabhan'
         )
-    threshold = 4.0 if CL == '95' else 25.0
+    if CL == '95':
+        threshold = _DCHI2_95CL
+    elif CL == '5sigma':
+        threshold = _DCHI2_5SIGMA
+    else:
+        raise ValueError(f"CL must be '95' or '5sigma', got {CL!r}")
 
     if m_chi_arr is None:
         m_chi_arr = np.logspace(1, 4, 20)  # 10 GeV to 10 TeV

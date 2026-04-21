@@ -1,7 +1,7 @@
 """EBL (Extragalactic Background Light) opacity models.
 
-Uses the `ebltable` package for tabulated opacity models when available,
-with an analytic fallback.  Primary model: Dominguez et al. (2011).
+Uses the `ebltable` package for tabulated opacity models.
+Primary model: Dominguez et al. (2011).
 """
 
 import numpy as np
@@ -21,15 +21,6 @@ def _get_optdepth(model='dominguez'):
     return _od_cache[model]
 
 
-def _has_ebltable():
-    """Check if ebltable is importable."""
-    try:
-        import ebltable  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -44,8 +35,8 @@ def tau(E_GeV, z, model='dominguez'):
     z : float
         Redshift.
     model : str
-        EBL model name. Options: 'dominguez', 'finke', 'franceschini',
-        'saldana-lopez21', or 'analytic' for the built-in approximation.
+        EBL model name passed to ebltable. Options: 'dominguez', 'finke',
+        'franceschini', 'saldana-lopez21'.
 
     Returns
     -------
@@ -57,36 +48,12 @@ def tau(E_GeV, z, model='dominguez'):
     if z <= 0:
         return np.zeros_like(E_GeV)
 
-    if model == 'analytic' or not _has_ebltable():
-        return _tau_analytic(E_GeV, z)
-
     od = _get_optdepth(model)
     E_TeV = E_GeV / 1000.0  # ebltable uses TeV
-    # ebltable.opt_depth(z, E_TeV) — handles arrays
     result = np.array([od.opt_depth(z, e) for e in E_TeV], dtype=float).ravel()
-    return np.maximum(result, 0.0)
+    return result
 
 
 def attenuation(E_GeV, z, model='dominguez'):
     """EBL attenuation factor exp(-tau(E, z))."""
     return np.exp(-tau(E_GeV, z, model=model))
-
-
-# ---------------------------------------------------------------------------
-# Analytic fallback
-# ---------------------------------------------------------------------------
-
-def _tau_analytic(E_GeV, z):
-    """Simple analytic EBL approximation (fallback when ebltable unavailable).
-
-    Calibrated to Dominguez et al. (2011) anchor points.
-    """
-    E_GeV = np.asarray(E_GeV, dtype=float)
-    result = np.zeros_like(E_GeV)
-    mask = E_GeV > 1.0
-    E = E_GeV[mask]
-    tau_val = 2.5 * (E / 100.0)**1.0 * (z / 1.0)**1.3
-    threshold = 1.0 / (1.0 + (20.0 / E)**4)
-    tau_val *= threshold
-    result[mask] = tau_val
-    return np.clip(result, 0.0, 50.0)

@@ -37,7 +37,7 @@ def Delta_vir(z):
 # Virial radius and circular velocity
 # ---------------------------------------------------------------------------
 
-def R_vir(M, z=0.0):
+def R_vir(M, z):
     """Virial radius R_vir [Mpc/h] for halo of mass M [M_sun/h] at redshift z.
 
     Uses the Bryan & Norman (1998) z-dependent virial overdensity:
@@ -52,7 +52,7 @@ def R_vir(M, z=0.0):
     return (3.0 * M / (4.0 * np.pi * Dv * rho_crit_z))**(1.0 / 3.0)
 
 
-def R_200c(M, z=0.0):
+def R_200c(M, z):
     """Radius R_200c [Mpc/h] defined with fixed Delta=200 w.r.t. critical density.
 
     Needed for the Correa c_200 relation and for converting c_200 → c_vir.
@@ -67,7 +67,7 @@ def R_200c(M, z=0.0):
 _G_COSMO = cfg.G_NEWTON * cfg.M_SUN / cfg.MPC_TO_M * 1e-6
 
 
-def v_circ(M, z=0.0):
+def v_circ(M, z):
     """Circular velocity at R_vir [km/s].
 
     v_c = sqrt(G M_phys / R_phys) with physical M_sun and Mpc.
@@ -192,10 +192,8 @@ def concentration_vir(M, z):
     using the Bryan & Norman Delta_vir(z).
     """
     M = np.asarray(M, dtype=float)
-    scalar = M.ndim == 0
-    c200 = concentration_correa(np.atleast_1d(M), z)
-    result = np.asarray(c200_to_cvir(c200, z), dtype=float)
-    return float(result[0]) if scalar else result
+    c200 = concentration_correa(M, z)
+    return c200_to_cvir(c200, z)
 
 
 # Default concentration for DM halos (now returns c_vir)
@@ -212,7 +210,7 @@ def _f_nfw(c):
     return np.log(1.0 + c) - c / (1.0 + c)
 
 
-def u_nfw(k, M, z=0.0, c_func=None):
+def u_nfw(k, M, z, c_func=None):
     """Normalized Fourier transform of the NFW profile truncated at R_vir.
 
     u_tilde(k|M) → 1 as k → 0.
@@ -233,7 +231,7 @@ def u_nfw(k, M, z=0.0, c_func=None):
         c_func = concentration
 
     k = np.asarray(k, dtype=float)
-    c = float(c_func(np.atleast_1d(M), z).ravel()[0])
+    c = float(c_func(M, z))
     Rv = float(R_vir(M, z))
     rs = Rv / c
 
@@ -248,10 +246,10 @@ def u_nfw(k, M, z=0.0, c_func=None):
     result = np.ones_like(k)
     mask = krs > 1e-10
     km = krs[mask]
-    Si_1c_m = Si_1c[mask] if isinstance(Si_1c, np.ndarray) else Si_1c
-    Ci_1c_m = Ci_1c[mask] if isinstance(Ci_1c, np.ndarray) else Ci_1c
-    Si_1_m = Si_1[mask] if isinstance(Si_1, np.ndarray) else Si_1
-    Ci_1_m = Ci_1[mask] if isinstance(Ci_1, np.ndarray) else Ci_1
+    Si_1c_m = Si_1c[mask]
+    Ci_1c_m = Ci_1c[mask]
+    Si_1_m = Si_1[mask]
+    Ci_1_m = Ci_1[mask]
 
     term1 = np.sin(km) * (Si_1c_m - Si_1_m)
     term2 = np.cos(km) * (Ci_1c_m - Ci_1_m)

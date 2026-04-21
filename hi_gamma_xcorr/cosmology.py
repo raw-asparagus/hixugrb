@@ -38,7 +38,7 @@ _cosmo_fingerprint = None
 
 def _current_cosmo_fingerprint():
     return (cfg.H0, cfg.OMEGA_B_H2, cfg.OMEGA_CDM_H2,
-            cfg.A_S, cfg.N_S, cfg.T_CMB)
+            cfg.A_S, cfg.N_S, cfg.T_CMB, cfg.TAU_REIO)
 
 # ---------------------------------------------------------------------------
 # Initialization
@@ -62,7 +62,7 @@ def init(force=False):
         ombh2=cfg.OMEGA_B_H2,
         omch2=cfg.OMEGA_CDM_H2,
         omk=0.0,
-        tau=0.0544,      # Planck 2018 reionization optical depth
+        tau=cfg.TAU_REIO,
         TCMB=cfg.T_CMB,
     )
     pars.InitPower.set_params(As=cfg.A_S, ns=cfg.N_S)
@@ -186,20 +186,19 @@ def chi(z):
     """
     _ensure_init()
     z = np.asarray(z, dtype=float)
-    scalar = z.ndim == 0
-    z_arr = np.atleast_1d(z)
 
-    in_range = (z_arr >= 0.0) & (z_arr <= _DIST_Z_MAX)
+    in_range = (z >= 0.0) & (z <= _DIST_Z_MAX)
     if np.all(in_range):
-        result = _chi_interp(z_arr)
-    else:
-        # Spline for in-range points; quad fallback for the rest
-        result = np.empty_like(z_arr)
-        result[in_range] = _chi_interp(z_arr[in_range])
-        for i in np.where(~in_range)[0]:
-            result[i] = _chi_scalar(float(z_arr[i]))
+        return _chi_interp(z)
 
-    return float(result[0]) if scalar else result
+    # Spline for in-range points; quad fallback for the rest
+    z_arr = np.atleast_1d(z)
+    result = np.empty_like(z_arr)
+    in_range_1d = np.atleast_1d(in_range)
+    result[in_range_1d] = _chi_interp(z_arr[in_range_1d])
+    for i in np.where(~in_range_1d)[0]:
+        result[i] = _chi_scalar(float(z_arr[i]))
+    return result if z.ndim > 0 else float(result[0])
 
 
 def d_L(z):
@@ -229,19 +228,19 @@ def growth_factor(z):
     """
     _ensure_init()
     z = np.asarray(z, dtype=float)
-    scalar = z.ndim == 0
-    z_arr = np.atleast_1d(z)
 
-    in_range = (z_arr >= 0.0) & (z_arr <= _GROWTH_Z_MAX)
+    in_range = (z >= 0.0) & (z <= _GROWTH_Z_MAX)
     if np.all(in_range):
-        result = _growth_interp(z_arr)
-    else:
-        result = np.empty_like(z_arr)
-        result[in_range] = _growth_interp(z_arr[in_range])
-        for i in np.where(~in_range)[0]:
-            result[i] = _growth_unnorm(float(z_arr[i])) / _growth_norm
+        return _growth_interp(z)
 
-    return float(result[0]) if scalar else result
+    # Spline for in-range points; quad fallback for the rest
+    z_arr = np.atleast_1d(z)
+    result = np.empty_like(z_arr)
+    in_range_1d = np.atleast_1d(in_range)
+    result[in_range_1d] = _growth_interp(z_arr[in_range_1d])
+    for i in np.where(~in_range_1d)[0]:
+        result[i] = _growth_unnorm(float(z_arr[i])) / _growth_norm
+    return result if z.ndim > 0 else float(result[0])
 
 
 # ---------------------------------------------------------------------------
@@ -298,7 +297,7 @@ def sigma_R(R, z):
     lnk = np.log(k)
     from scipy.integrate import trapezoid
     val = trapezoid(integrand, lnk)
-    return np.sqrt(max(val, 0.0))
+    return np.sqrt(val)
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +317,7 @@ def _build_sigma_interp(z):
 
     R_arr = (3.0 * _sigma_fine_M / (4.0 * np.pi * cfg.RHO_BAR))**(1.0 / 3.0)
     sig_arr = np.array([sigma_R(R, z) for R in R_arr])
-    log_sig = np.log(np.maximum(sig_arr, 1e-30))
+    log_sig = np.log(sig_arr)
     log_M = np.log(_sigma_fine_M)
     interp = interp1d(log_M, log_sig, kind='cubic',
                        bounds_error=False,
