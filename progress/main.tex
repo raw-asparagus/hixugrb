@@ -1,0 +1,93 @@
+% Preamble: packages, theme, and shared macros for the pipeline physics deck
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme{metropolis}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{bm}
+\usepackage[normalem]{ulem}
+\usepackage{appendixnumberbeamer}
+
+% Colours
+\definecolor{cDM}{HTML}{8B0000}
+\definecolor{cHI}{HTML}{006400}
+\definecolor{cAstro}{HTML}{00008B}
+\definecolor{cNoise}{HTML}{555555}
+
+% Shortcuts -- observables
+\newcommand{\Cl}{C_\ell}
+\newcommand{\Nell}{N_\ell}
+\newcommand{\Well}{W_\ell}
+\newcommand{\Bell}{B_\ell}
+\newcommand{\Plin}{P_{\mathrm{lin}}}
+\newcommand{\sigv}{\langle\sigma v\rangle}
+
+% Shortcuts -- cosmology
+\newcommand{\OmM}{\Omega_{\mathrm{M}}}
+\newcommand{\OmB}{\Omega_{\mathrm{B}}}
+\newcommand{\OmDM}{\Omega_{\mathrm{DM}}}
+\newcommand{\OmL}{\Omega_\Lambda}
+\newcommand{\OmHI}{\Omega_{\mathrm{HI}}}
+\newcommand{\rhoc}{\rho_{\mathrm{c}}}
+\newcommand{\rhobar}{\bar\rho}
+\newcommand{\Rvir}{R_{\mathrm{vir}}}
+\newcommand{\Dvir}{\Delta_{\mathrm{vir}}}
+\newcommand{\deltac}{\delta_{\mathrm{c}}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\Mpch}{\,\mathrm{Mpc}/h}
+
+% Shortcuts -- HI
+\newcommand{\MHI}{M_{\mathrm{HI}}}
+\newcommand{\Tbar}{\bar{T}_b}
+\newcommand{\bHI}{b_{\mathrm{HI}}}
+\newcommand{\WHI}{W_{\mathrm{HI}}}
+\newcommand{\PHI}{P_{\mathrm{HI}}}
+
+% Shortcuts -- DM
+\newcommand{\mchi}{m_\chi}
+\newcommand{\WDM}{W_\gamma^{\mathrm{DM}}}
+\newcommand{\Deltasq}{\Delta^2}
+
+% Shortcuts -- astro
+\newcommand{\Wastro}{W_\gamma^{\mathrm{astro}}}
+\newcommand{\Lsens}{L_{\mathrm{sens}}}
+\newcommand{\Fsens}{F_{\mathrm{sens}}}
+
+% Shortcuts -- units
+\newcommand{\cmtwo}{\,\mathrm{cm}^{-2}\,\mathrm{s}^{-1}}
+\newcommand{\ergpers}{\,\mathrm{erg\,s}^{-1}}
+\newcommand{\mK}{\,\mathrm{mK}}
+\newcommand{\GeV}{\,\mathrm{GeV}}
+\newcommand{\sr}{\,\mathrm{sr}}
+
+\setbeamertemplate{footline}[frame number]
+
+\title{HI $\times$ UGRB Cross-Correlation Pipeline}
+\subtitle{Complete Physics Reference}
+\author{Research Progress Update}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\input{01_overview}
+\input{02_cosmology}
+\input{03_halo_model}
+\input{04_hi_model}
+\input{05_dm_model}
+\input{06_astro_sources}
+\input{07_ebl_pppc}
+\input{08_noise_beams}
+\input{09_limber}
+\input{10_statistics}
+\input{11_deviations}
+
+\end{document}

@@ -1,0 +1,49 @@
+\section{Cosmology}
+
+\begin{frame}{Planck 2018 Parameters}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{align*}
+H_0 &= 67.36\;\mathrm{km/s/Mpc} \\
+h &= 0.6736 \\
+\OmB h^2 &= 0.02237 \\
+\Omega_c h^2 &= 0.1200 \\
+n_s &= 0.9649
+\end{align*}
+
+\column{0.5\textwidth}
+\begin{align*}
+\sigma_8 &= 0.8111 \\
+A_s &\approx 2.1\times10^{-9} \\
+\OmM &= 0.3153 \\
+\tau &= 0.0544 \\
+T_{\mathrm{CMB}} &= 2.7255\;\mathrm{K}
+\end{align*}
+\end{columns}
+\vspace{0.4cm}
+TT,TE,EE+lowE+lensing best-fit (Planck Collaboration 2020, A\&A 641, A6).
+\end{frame}
+
+\begin{frame}{Hubble Rate and Distances}
+\begin{align}
+E(z) &= \sqrt{\OmM(1+z)^3 + \OmL} \\[4pt]
+H(z) &= H_0\,E(z) \\[4pt]
+\chi(z) &= \frac{c}{H_0}\int_0^z \frac{dz'}{E(z')} \quad [\Mpch] \\[4pt]
+d_L(z) &= (1+z)\,\chi(z)
+\end{align}
+
+\vspace{0.3cm}
+\textbf{Implementation:} $\chi(z)$ uses a cumulative-Simpson spline (4096 pts, $\sim10^{-13}$ accuracy). Mutation guard re-initialises CAMB if cosmology parameters change.
+\end{frame}
+
+\begin{frame}{Linear Power Spectrum and Growth}
+\begin{align}
+P_{\mathrm{lin}}(k,z) &\quad\text{via CAMB Boltzmann solver} \\[6pt]
+D(z) &\propto E(z)\int_z^\infty \frac{(1+z')\,dz'}{E(z')^3}, \quad D(0)=1 \\[6pt]
+\sigma^2(R,z) &= \frac{1}{2\pi^2}\int_0^\infty dk\,k^2\,P_{\mathrm{lin}}(k,z)\,W^2(kR) \\[4pt]
+W(x) &= \frac{3(\sin x - x\cos x)}{x^3} \quad\text{(top-hat)}
+\end{align}
+
+\vspace{0.3cm}
+\textbf{Key identity:} $R(M) = \left(\frac{3M}{4\pi\rhobar_m}\right)^{1/3}$ links mass to smoothing scale.
+\end{frame}

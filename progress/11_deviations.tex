@@ -1,0 +1,61 @@
+\section{Deviations from Literature}
+
+\begin{frame}{Active Deviations Registry}
+\begin{table}\centering\scriptsize
+\begin{tabular}{clp{6.5cm}}
+\toprule
+\# & Deviation & Nature \\
+\midrule
+D2 & Correa $c(M,z)$ coefficients & Planck App.~B1 fit (not thesis cosmology) \\
+D4 & SF-AGN $k_{R2}$ sign & Thesis typo corrected ($-3.17$, not $+3.17$) \\
+D5 & $\OmHI$ computed & Halo integral vs fixed $2.45\times10^{-4}$ \\
+D6 & SMT $q = 0.707$ & Original SMT 1999; thesis uses $q = 0.75$ \\
+D7 & PPPC4DMID public tables & vs thesis private Pythia code \\
+D8 & Limber $k = (\ell{+}\tfrac{1}{2})/\chi$ & LoVerde \& Afshordi 2008 correction \\
+D12 & LDDE exponent form & Ajello positive-exponent convention \\
+D14 & EBL on astro windows & Now applied; thesis omitted for astro \\
+D15 & Cunnington brightness mode & 180 mK + polynomial $\OmHI$, $\bHI$ \\
+D16 & MeerKAT $T_{\mathrm{sys}}$ & 15 K Galactic synchrotron (Cunnington+2025) \\
+D17 & 4FGL-DR4 $\Fsens$ dispatch & $7.3{\times}10^{-11}$ + PSF scaling (Ballet+2023) \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Resolved Deviations}
+\begin{table}\centering\footnotesize
+\begin{tabular}{clp{7cm}}
+\toprule
+\# & Was & Resolution \\
+\midrule
+\sout{D3} & No $c_{200}\to c_{\mathrm{vir}}$ conversion & \texttt{c200\_to\_cvir()} now implemented \\
+\sout{D9} & $\Tbar$ 188$h$ vs 44\,$\mu$K form & Mathematically equivalent (convention) \\
+\sout{D11} & $\Dvir = 200$ fixed & Bryan \& Norman $z$-dependent $\Dvir(z)$ \\
+\sout{D13} & Gruppioni $L_0$ break uniform & Now spiral-only per Table~8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Cosmology Mismatch Registry}
+\begin{table}\centering\scriptsize
+\begin{tabular}{llll}
+\toprule
+Fit & Paper cosmology & Correction & Residual \\
+\midrule
+Correa $c(M)$ & Planck 2013 & D2: re-fit & Negligible \\
+Ajello 2012 FSRQ & WMAP-era ($h{=}0.71$) & None & $\sim$1--2\% in $d_L$ \\
+Ajello 2014 BL Lac & WMAP-era ($h{=}0.71$) & None & $\sim$1--2\% in $d_L$ \\
+Willott 2001 & $H_0{=}50$, empty & $\eta(z)$ volume & Shape not re-derived \\
+Gruppioni 2013 & $H_0{=}70$, $\Omega_m{=}0.3$ & None & Small \\
+Molin\'e 2017 & Planck 2015 & None & Weak (N-body) \\
+Padmanabhan 2017 & WMAP-3 custom & None & Weak \\
+Cunnington 2025 & Planck 2018 & None needed & -- \\
+Ballet 2023 & Cosmology-independent & N/A & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.2cm}
+Willott $\eta(z)$ corrects density only --- luminosity rescaling would require re-fitting to original flux data (documented limitation from Di Mauro+2014).
+\end{frame}

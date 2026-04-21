@@ -1,0 +1,99 @@
+\section{Astrophysical Sources}
+
+\begin{frame}{Four Source Populations}
+\begin{table}\centering\footnotesize
+\begin{tabular}{llcl}
+\toprule
+Source & GLF method & $\alpha$ (photon index) & Reference \\
+\midrule
+BL Lac & LDDE inverse-sum & 2.11 & Ajello+2014 \\
+FSRQ & LDDE inverse-sum & 2.44 & Ajello+2012 \\
+mAGN & Radio$\to$gamma chain & 2.37 & Di Mauro+2014 \\
+SFG & IR$\to$gamma chain & 2.70 & Gruppioni+2013 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+All share the same window function structure $\Wastro$, differing only in their GLF $\Phi(L,z)$.
+\end{frame}
+
+\begin{frame}{LDDE Luminosity Function (Blazars)}
+\textbf{Double power-law:}
+\begin{equation}
+\frac{d\Phi}{d\log_{10}L} = \frac{A}{(L/L_c)^{\gamma_1} + (L/L_c)^{\gamma_2}}
+\end{equation}
+
+\textbf{Smooth inverse-sum evolution} (Ajello+2012 Eq.~15, D12):
+\begin{equation}
+e(z,L) = \left[r^{-p_1} + r^{-p_2}\right]^{-1}, \quad r = \frac{1+z}{1+z_c(L)}
+\end{equation}
+with $z_c(L) = z_c^*\,(L/L_{\mathrm{ref}})^\alpha$.
+
+\vspace{0.2cm}
+\begin{table}\centering\scriptsize
+\begin{tabular}{lccccccc}
+\toprule
+& $A$ & $L_c$ [erg/s] & $\gamma_1$ & $\gamma_2$ & $z_c^*$ & $p_1$ & $p_2$ \\
+\midrule
+FSRQ & $3.06{\times}10^{-9}$ & $8.4{\times}10^{47}$ & 0.21 & 1.58 & 1.47 & 7.35 & $-6.51$ \\
+BL Lac & $9.20{\times}10^{-11}$ & $2.43{\times}10^{48}$ & 1.12 & 3.71 & 1.67 & 4.50 & $-12.88$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{mAGN: Radio$\to$Gamma Conversion Chain}
+\textbf{4-step chain} (Di Mauro+2014 / Pinetti 2022 Eq.~C.19):
+\begin{enumerate}
+    \item $L_\gamma \to \nu L_{\nu,\mathrm{core}}^{5\mathrm{GHz}}$: \quad $\log L_\gamma = 2.0 + 1.008\log(\nu L_\nu)$ [erg/s]
+    \item $\nu L_\nu \to L_{\mathrm{core}}^{5\mathrm{GHz}}$: \quad divide by $\nu\cdot 10^7$ [W/Hz]
+    \item $L_{\mathrm{core}} \to L_{\mathrm{tot}}^{1.4\mathrm{GHz}}$: \quad Lara (2004): $\log L_{\mathrm{core}} = 4.2 + 0.77\log L_{\mathrm{tot}}$
+    \item $L_{\mathrm{tot}}^{1.4} \to L_{151}$: \quad $(1400/151)^{-0.80}$ [Inoue 2011]
+\end{enumerate}
+
+\textbf{Assembled GLF:}
+\begin{equation}
+\phi_\gamma = \frac{k\,\eta(z)}{(1+z)^{2-\Gamma}}\,\frac{\rho_r(L_{151},z)}{\ln 10\cdot L_{151}}\left|\frac{dL_{151}}{dL_\gamma}\right|
+\end{equation}
+$k = 3.05$, $\Gamma = 2.37$. \quad $\eta(z)$ = Willott$\to$Planck volume correction.
+\end{frame}
+
+\begin{frame}{SFG: IR$\to$Gamma Chain}
+\textbf{Gruppioni+2013 modified Schechter (3 components):}
+\begin{equation}
+\phi_i = \phi_{0,i}(z)\left(\frac{L_{\mathrm{IR}}}{L_{0,i}}\right)^{\!1-\gamma_i}\!\exp\!\left[-\frac{\log_{10}^2(1+L_{\mathrm{IR}}/L_{0,i})}{2\sigma_i^2}\right]
+\end{equation}
+$\phi_{\mathrm{IR}} = \phi_{\mathrm{spiral}} + \phi_{\mathrm{starburst}} + \phi_{\mathrm{SF-AGN}}$
+
+\vspace{0.3cm}
+\textbf{Ackermann+2012 $L_\gamma$--$L_{\mathrm{IR}}$ scaling:}
+\begin{equation}
+\log_{10} L_\gamma = 1.09\,\log_{10}\!\left(\frac{L_{\mathrm{IR}}}{10^{10}L_\odot}\right) + 39.19
+\end{equation}
+
+\textbf{SFG GLF:}
+\begin{equation}
+\phi_\gamma^{\mathrm{SFG}} = \phi_{\mathrm{IR}}\cdot\frac{|d\log L_{\mathrm{IR}}/d\log L_\gamma|}{L_\gamma\ln 10}
+\end{equation}
+\end{frame}
+
+\begin{frame}{Astrophysical Window Function}
+\begin{equation}
+\textcolor{cAstro}{\Wastro(\chi)} = \frac{1}{4\pi h^3}\int_{L_{\min}}^{L_{\mathrm{up}}}\!\Phi(L,z)\,\frac{L}{E_{\mathrm{GeV\to erg}}\,I_\alpha}\,E_{\mathrm{rest}}^{-\alpha}\,dL\;\times e^{-\tau(E,z)}
+\end{equation}
+
+\begin{itemize}
+    \item $E_{\mathrm{rest}} = (1+z)\,E_{\mathrm{obs}}$ (K-correction inside window)
+    \item $1/h^3$ converts Mpc$^{-3}$ to (Mpc/$h$)$^{-3}$
+    \item $L_{\mathrm{up}} = \min(L_{\max},\, \Lsens(z))$ for unresolved sources
+    \item D14: EBL attenuation $e^{-\tau}$ at observed energy
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{$\Fsens$ dispatch (D17):}
+\begin{itemize}
+    \item \texttt{'pinetti\_constant'}: $\Fsens = 10^{-10}\cmtwo$ (Pinetti+2020)
+    \item \texttt{'4fgl\_dr4\_psf'}: $\Fsens = 7.3{\times}10^{-11}\cmtwo$ (Ballet+2023) $+$ PSF scaling
+\end{itemize}
+\end{frame}

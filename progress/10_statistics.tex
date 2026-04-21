@@ -1,0 +1,48 @@
+\section{Statistics}
+
+\begin{frame}{Gaussian Variance}
+\textbf{Noise-dominated approximation} (Pinetti Eq.~5.5):
+\begin{equation}
+(\Delta\Cl)^2 = \frac{1}{(2\ell+1)\,f_{\mathrm{sky}}}\;\frac{N^\gamma}{(\Bell^\gamma)^2}\;\left[\Cl^{\mathrm{HI,HI}} + \frac{N^{\mathrm{HI}}}{(\Bell^{\mathrm{HI}})^2}\right]
+\end{equation}
+
+\textbf{Unit conversion:} $N^\gamma$ [$\mathrm{cm}^{-4}\,\mathrm{s}^{-2}\,\mathrm{sr}^{-1}$] $\to$ $[(\Mpch)^{-4}\,\mathrm{s}^{-2}\,\mathrm{sr}^{-1}]$ via $\times\,(L_{\mathrm{Mpc}/h}^{\mathrm{cm}})^4$
+
+\vspace{0.3cm}
+\textbf{Effective sky fraction:} $f_{\mathrm{sky}} = \min(f_{\mathrm{sky}}^{\mathrm{radio}},\, f_{\mathrm{sky}}^{\gamma})$
+\end{frame}
+
+\begin{frame}{Signal-to-Noise Ratio}
+\begin{equation}
+\mathrm{SNR}^2 = \sum_{\ell,\,E\text{-bins}} \left[\frac{\Cl^{\mathrm{HI}\times\gamma_\star}}{\Delta\Cl}\right]^2
+\end{equation}
+
+\begin{itemize}
+    \item Numerator: astrophysical-only signal (sum of 4 source classes)
+    \item Denominator: noise-dominated variance
+    \item Sum over 12 Fermi energy bins (forecast) or 11 Ammazzalorso bins (data)
+    \item $\ell$-range: $[10, 1000]$ (forecast) or per-bin $[\ell_{\min}, \ell_{\max}(E)]$ (data)
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Per-telescope dispatch:} \texttt{compute\_SNR} reads \texttt{default\_hi\_brightness} and \texttt{default\_unresolved\_mode} from the telescope config entry.
+\end{frame}
+
+\begin{frame}{DM Exclusion Curves}
+\textbf{$\Delta\chi^2$ test statistic} (Pinetti Eq.~5.7):
+\begin{equation}
+\Delta\chi^2 = \sum_{\ell,E}\left[\frac{\Cl^{\mathrm{astro+DM}}}{\Delta\Cl}\right]^2 - \left[\frac{\Cl^{\mathrm{astro}}}{\Delta\Cl}\right]^2
+\end{equation}
+
+\textbf{Exclusion scaling:} Since $\Cl^{\mathrm{DM}} \propto \sigv$:
+\begin{equation}
+\sigv^{\mathrm{excl}} = \sigv^{\mathrm{test}}\sqrt{\frac{\Delta\chi^2_{\mathrm{threshold}}}{\Delta\chi^2_{\mathrm{test}}}}
+\end{equation}
+
+\begin{itemize}
+    \item 95\% CL: $\Delta\chi^2_{\mathrm{thr}} = 4.0$
+    \item $5\sigma$: $\Delta\chi^2_{\mathrm{thr}} = 25.0$
+\end{itemize}
+
+Scan over $\mchi \in [10\GeV,\, 10\;\mathrm{TeV}]$ to produce the exclusion curve.
+\end{frame}

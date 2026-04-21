@@ -1,0 +1,88 @@
+\section{Pipeline Overview}
+
+\begin{frame}{Scientific Goal}
+\begin{itemize}
+    \item Cross-correlate \textbf{HI 21-cm intensity maps} (MeerKAT/SKA) with the \textbf{unresolved gamma-ray background} (Fermi-LAT)
+    \item Detect astrophysical cross-signal (blazars, mAGN, SFGs sharing LSS with HI)
+    \item Constrain dark matter annihilation via excess $\Cl^{\mathrm{HI}\times\gamma}$
+    \item Based on Pinetti, Camera, Fornengo \& Regis (2020, JCAP 07:044)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Module Dependency DAG}
+\centering
+\begin{tikzpicture}[scale=0.88, every node/.append style={transform shape},
+    every node/.style={font=\footnotesize, rounded corners, minimum width=2.2cm, minimum height=0.6cm, align=center},
+    tier0/.style={fill=gray!15},
+    tier1/.style={fill=blue!8},
+    tier2/.style={fill=green!8},
+    tier3/.style={fill=orange!8},
+    tier4/.style={fill=red!8},
+    arr/.style={-{Stealth[length=4pt]}, thin}
+]
+% Row 0 — top-level config
+\node[tier0] (cfg) at (0, 0) {\texttt{config.py}};
+
+% Row 1 — backbone (left) and standalone data inputs (right)
+\node[tier1] (hmfi)  at (-4.6, -1.5) {\texttt{hmf\_interface.py}};
+\node[tier1] (cosmo) at (-1.8, -1.5) {\texttt{cosmology.py}};
+\node[tier0] (ebl)   at ( 2.2, -1.5) {\texttt{ebl.py}};
+\node[tier0] (pppc)  at ( 5.0, -1.5) {\texttt{pppc4dmid.py}};
+
+% Row 2 — intermediate physics
+\node[tier2] (halo)  at (-3.2, -3.0) {\texttt{halo\_model.py}};
+\node[tier2] (astro) at ( 5.0, -3.0) {\texttt{astro\_sources.py}};
+
+% Row 3 — HI (left) and DM (centre, draws from both sides)
+\node[tier3] (hi) at (-4.6, -4.5) {\texttt{hi\_model.py}};
+\node[tier3] (dm) at ( 0.0, -4.5) {\texttt{dm\_model.py}};
+
+% Row 4 — integration layer
+\node[tier4] (ang)   at ( 0.0, -6.0) {\texttt{angular\_power.py}};
+\node[tier1] (noise) at ( 5.0, -6.0) {\texttt{noise\_model.py}};
+
+% Row 5 — output
+\node[tier4] (stat) at (0.0, -7.5) {\texttt{statistics.py}};
+
+% Arrows — all flow downward with no crossings
+\draw[arr] (cfg)   -- (hmfi);
+\draw[arr] (cfg)   -- (cosmo);
+\draw[arr] (hmfi)  -- (halo);
+\draw[arr] (cosmo) -- (halo);
+\draw[arr] (cosmo) -- (astro);
+\draw[arr] (ebl)   -- (astro);
+\draw[arr] (ebl)   -- (dm);
+\draw[arr] (pppc)  -- (dm);
+\draw[arr] (halo)  -- (hi);
+\draw[arr] (halo)  -- (dm);
+\draw[arr] (hi)    -- (ang);
+\draw[arr] (dm)    -- (ang);
+\draw[arr] (astro) -- (ang);
+\draw[arr] (ang)   -- (stat);
+\draw[arr] (noise) -- (stat);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Unit Conventions}
+\begin{table}
+\centering\footnotesize
+\begin{tabular}{lll}
+\toprule
+Quantity & Unit & Convention \\
+\midrule
+Distances & $\Mpch$ (comoving) & $\chi$, $\Rvir$, $r_s$ \\
+Masses & $\Msun/h$ & $M$, $\MHI$ \\
+Wavenumbers & $h/\mathrm{Mpc}$ & $k$ \\
+Power spectra & $(\Mpch)^3$ & $\Plin$, $\PHI$ \\
+Mass function & $(\Mpch)^{-3}\,(\Msun/h)^{-1}$ & $dn/dM$ \\
+\midrule
+Brightness temp. & mK & $\Tbar$ \\
+Luminosities & erg/s & GLFs \\
+Fermi noise & $\mathrm{cm}^{-4}\,\mathrm{s}^{-2}\,\mathrm{sr}^{-1}$ & $N^\gamma$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+\vspace{0.3cm}
+All internal calculations use $h$-dependent comoving units.\\
+Physical units appear only at module boundaries (explicit conversion).
+\end{frame}

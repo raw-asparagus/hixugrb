@@ -1,0 +1,57 @@
+\section{Limber Integration}
+
+\begin{frame}{Cross-Power Spectra (Halo Model)}
+\textbf{HI $\times$ DM 2-halo} (Pinetti Eq.~5.2):
+\begin{equation}
+P_{\mathrm{HI\times DM}}^{2h}(k,z) = \underbrace{\left[\int\!\frac{dn}{dM}\,b\,\frac{\tilde{v}}{\Deltasq}\,dM\right]}_{\text{DM kernel}}\;\underbrace{\left[\int\!\frac{dn}{dM}\,b\,\frac{\tilde{u}_{\mathrm{HI}}\,\MHI}{\rhobar_{\mathrm{HI}}}\,dM\right]}_{\text{HI kernel}}\;\Plin(k,z)
+\end{equation}
+
+\textbf{HI $\times$ Astro 2-halo} (Pinetti Eq.~5.4):
+\begin{equation}
+P_{\mathrm{HI\times astro}}^{2h}(k,z) = \left[\int\!\frac{dn}{dM}\,b\,\frac{\tilde{u}_{\mathrm{HI}}\,\MHI}{\rhobar_{\mathrm{HI}}}\,dM\right]\;b_{\mathrm{astro}}\;\Plin(k,z)
+\end{equation}
+
+\vspace{0.2cm}
+\textbf{Cunnington mode:} HI kernel $\to$ $\bHI^{\mathrm{C}}(z)$ (polynomial), no mass integral.
+\end{frame}
+
+\begin{frame}{Limber Integral}
+\begin{equation}
+\boxed{\Cl^{ij} = \int \frac{d\chi}{\chi^2}\,W_i(\chi)\,W_j(\chi)\,P_{ij}\!\left(k = \frac{\ell + \tfrac{1}{2}}{\chi},\;z\right)}
+\end{equation}
+
+\textbf{D8:} $k = (\ell + \frac{1}{2})/\chi$ (LoVerde \& Afshordi 2008) vs thesis $k = \ell/\chi$.
+
+\vspace{0.3cm}
+\textbf{Implementation:}
+\begin{itemize}
+    \item Riemann sum over redshift grid ($n_z = 200$ points in $[z_{\min}, z_{\max}]$)
+    \item Weight: $(d\chi/dz) / \chi^2 \cdot \Delta z$ where $d\chi/dz = c\,h/H(z)$ [$\Mpch$]
+    \item Product: $\WHI \times W_\gamma \times P_{\mathrm{cross}}(k,z) \times \text{weight}$
+\end{itemize}
+
+\vspace{0.2cm}
+\textbf{Multi-energy optimisation:} The kernel $(\chi, H, W_{\mathrm{HI}}, P_{\mathrm{cross}})$ is $E$-independent. Only $W_\gamma(E,z)$ varies with energy. Compute kernel once, loop over $E$ in inner loop.
+\end{frame}
+
+\begin{frame}{Dimensional Analysis of $\Cl$}
+\begin{table}\centering\footnotesize
+\begin{tabular}{ll}
+\toprule
+Factor & Units \\
+\midrule
+$d\chi/dz$ & $[\Mpch]$ \\
+$1/\chi^2$ & $[(\Mpch)^{-2}]$ \\
+$\WHI$ & $[\mK\cdot(\Mpch)^{-1}]$ \\
+$W_\gamma$ & $[\text{ph}\;(\Mpch)^{-3}\;\mathrm{s}^{-1}\;\mathrm{sr}^{-1}\;\GeV^{-1}]$ \\
+$P_{\mathrm{cross}}$ & $[(\Mpch)^3]$ \\
+$dz$ & [1] \\
+\midrule
+$\Cl^{\mathrm{HI}\times\gamma}$ & $[\mK\cdot\text{ph}\cdot(\Mpch)^{-2}\cdot\mathrm{s}^{-1}\cdot\mathrm{sr}^{-1}\cdot\GeV^{-1}]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The $({\Mpch})^{-2}$ is the angular projection factor.\\
+Converting to cm gives the standard cross-power units.
+\end{frame}

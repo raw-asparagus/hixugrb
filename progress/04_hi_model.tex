@@ -1,0 +1,81 @@
+\section{HI Model}
+
+\begin{frame}{HI Mass--Halo Mass Relation}
+\textbf{Padmanabhan, Refregier \& Amara (2017), modified NFW fit:}
+\begin{equation}
+\MHI(M,z) = \alpha\,f_{H,c}\,M\left(\frac{M}{10^{11}h^{-1}\Msun}\right)^{\!\beta}\exp\!\left[-\left(\frac{v_{c,0}}{v_c(M,z)}\right)^{\!3}\right]
+\end{equation}
+
+\begin{table}\centering\footnotesize
+\begin{tabular}{ccccc}
+\toprule
+$\alpha$ & $\beta$ & $v_{c,0}$ [km/s] & $c_{\mathrm{HI},0}$ & $\gamma_c$ \\
+\midrule
+0.176 & $-0.69$ & 40.7 & 139 & 0.13 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$f_{H,c} = (1-Y_P)\OmB/\OmM$, \quad $Y_P = 0.24$
+
+\vspace{0.2cm}
+\textbf{HI concentration:} $c_{\mathrm{HI}} = c_{\mathrm{HI},0}\,(M/10^{11}\Msun)^{-0.109}\cdot 4/(1+z)^{\gamma_c}$\\[2pt]
+Note: mass pivot is $10^{11}\Msun$ (physical), not $\Msun/h$.
+\end{frame}
+
+\begin{frame}{Modified NFW HI Profile}
+\begin{equation}
+\rho_{\mathrm{HI}}(r) = \frac{\rho_0\,r_s^3}{(r + 0.75\,r_s)(r + r_s)^2}
+\end{equation}
+
+Normalized: $\int_0^{\Rvir} 4\pi r^2\,\rho_{\mathrm{HI}}\,dr = \MHI$
+
+\vspace{0.2cm}
+\textbf{Analytic normalization} via partial fractions ($A{=}9, B{=}{-}8, C{=}{-}4$):
+\begin{equation}
+\int_0^c \frac{x^2\,dx}{(x{+}0.75)(x{+}1)^2} = 9\ln\!\frac{c{+}0.75}{0.75} - 8\ln(c{+}1) + 4\!\left(\frac{1}{c{+}1}-1\right)
+\end{equation}
+
+\textbf{Fourier transform:} Numerical quadrature
+\begin{equation}
+\tilde{u}_{\mathrm{HI}}(k|M) = \frac{4\pi}{\MHI}\int_0^{\Rvir} r^2\,\rho_{\mathrm{HI}}(r)\,\frac{\sin kr}{kr}\,dr
+\end{equation}
+\end{frame}
+
+\begin{frame}{Brightness Temperature and HI Window}
+\textbf{Mean comoving HI density and bias:}
+\begin{align}
+\rhobar_{\mathrm{HI}}(z) &= \int \frac{dn}{dM}\,\MHI(M,z)\,dM \\[3pt]
+\OmHI(z) &= \rhobar_{\mathrm{HI}} / \rhoc \quad \text{(D5: computed, not fixed)} \\[3pt]
+\bHI(z) &= \frac{1}{\rhobar_{\mathrm{HI}}}\int \frac{dn}{dM}\,\MHI\,b(M,z)\,dM
+\end{align}
+
+\textbf{Brightness temperature:}
+\begin{equation}
+\Tbar(z) = 188\,h\,\OmHI(z)\,\frac{(1+z)^2}{E(z)} \mK
+\end{equation}
+
+\textbf{Window function (per-$\chi$):}
+\begin{equation}
+\WHI(\chi) = \Tbar(z)\,\phi(z)\,\frac{H(z)}{c\,h}, \quad \phi(z) = \frac{1}{z_{\max}-z_{\min}}
+\end{equation}
+Bias enters through $\PHI$, \textbf{not} through $\WHI$.
+\end{frame}
+
+\begin{frame}{Cunnington Brightness Mode (D15)}
+\textbf{Alternative for MeerKLASS data analyses} (Cunnington+2025):
+\begin{align}
+\OmHI^{\mathrm{C}}(z) &= 6.7432{\times}10^{-4} + 3.9{\times}10^{-4}\,z - 6.5{\times}10^{-5}\,z^2 \\[3pt]
+\bHI^{\mathrm{C}}(z) &= 0.842 + 0.693\,z - 0.0459\,z^2 \\[3pt]
+\Tbar^{\mathrm{C}}(z) &= 180\,h\,\OmHI^{\mathrm{C}}(z)\,\frac{(1+z)^2}{E(z)} \mK
+\end{align}
+
+\textbf{Key differences from Padmanabhan mode:}
+\begin{itemize}
+    \item 180 mK prefactor (Battye+2013) vs 188 mK
+    \item Polynomial $\OmHI$, $\bHI$ vs halo-model integrals
+    \item $P_{\mathrm{HI}}^{2h} \to b_{\mathrm{HI}}^2\,\Plin$ (no halo integral)
+\end{itemize}
+
+Dispatched via per-telescope \texttt{default\_hi\_brightness} field.
+\end{frame}

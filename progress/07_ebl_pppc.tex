@@ -1,0 +1,40 @@
+\section{EBL and PPPC4DMID}
+
+\begin{frame}{Extragalactic Background Light Opacity}
+\textbf{Dominguez et al.\ (2011)} tabulated opacity via \texttt{ebltable}:
+\begin{align}
+\tau(E_{\mathrm{obs}}, z) &\quad\text{(pair-production optical depth)} \\[4pt]
+A(E_{\mathrm{obs}}, z) &= e^{-\tau(E_{\mathrm{obs}}, z)} \quad\text{(attenuation factor)}
+\end{align}
+
+\vspace{0.3cm}
+\textbf{Key convention:} $E$ is the \textbf{observed} photon energy (at Earth), not rest-frame.
+
+\vspace{0.2cm}
+Available models: \texttt{dominguez} (default), \texttt{franceschini}, \texttt{finke}, \texttt{saldana-lopez21}.
+
+\vspace{0.3cm}
+\textbf{Where EBL enters:}
+\begin{itemize}
+    \item $\WDM$: attenuates DM annihilation photons
+    \item $\Wastro$: attenuates astrophysical source photons (D14)
+    \item $\Lsens$: raises detection threshold at high $z$ via $J_\alpha^{\mathrm{EBL}}(z)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PPPC4DMID Photon Yields}
+\textbf{Cirelli et al.\ (2011):} Tabulated $dN/d\log_{10} x$ per annihilation event.
+
+\begin{align}
+x &= E / \mchi \\[3pt]
+\frac{dN}{dx} &= \frac{dN/d\log_{10} x}{x\,\ln 10} \\[3pt]
+\frac{dN}{dE} &= \frac{1}{\mchi}\,\frac{dN}{dx}
+\end{align}
+
+\vspace{0.2cm}
+\textbf{Channels used:} $b\bar{b}$ (primary), $\tau^+\tau^-$, $W^+W^-$, $ZZ$, $c\bar{c}$, $t\bar{t}$, $gg$, $hh$, etc.
+
+\vspace{0.2cm}
+\textbf{Mass range:} 5 GeV -- 100 TeV.\\[4pt]
+\textbf{D7:} Pipeline uses public PPPC4DMID tables (thesis used private Pythia code).
+\end{frame}
