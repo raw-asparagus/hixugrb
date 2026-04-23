@@ -321,10 +321,6 @@ def _glf_mAGN(L, z):
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
     L_151, dL151_dLgamma = _L151_from_Lgamma(L)
-
-    if L_151 <= 0:
-        return 0.0
-
     rho_r = _willott_rlf(L_151, z)  # dPhi/d(log10 L) in Willott cosmology
     eta = _willott_volume_correction(z)
 
@@ -447,10 +443,6 @@ def _glf_SFG(L, z):
     Returns dPhi/dL_gamma [Mpc^{-3} (erg/s)^{-1}].
     """
     L_IR_Lsun, dlogLIR_dlogLgamma = _L_IR_from_Lgamma(L)
-
-    if L_IR_Lsun <= 0:
-        return 0.0
-
     phi_IR_logL = _gruppioni_ir_lf(L_IR_Lsun, z)  # dPhi/d(log10 L_IR)
 
     # Eq. C.28: phi_gamma in dPhi/d(log10 L_gamma) = phi_IR * |dlogLIR/dlogLgamma|
@@ -556,6 +548,14 @@ def _glf_BL_Lac(L, z):
     return _ldde_glf(L, z, _BL_LAC_PARAMS, evolution_form='ldde_inv')
 
 
+_GLF_DISPATCH = {
+    'BL_Lac': _glf_BL_Lac,
+    'FSRQ': _glf_FSRQ,
+    'mAGN': _glf_mAGN,
+    'SFG': _glf_SFG,
+}
+
+
 def glf(L, z, source_class):
     """Gamma-ray luminosity function phi(L, z) [Mpc^{-3} (erg/s)^{-1}].
 
@@ -568,15 +568,9 @@ def glf(L, z, source_class):
     source_class : str
         One of 'BL_Lac', 'FSRQ', 'mAGN', 'SFG'.
     """
-    if source_class == 'BL_Lac':
-        return _glf_BL_Lac(L, z)
-    elif source_class == 'FSRQ':
-        return _glf_FSRQ(L, z)
-    elif source_class == 'mAGN':
-        return _glf_mAGN(L, z)
-    elif source_class == 'SFG':
-        return _glf_SFG(L, z)
-    else:
+    try:
+        return _GLF_DISPATCH[source_class](L, z)
+    except KeyError:
         raise ValueError(f"Unknown source class: {source_class}")
 
 
@@ -803,4 +797,4 @@ def bias_astro(z, source_class):
         M_halo_phys = max(M_halo_phys, 1e10)
         return hm.bias(M_halo_phys / cfg.h, z)
 
-    return hm.bias(1e12, z)
+    raise ValueError(f"Unknown source class: {source_class}")

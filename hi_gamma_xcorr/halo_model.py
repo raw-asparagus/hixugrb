@@ -141,8 +141,7 @@ def concentration_correa(M, z):
     gamma = -0.01537 + 0.02102 * zp1**(-0.1475)
     log_c = alpha + beta * log_M * (1.0 + gamma * log_M**2)
 
-    c = 10.0**log_c
-    return np.maximum(c, 1.0)
+    return 10.0**log_c
 
 
 def c200_to_cvir(c200, z):

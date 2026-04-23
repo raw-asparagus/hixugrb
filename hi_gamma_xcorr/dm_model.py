@@ -124,10 +124,7 @@ def boost_moline(M, z, M_min_sub=1e-6):
     # z-scaling (Thesis Eq. 3.48)
     B = B_z0 / (1.0 + z)
 
-    # Zero out below M_min_sub for conservative scenario
-    B = np.where(mask, B, 0.0)
-
-    return np.maximum(B, 0.0)
+    return np.where(mask, B, 0.0)
 
 
 # ---------------------------------------------------------------------------

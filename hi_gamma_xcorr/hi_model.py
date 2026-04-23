@@ -361,8 +361,6 @@ def b_HI(z, M_min=None, M_max=None, hi_brightness='padmanabhan'):
 
     M_min, M_max = _m_limits(M_min, M_max)
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
-    if rho <= 0:
-        return 0.0
 
     def integrand(lnM):
         M = np.exp(lnM)
@@ -384,16 +382,12 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
     M_min, M_max = _m_limits(M_min, M_max)
     k = np.atleast_1d(np.asarray(k, dtype=float))
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
-    if rho <= 0:
-        return np.zeros_like(k)
 
     M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
     result = np.zeros_like(k)
 
     for M in M_arr:
         dn = hm.dndM(M, z)
-        if dn <= 0:
-            continue
         mhi = M_HI(M, z)
         u = u_HI(k, M, z)
         # Rectangle rule in log-mass
@@ -421,28 +415,18 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160, hi_brightness='padmanabhan'):
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
 
-    if not _is_known_mode(hi_brightness):
-        raise ValueError(
-            "hi_brightness must be 'padmanabhan', 'fixed_omega' or 'cunnington' "
-            f"(got {hi_brightness!r})"
-        )
-
     if _is_cunnington_mode(hi_brightness):
         b = float(b_HI_cunnington(z))
         return b * b * cosmo.P_lin(k, z)
 
     M_min, M_max = _m_limits(M_min, M_max)
     rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
-    if rho <= 0:
-        return np.zeros_like(k)
 
     M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
     I_2h = np.zeros_like(k)
 
     for M in M_arr:
         dn = hm.dndM(M, z)
-        if dn <= 0:
-            continue
         mhi = M_HI(M, z)
         b = hm.bias(M, z)
         u = u_HI(k, M, z)

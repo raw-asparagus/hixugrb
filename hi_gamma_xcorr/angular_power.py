@@ -34,15 +34,8 @@ def P_HI_DM_2h(k, z, n_M=120, hi_brightness='padmanabhan'):
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
     Delta2 = dm.clumping_factor(z)
-
-    if Delta2 <= 0:
-        return np.zeros_like(k)
-
     cunn_mode = hi._is_cunnington_mode(hi_brightness)
-
     rho_HI = None if cunn_mode else hi.rho_HI_mean(z)
-    if not cunn_mode and rho_HI <= 0:
-        return np.zeros_like(k)
 
     M_min = max(cfg.M_MIN_HI, 1e8)
     M_max = min(cfg.M_MAX_HI, 1e16)
@@ -53,8 +46,6 @@ def P_HI_DM_2h(k, z, n_M=120, hi_brightness='padmanabhan'):
     for M in M_arr:
         dn = hm.dndM(M, z)
         b = hm.bias(M, z)
-        if dn <= 0:
-            continue
         vt = dm.v_tilde(k, M, z)
         I_DM += dn * b * vt / Delta2 * M
         if not cunn_mode:
@@ -102,8 +93,6 @@ def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
         return b_hi * b_astro * cosmo.P_lin(k, z)
 
     rho_HI = hi.rho_HI_mean(z)
-    if rho_HI <= 0:
-        return np.zeros_like(k)
 
     # HI bias integral (same as P_HI_2h but just the integral part)
     M_min = max(cfg.M_MIN_HI, 1e8)
@@ -115,8 +104,6 @@ def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
         dn = hm.dndM(M, z)
         b = hm.bias(M, z)
         m_hi = hi.M_HI(M, z)
-        if dn <= 0 or m_hi <= 0:
-            continue
         u_hi = hi.u_HI(k, M, z)
         I_HI += dn * b * m_hi * u_hi / rho_HI * M
 
@@ -192,8 +179,6 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
     for z in z_arr:
         # Comoving distance and dchi/dz
         chi_z = cosmo.chi(z)  # Mpc/h
-        if chi_z <= 0:
-            continue
         H_z = cosmo.H(z)  # km/s/Mpc
         dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h  # Mpc/h per unit z
 
@@ -299,8 +284,6 @@ def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
     for z in z_arr:
         # ----- E-independent Limber kernel -----
         chi_z = cosmo.chi(z)  # Mpc/h
-        if chi_z <= 0:
-            continue
         H_z = cosmo.H(z)
         dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h
 
@@ -367,8 +350,6 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100,
 
     for z in z_arr:
         chi_z = cosmo.chi(z)
-        if chi_z <= 0:
-            continue
         H_z = cosmo.H(z)
         dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h
 

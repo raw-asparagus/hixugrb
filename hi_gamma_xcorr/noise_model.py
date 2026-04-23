@@ -334,8 +334,6 @@ def _sigma_king_from_containment(theta_68, gamma_king):
     # sigma^2 = r^2 / (2*gamma * (0.32^{1/(1-gamma)} - 1))
     exponent = 1.0 / (1.0 - gamma_king)
     factor = 0.32**exponent - 1.0
-    if factor <= 0:
-        return theta_68 / 2.0  # fallback
     sigma2 = theta_68**2 / (2.0 * gamma_king * factor)
     return np.sqrt(sigma2)
 
