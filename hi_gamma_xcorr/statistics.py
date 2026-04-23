@@ -76,50 +76,28 @@ def variance_Cl(ell, C_HI_auto, N_HI, B_HI, N_gamma, B_gamma, f_sky):
 def compute_SNR(telescope, band_name, fermissimo=False,
                 ell_min=10, ell_max=1000, n_ell=100,
                 source_classes=None, n_z=100, n_M=60,
-                analysis_mode='forecast', hi_brightness=None):
+                analysis_mode=cfg.AnalysisMode.FORECAST, hi_brightness=None):
     """Compute the total signal-to-noise ratio for detecting the cross-correlation.
 
     SNR^2 = sum over (l, E-bins) of [C_l^{HI x gamma_astro} / Delta C_l]^2
 
-    Parameters
-    ----------
-    telescope : str
-        Radio telescope name.
-    band_name : str
-        Band name.
-    fermissimo : bool
-        Use Fermissimo specs instead of Fermi-LAT.
-    analysis_mode : str
-        'forecast': Pinetti+(2020) treatment (12 bins, Gaussian beam, no l cuts)
-        'data': Ammazzalorso+(2018) treatment (11 bins, exact beam, l cuts)
-    hi_brightness : str, optional
-        HI brightness prescription: 'padmanabhan', 'fixed_omega', or
-        'cunnington' (= 'meerfish'). If None (default), the canonical value
-        is read from `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']`
-        — falling back to 'padmanabhan' if the entry has no canonical setting.
-        This makes Pinetti+(2020/2022) legacy entries (MeerKAT, SKA1, SKA2)
-        default to 'fixed_omega' (matching Pinetti's Omega_HI = 2.45e-4
-        assumption) and the new MeerKLASS_* entries default to 'cunnington'
-        (matching the actually-measured Cunnington+2025 polynomial).
-
-    Returns
-    -------
-    SNR : float
+    If ``hi_brightness`` is None (default), the canonical value is read from
+    ``cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']``.
     """
     if source_classes is None:
         source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
 
     tel = cfg.RADIO_TELESCOPES[telescope]
     if hi_brightness is None:
-        hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
-    unresolved_mode = tel.get('default_unresolved_mode', 'pinetti_constant')
+        hi_brightness = tel.get('default_hi_brightness', cfg.HiBrightness.PADMANABHAN)
+    unresolved_mode = tel.get('default_unresolved_mode', cfg.UnresolvedMode.PINETTI_CONSTANT)
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
     z_mid = 0.5 * (z_min + z_max)
 
     # Select energy bins based on analysis mode
-    if analysis_mode == 'data':
+    if analysis_mode == cfg.AnalysisMode.DATA:
         n_bins = cfg.AMMAZZALORSO_N_BINS
         E_b_arr = cfg.AMMAZZALORSO_E_B
         ell_min_arr = cfg.AMMAZZALORSO_ELL_MIN
@@ -174,7 +152,7 @@ def compute_SNR(telescope, band_name, fermissimo=False,
             N_gamma = nm.noise_fermissimo(ie)
             B_gamma = nm.beam_fermissimo(ell_bin, E_b)
             f_sky = nm.f_sky_effective(telescope, band_name, ie, fermissimo=True)
-        elif analysis_mode == 'data':
+        elif analysis_mode == cfg.AnalysisMode.DATA:
             # Data mode: use Pinetti noise (closest bin) with exact beam
             ie_pinetti = _closest_pinetti_bin(E_b)
             N_gamma = nm.noise_fermi(ie_pinetti)
@@ -212,23 +190,18 @@ def _closest_pinetti_bin(E_GeV):
 # ---------------------------------------------------------------------------
 
 def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
-               channel='bb', fermissimo=False,
+               channel=cfg.Channel.BB, fermissimo=False,
                ell_min=10, ell_max=1000, n_ell=100,
                n_z=100, n_M=60, hi_brightness=None):
     """Compute Delta chi^2 for a given DM mass and cross-section.
 
-    Delta chi^2 = sum_l,E [(C_l^{astro+DM} / sigma)^2 - (C_l^{astro} / sigma)^2]
-
-    Since C_DM is proportional to sigma_v, this is a simple function.
-
-    If `hi_brightness` is None, the canonical mode is read from
-    `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']` (see
-    `compute_SNR` docstring for the convention).
+    If ``hi_brightness`` is None, reads the canonical mode from
+    ``cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']``.
     """
     tel = cfg.RADIO_TELESCOPES[telescope]
     if hi_brightness is None:
-        hi_brightness = tel.get('default_hi_brightness', 'padmanabhan')
-    unresolved_mode = tel.get('default_unresolved_mode', 'pinetti_constant')
+        hi_brightness = tel.get('default_hi_brightness', cfg.HiBrightness.PADMANABHAN)
+    unresolved_mode = tel.get('default_unresolved_mode', cfg.UnresolvedMode.PINETTI_CONSTANT)
     band = tel['bands'][band_name]
     z_min = band['z_min']
     z_max = band['z_max']
@@ -293,17 +266,13 @@ def delta_chi2(m_chi_GeV, sigma_v, telescope, band_name,
 # DM exclusion curve
 # ---------------------------------------------------------------------------
 
-def exclusion_curve(telescope, band_name, channel='bb',
+def exclusion_curve(telescope, band_name, channel=cfg.Channel.BB,
                     fermissimo=False, CL='95',
                     m_chi_arr=None, n_ell=50, n_z=50, n_M=30,
                     hi_brightness=None):
     """Compute the DM exclusion curve: sigma_v vs m_chi.
 
     For each m_chi, find sigma_v where Delta chi^2 = threshold.
-
-    If `hi_brightness` is None, the canonical mode is read from
-    `cfg.RADIO_TELESCOPES[telescope]['default_hi_brightness']` (see
-    `compute_SNR` docstring for the convention).
 
     Parameters
     ----------
@@ -317,7 +286,7 @@ def exclusion_curve(telescope, band_name, channel='bb',
     """
     if hi_brightness is None:
         hi_brightness = cfg.RADIO_TELESCOPES[telescope].get(
-            'default_hi_brightness', 'padmanabhan'
+            'default_hi_brightness', cfg.HiBrightness.PADMANABHAN
         )
     if CL == '95':
         threshold = _DCHI2_95CL

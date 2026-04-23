@@ -5,10 +5,13 @@ Loads tables from data/pppc4dmid/AtProduction_gammas.dat if available,
 otherwise falls back to analytic approximations.
 """
 
+import os
+
 import numpy as np
 from scipy.interpolate import RectBivariateSpline
 from scipy.integrate import trapezoid
-import os
+
+from .config import Channel
 
 _data_dir = os.path.join(os.path.dirname(__file__), 'data', 'pppc4dmid')
 _table_file = os.path.join(_data_dir, 'AtProduction_gammas.dat')
@@ -180,7 +183,7 @@ def _tautau_spectrum_analytic(x, m_chi_GeV):
 # Public API
 # ---------------------------------------------------------------------------
 
-def dNdx(x, m_chi_GeV, channel='bb'):
+def dNdx(x, m_chi_GeV, channel=Channel.BB):
     """Photon spectrum dN/dx per annihilation.
 
     Uses PPPC4DMID tables if available, analytic approximation otherwise.
@@ -223,7 +226,7 @@ def dNdx(x, m_chi_GeV, channel='bb'):
                              "Download tables with pppc4dmid.download_tables()")
 
 
-def dNdE(E_GeV, m_chi_GeV, channel='bb'):
+def dNdE(E_GeV, m_chi_GeV, channel=Channel.BB):
     """Differential photon yield dN/dE [GeV^{-1}] per annihilation.
 
     Parameters
@@ -244,7 +247,7 @@ def dNdE(E_GeV, m_chi_GeV, channel='bb'):
     return dNdx(x, m_chi_GeV, channel) / m_chi_GeV
 
 
-def total_multiplicity(m_chi_GeV, channel='bb', n_pts=500):
+def total_multiplicity(m_chi_GeV, channel=Channel.BB, n_pts=500):
     """Total photon multiplicity: integral dN/dx dx."""
     x = np.logspace(-6, -0.001, n_pts)
     spectrum = dNdx(x, m_chi_GeV, channel)

@@ -11,7 +11,103 @@ Convention: internal calculations use h-dependent cosmological units
 Physical (SI/CGS) units are used only at interfaces (e.g., instrument noise).
 """
 
+from enum import StrEnum
+
 import numpy as np
+
+
+# ---------------------------------------------------------------------------
+# String-typed parameter enums
+#
+# StrEnum values compare equal to their string, so existing code that passes
+# raw strings (e.g. hi_brightness='cunnington') keeps working unchanged.
+# Aliases are resolved via _missing_ to the canonical member.
+# ---------------------------------------------------------------------------
+
+class HiBrightness(StrEnum):
+    """HI brightness temperature / bias prescription."""
+    PADMANABHAN = 'padmanabhan'
+    FIXED_OMEGA = 'fixed_omega'
+    CUNNINGTON  = 'cunnington'
+
+    @classmethod
+    def _missing_(cls, value):
+        return {
+            'computed': cls.PADMANABHAN, 'halo_integral': cls.PADMANABHAN,
+            'omega_fixed': cls.FIXED_OMEGA, 'pinetti_omega': cls.FIXED_OMEGA,
+            'meerfish': cls.CUNNINGTON, 'cunnington2025': cls.CUNNINGTON,
+        }.get(value)
+
+
+class UnresolvedMode(StrEnum):
+    """Fermi-LAT unresolved-source threshold convention."""
+    PINETTI_CONSTANT = 'pinetti_constant'
+    FGL_DR4_PSF      = '4fgl_dr4_psf'
+
+    @classmethod
+    def _missing_(cls, value):
+        return {
+            'forecast': cls.PINETTI_CONSTANT,
+            'data': cls.FGL_DR4_PSF,
+        }.get(value)
+
+
+class AnalysisMode(StrEnum):
+    """Energy-bin and beam scheme for SNR computation."""
+    FORECAST = 'forecast'
+    DATA     = 'data'
+
+
+class TSysModel(StrEnum):
+    """Radio system temperature model."""
+    PINETTI = 'pinetti'
+    MEERKAT = 'meerkat'
+
+    @classmethod
+    def _missing_(cls, value):
+        return {
+            'pinetti2020': cls.PINETTI, 'pinetti_2022': cls.PINETTI,
+            'camera2013': cls.PINETTI,
+            'cunnington2022': cls.MEERKAT, 'wang2021': cls.MEERKAT,
+        }.get(value)
+
+
+class BoostScenario(StrEnum):
+    """DM substructure boost model."""
+    NO_BOOST     = 'no_boost'
+    CONSERVATIVE = 'conservative'
+    INTERMEDIATE = 'intermediate'
+
+    @classmethod
+    def _missing_(cls, value):
+        return {
+            'none': cls.NO_BOOST,
+        }.get(value)
+
+
+class Channel(StrEnum):
+    """DM annihilation channel."""
+    BB    = 'bb'
+    TAUTAU = 'tautau'
+    WW    = 'WW'
+    ZZ    = 'ZZ'
+    CC    = 'cc'
+    TT    = 'tt'
+    EE    = 'ee'
+    MUMU  = 'mumu'
+    GG    = 'gg'
+    HH    = 'hh'
+    QQ    = 'qq'
+    GAMMAGAMMA = 'gammagamma'
+
+
+class EBLModel(StrEnum):
+    """Extragalactic background light opacity model."""
+    DOMINGUEZ     = 'dominguez'
+    FINKE         = 'finke'
+    FRANCESCHINI  = 'franceschini'
+    SALDANA_LOPEZ = 'saldana-lopez21'
+
 
 # ---------------------------------------------------------------------------
 # Physical constants (SI)
@@ -318,9 +414,9 @@ RADIO_TELESCOPES = {
         # Pinetti+(2020/2022) forecast target — use Pinetti's generic T_sys
         # and her fixed Omega_HI = 2.45e-4 for apples-to-apples comparison
         # against Pinetti+2020 Table 4.
-        'T_sys_model': 'pinetti',
-        'default_hi_brightness': 'fixed_omega',
-        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
+        'T_sys_model': TSysModel.PINETTI,
+        'default_hi_brightness': HiBrightness.FIXED_OMEGA,
+        'default_unresolved_mode': UnresolvedMode.PINETTI_CONSTANT,  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
     'MeerKLASS_L_pilot': {
         # 2019 MeerKLASS L-band pilot survey. The observational paper is
@@ -347,9 +443,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 200.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     # NOTE — the two MeerKLASS DR1 entries below mirror the *interferometric
     # continuum* DR1 papers (Mangla+2025 L-band, Paul+2025 UHF). The published
@@ -380,9 +476,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 268.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_DR1_UHF': {
         # Paul et al. (2025), arXiv:2512.11964 — MeerKLASS UHF OTF DR1.
@@ -404,9 +500,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 800.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_L_deepfield': {
         # MeerKLASS L-band deep-field, MeerKLASS Collaboration et al. (2025),
@@ -436,9 +532,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 236.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_2024_HI': {
         # Cumulative MeerKLASS UHF single-dish HI total at end of 2024,
@@ -461,9 +557,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 1600.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'MeerKLASS_XLP_2028': {
         # Authoritative full-programme forecast configuration, taken directly
@@ -489,9 +585,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 10000.0 / 41253.0,
         # Canonical MeerKAT receiver model + Cunnington+2025 / MeerFish Omega_HI
-        'T_sys_model': 'meerkat',
-        'default_hi_brightness': 'cunnington',
-        'default_unresolved_mode': '4fgl_dr4_psf',  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
+        'T_sys_model': TSysModel.MEERKAT,
+        'default_hi_brightness': HiBrightness.CUNNINGTON,
+        'default_unresolved_mode': UnresolvedMode.FGL_DR4_PSF,  # Ballet+2023 4FGL-DR4 baseline + Ammazzalorso+2018b PSF scaling
     },
     'SKA1': {
         'survey_area_deg2': 25000.0,
@@ -509,9 +605,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 0.61,
         # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
-        'T_sys_model': 'pinetti',
-        'default_hi_brightness': 'fixed_omega',
-        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
+        'T_sys_model': TSysModel.PINETTI,
+        'default_hi_brightness': HiBrightness.FIXED_OMEGA,
+        'default_unresolved_mode': UnresolvedMode.PINETTI_CONSTANT,  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
     'SKA2': {
         'survey_area_deg2': 30000.0,
@@ -529,9 +625,9 @@ RADIO_TELESCOPES = {
         },
         'f_sky': 0.72,
         # Pinetti+(2020/2022) forecast target — see MeerKAT entry comment.
-        'T_sys_model': 'pinetti',
-        'default_hi_brightness': 'fixed_omega',
-        'default_unresolved_mode': 'pinetti_constant',  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
+        'T_sys_model': TSysModel.PINETTI,
+        'default_hi_brightness': HiBrightness.FIXED_OMEGA,
+        'default_unresolved_mode': UnresolvedMode.PINETTI_CONSTANT,  # Pinetti+2020/2022 F_SENS = 1e-10 cm^-2 s^-1
     },
 }
 

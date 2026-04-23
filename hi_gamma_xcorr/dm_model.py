@@ -150,7 +150,8 @@ def _clumping_compute(z, M_min, M_max, boost_scenario):
     return val / cfg.RHO_BAR**2 / (1.0 + z)**3
 
 
-def clumping_factor(z, M_min=None, M_max=None, boost_scenario='intermediate'):
+def clumping_factor(z, M_min=None, M_max=None,
+                    boost_scenario=cfg.BoostScenario.INTERMEDIATE):
     """Clumping factor Delta^2(z) = <rho^2>_phys / rho_bar_phys(z)^2.
 
     The physical-variable definition, consistent with Ullio+2002 Eq. 10 /
@@ -211,8 +212,8 @@ def _W_gamma_DM_impl(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario):
     return W_cgs * Mpc_h_cm**3
 
 
-def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel='bb',
-               boost_scenario='intermediate'):
+def W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v=None, channel=cfg.Channel.BB,
+               boost_scenario=cfg.BoostScenario.INTERMEDIATE):
     """DM annihilation gamma-ray window function per comoving distance (Pinetti Eq. 4.1).
 
     W_DM(chi) = (1/(4pi)) * (sigma_v / 2) * (Omega_DM rho_c / m_chi)^2 * (1+z)^3

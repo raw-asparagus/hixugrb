@@ -22,9 +22,6 @@ from . import config as cfg
 
 _RAYLEIGH = 1.22
 
-_MEERKAT_T_SYS_MODELS = frozenset(('meerkat', 'cunnington2022', 'wang2021'))
-_PINETTI_T_SYS_MODELS = frozenset(('pinetti', 'pinetti2020', 'pinetti_2022', 'camera2013'))
-
 # ---------------------------------------------------------------------------
 # Radio system temperature
 # ---------------------------------------------------------------------------
@@ -87,21 +84,14 @@ def T_sys_meerkat(nu_MHz):
     return T_rx + T_spl + T_CMB + T_gal
 
 
-def T_sys(nu_MHz, model='pinetti'):
+def T_sys(nu_MHz, model=cfg.TSysModel.PINETTI):
     """Dispatcher for system temperature models. See `T_sys_pinetti` and
     `T_sys_meerkat` for the two available implementations.
-
-    `noise_dish` / `noise_interf` consult the per-telescope `T_sys_model`
-    field in `cfg.RADIO_TELESCOPES[telescope]` to choose; the default is
-    `'pinetti'` for back-compat.
     """
-    if model in _MEERKAT_T_SYS_MODELS:
+    model = cfg.TSysModel(model)
+    if model is cfg.TSysModel.MEERKAT:
         return T_sys_meerkat(nu_MHz)
-    if model in _PINETTI_T_SYS_MODELS:
-        return T_sys_pinetti(nu_MHz)
-    raise ValueError(
-        f"T_sys_model must be 'pinetti' or 'meerkat' (got {model!r})"
-    )
+    return T_sys_pinetti(nu_MHz)
 
 
 def nu_obs(z):

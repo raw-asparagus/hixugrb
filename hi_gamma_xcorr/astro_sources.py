@@ -24,8 +24,6 @@ from . import ebl as ebl_mod
 # Module-level constants for dispatch and characteristic values
 # ---------------------------------------------------------------------------
 
-_4FGL_DR4_MODES = frozenset(('4fgl_dr4_psf', 'data'))
-_PINETTI_CONST_MODES = frozenset(('pinetti_constant', 'forecast'))
 
 _BLAZAR_HALO_MASS = 1e13
 _MAGN_CHAR_LGAMMA = 1e44
@@ -579,13 +577,13 @@ def glf(L, z, source_class):
 # ---------------------------------------------------------------------------
 
 def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
-                  unresolved_mode='pinetti_constant'):
+                  unresolved_mode=cfg.UnresolvedMode.PINETTI_CONSTANT):
     """Astrophysical gamma-ray window function per comoving distance (Pinetti Eq. 4.3).
 
-    Thin wrapper that casts arguments to hashable types and delegates to
-    ``_W_gamma_astro_impl``. See ``_W_gamma_astro_impl`` for full parameter
-    documentation and the ``unresolved_mode`` dispatch semantics.
+    Thin wrapper that normalizes arguments and delegates to
+    ``_W_gamma_astro_impl``.
     """
+    unresolved_mode = cfg.UnresolvedMode(unresolved_mode)
     return _W_gamma_astro_impl(float(E_GeV), float(z), source_class,
                                unresolved_only, unresolved_mode)
 
@@ -653,21 +651,12 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
     L_max = params['L_max']
 
     if unresolved_only:
-        # Dispatch on unresolved_mode (see W_gamma_astro docstring for the
-        # full mode list and per-mode rationale).
-        if unresolved_mode in _4FGL_DR4_MODES:
-            # 4FGL-DR4 baseline + Ammazzalorso+2018b PSF-area scaling
+        if unresolved_mode is cfg.UnresolvedMode.FGL_DR4_PSF:
             L_thr = L_sens(z, E_GeV=E_GeV, alpha=alpha,
                            F_sens_baseline=cfg.F_SENS_4FGL_DR4)
-        elif unresolved_mode in _PINETTI_CONST_MODES:
-            # Pinetti+2020/2022 constant baseline
+        else:
             L_thr = L_sens(z, alpha=alpha,
                            F_sens_baseline=cfg.F_SENS_PINETTI)
-        else:
-            raise ValueError(
-                f"unresolved_mode must be 'pinetti_constant' or '4fgl_dr4_psf' "
-                f"(got {unresolved_mode!r})"
-            )
         L_up = min(L_max, L_thr)
     else:
         L_up = L_max

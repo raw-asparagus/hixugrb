@@ -6,6 +6,8 @@ Primary model: Dominguez et al. (2011).
 
 import numpy as np
 
+from . import config as cfg
+
 # ---------------------------------------------------------------------------
 # ebltable-based implementation
 # ---------------------------------------------------------------------------
@@ -13,7 +15,7 @@ import numpy as np
 _od_cache = {}  # cache OptDepth objects by model name
 
 
-def _get_optdepth(model='dominguez'):
+def _get_optdepth(model=cfg.EBLModel.DOMINGUEZ):
     """Get (or create) an ebltable OptDepth object."""
     if model not in _od_cache:
         from ebltable.tau_from_model import OptDepth
@@ -25,7 +27,7 @@ def _get_optdepth(model='dominguez'):
 # Public API
 # ---------------------------------------------------------------------------
 
-def tau(E_GeV, z, model='dominguez'):
+def tau(E_GeV, z, model=cfg.EBLModel.DOMINGUEZ):
     """EBL optical depth tau(E, z).
 
     Parameters
@@ -54,6 +56,6 @@ def tau(E_GeV, z, model='dominguez'):
     return result
 
 
-def attenuation(E_GeV, z, model='dominguez'):
+def attenuation(E_GeV, z, model=cfg.EBLModel.DOMINGUEZ):
     """EBL attenuation factor exp(-tau(E, z))."""
     return np.exp(-tau(E_GeV, z, model=model))

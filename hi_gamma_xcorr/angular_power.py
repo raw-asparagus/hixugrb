@@ -16,25 +16,16 @@ from . import astro_sources as astro
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
 # ---------------------------------------------------------------------------
 
-def P_HI_DM_2h(k, z, n_M=120, hi_brightness='padmanabhan'):
-    """Two-halo HI × DM cross-power spectrum [(Mpc/h)^3].
+def P_HI_DM_2h(k, z, n_M=120, hi_brightness=cfg.HiBrightness.PADMANABHAN):
+    """Two-halo HI x DM cross-power spectrum [(Mpc/h)^3].
 
-    P^{2h} = [sum dn * b * v_tilde/Delta^2 * M * dlnM]
-             × [sum dn * b * u_HI * M_HI/rho_HI * M * dlnM] × P_lin
-             (halo integral, Padmanabhan / Pinetti convention)
-
-    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, the HI
-    halo integral collapses to the linear-bias polynomial:
-
-        P^{2h}(k, z) = I_DM(k, z) * b_HI_cunn(z) * P_lin(k, z)
-
-    The DM kernel I_DM is unchanged because the DM 2-halo bias is a separate
-    weighted integral over the dark-matter density-squared profile and has
-    nothing to do with the HI side.
+    Halo integral for Padmanabhan/fixed_omega; linear-bias polynomial for
+    Cunnington mode. The DM kernel I_DM is mode-independent.
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
+    hi_brightness = cfg.HiBrightness(hi_brightness)
     Delta2 = dm.clumping_factor(z)
-    cunn_mode = hi._is_cunnington_mode(hi_brightness)
+    cunn_mode = hi_brightness is cfg.HiBrightness.CUNNINGTON
     rho_HI = None if cunn_mode else hi.rho_HI_mean(z)
 
     M_min = max(cfg.M_MIN_HI, 1e8)
@@ -69,26 +60,20 @@ def P_HI_DM_2h(k, z, n_M=120, hi_brightness='padmanabhan'):
 # HI × Astrophysical source 3D cross-power spectra (Eqs. 5.3–5.4)
 # ---------------------------------------------------------------------------
 
-def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
-    """Two-halo HI × astrophysical source cross-power spectrum.
+def P_HI_astro_2h(k, z, source_class, n_M=120,
+                   hi_brightness=cfg.HiBrightness.PADMANABHAN):
+    """Two-halo HI x astrophysical source cross-power spectrum.
 
-    P^{2h} = b_HI_integral × b_astro × P_lin
-             (halo integral, Padmanabhan / Pinetti convention)
-
-    For point sources, the 2-halo term dominates and is the product
-    of the HI bias integral and the source effective bias times P_lin.
-
-    When ``hi_brightness`` selects the Cunnington 2025 / MeerFish mode, the HI
-    halo integral collapses to the linear-bias polynomial:
-
-        P^{2h}(k, z) = b_HI_cunn(z) * b_astro(z) * P_lin(k, z)
+    Halo integral for Padmanabhan/fixed_omega; linear-bias polynomial for
+    Cunnington mode.
     """
     k = np.atleast_1d(np.asarray(k, dtype=float))
+    hi_brightness = cfg.HiBrightness(hi_brightness)
 
     # Astrophysical source bias (independent of HI mode)
     b_astro = astro.bias_astro(z, source_class)
 
-    if hi._is_cunnington_mode(hi_brightness):
+    if hi_brightness is cfg.HiBrightness.CUNNINGTON:
         b_hi = float(hi.b_HI_cunnington(float(z)))
         return b_hi * b_astro * cosmo.P_lin(k, z)
 
@@ -120,7 +105,7 @@ def P_HI_astro_2h(k, z, source_class, n_M=120, hi_brightness='padmanabhan'):
 def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
                    m_chi_GeV=100.0, sigma_v=None, channel='bb',
                    source_classes=None, include_DM=True,
-                   n_z=200, n_k_M=100, hi_brightness='padmanabhan'):
+                   n_z=200, n_k_M=100, hi_brightness=cfg.HiBrightness.PADMANABHAN):
     """Compute C_l^{HI × gamma} via Limber integration (Pinetti Eq. 2.1).
 
     C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+1/2)/chi, z)
@@ -147,17 +132,8 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
         Astrophysical source classes to include. None = all four.
     include_DM : bool
         Whether to include the DM contribution.
-    hi_brightness : str
-        HI prescription used for *both* the brightness and the bias.
-        - ``'padmanabhan'``: 188 mK with halo-integral Omega_HI(z) and the
-          halo-integral effective HI bias (Padmanabhan+2017 modified-NFW).
-        - ``'fixed_omega'``: 188 mK with the fixed Omega_HI = 2.45e-4 of
-          Pinetti 2020 / Battye+2013, halo-integral bias.
-        - ``'cunnington'`` (alias ``'meerfish'``): 180 mK with the Cunnington
-          et al. (2025) Eq. A5 polynomial Omega_HI(z) AND the matched Eq. A3
-          polynomial b_HI(z). Both brightness and bias are switched together
-          so the C_ell is internally self-consistent with the MeerKLASS data
-          analyses and the public MeerFish forecast code.
+    hi_brightness : HiBrightness or str
+        HI brightness/bias prescription. See ``cfg.HiBrightness``.
 
     Returns
     -------
@@ -224,8 +200,8 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
 def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
                            m_chi_GeV=100.0, sigma_v=None, channel='bb',
                            source_classes=None, include_DM=True,
-                           n_z=200, n_k_M=100, hi_brightness='padmanabhan',
-                           unresolved_mode='pinetti_constant'):
+                           n_z=200, n_k_M=100, hi_brightness=cfg.HiBrightness.PADMANABHAN,
+                           unresolved_mode=cfg.UnresolvedMode.PINETTI_CONSTANT):
     """Multi-energy Limber driver: computes ``C_ell_HI_gamma`` for each energy
     in ``E_arr`` while doing the redshift loop only once.
 
@@ -337,7 +313,7 @@ def C_ell_HI_gamma_multi_E(ell, E_arr, z_min, z_max, telescope, band_name,
 # ---------------------------------------------------------------------------
 
 def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100,
-                  hi_brightness='padmanabhan'):
+                  hi_brightness=cfg.HiBrightness.PADMANABHAN):
     """HI auto-correlation angular power spectrum C_l^{HI,HI}.
 
     Uses only the 2-halo term for efficiency.
@@ -384,7 +360,7 @@ def normalized_windows(z_arr, E_GeV=5.0, m_chi_GeV=100.0, sigma_v=None,
                        channel='bb', source_classes=None,
                        z_min_hi=None, z_max_hi=None,
                        unresolved_only=True, include_DM=True,
-                       z_norm_max=None, hi_brightness='padmanabhan'):
+                       z_norm_max=None, hi_brightness=cfg.HiBrightness.PADMANABHAN):
     r"""Compute uniformly normalized window functions for all tracers.
 
     Returns $\hat{W}_i(z) = \frac{c\,h}{H(z)} \frac{W_i^{(\chi)}(z)}{\langle I_i \rangle}$
