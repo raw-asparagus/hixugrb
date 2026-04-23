@@ -1,11 +1,12 @@
-\section{Pipeline Overview}
+\section{Research Overview}
 
 \begin{frame}{Scientific Goal}
+\textbf{Hypothesis:} DM traces LSS and annihilation events from particle-like DM has gamma-ray SED detectable from $\Cl^{\mathrm{HI}\times\mathrm{DM}}$, subdominant in $\Cl^{\mathrm{HI}\times\gamma}$.
 \begin{itemize}
-    \item Cross-correlate \textbf{HI 21-cm intensity maps} (MeerKAT/SKA) with the \textbf{unresolved gamma-ray background} (Fermi-LAT)
-    \item Detect astrophysical cross-signal (blazars, mAGN, SFGs sharing LSS with HI)
+    \item Cross-correlate \textbf{HI 21-cm intensity maps} (MeerKAT) with the \textbf{unresolved gamma-ray background} (Fermi-LAT)
+    \item Detect astrophysical cross-signal $\Cl^{\mathrm{HI}\times\star}$ (blazars, mAGN, SFGs sharing LSS with HI)
     \item Constrain dark matter annihilation via excess $\Cl^{\mathrm{HI}\times\gamma}$
-    \item Based on Pinetti, Camera, Fornengo \& Regis (2020, JCAP 07:044)
+    \item Based on \href{https://arxiv.org/abs/1911.04989}{Pinetti, Camera, Fornengo \& Regis (2020)}, arXiv:1911.04989
 \end{itemize}
 \end{frame}
 
@@ -86,3 +87,7 @@ Fermi noise & $\mathrm{cm}^{-4}\,\mathrm{s}^{-2}\,\mathrm{sr}^{-1}$ & $N^\gamma$
 All internal calculations use $h$-dependent comoving units.\\
 Physical units appear only at module boundaries (explicit conversion).
 \end{frame}
+
+% $r_s$ is the NFW scale radius, not the physical scale radius of the halo. The latter is $R_{\mathrm{vir}}$.
+% $P_{\text{lin}}$ is the linear matter power spectrum, which is the FT of the 2PCF of the matter density field.
+% $N^\gamma$ is the Fermi noise power spectrum, which has units of $\mathrm{cm}^{-4}\,\mathrm{s}^{-2}\,\mathrm{sr}^{-1}$ because it's derived from the flux sensitivity (in $\mathrm{cm}^{-2}\,\mathrm{s}^{-1}$) and the angular resolution (in $\mathrm{sr}$); i.e. squared flux per unit solid angle.

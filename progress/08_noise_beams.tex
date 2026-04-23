@@ -1,12 +1,12 @@
 \section{Noise and Beams}
 
 \begin{frame}{Radio System Temperature}
-\textbf{Pinetti generic} (Camera+2013; legacy MeerKAT/SKA):
+\textbf{Pinetti generic} (\href{https://arxiv.org/abs/1305.6928}{Camera et al.\ 2013}; legacy MeerKAT/SKA):
 \begin{equation}
 T_{\mathrm{sys}}^{\mathrm{P}}(\nu) = 30\;\mathrm{K} + 60\;\mathrm{K}\left(\frac{300\;\mathrm{MHz}}{\nu}\right)^{\!2.55}
 \end{equation}
 
-\textbf{MeerKAT canonical} (Cunnington+2025 Eq.~A19; D16):
+\textbf{MeerKAT canonical} (\href{https://arxiv.org/abs/2510.27549}{Cunnington et al.\ 2025} Eq.~A19; D16):
 \begin{equation}
 T_{\mathrm{sys}}^{\mathrm{M}}(\nu) = T_{\mathrm{rx}}(\nu) + T_{\mathrm{spl}} + T_{\mathrm{CMB}} + T_{\mathrm{gal}}(\nu)
 \end{equation}
@@ -40,14 +40,14 @@ Valid for $\ell \ge \ell_{\mathrm{cut}} = \pi D_{\mathrm{short}} / (1.22\,\lambd
 \end{frame}
 
 \begin{frame}{Fermi-LAT PSF and Beam}
-\textbf{Gaussian approximation} (forecast mode, Pinetti+2020):
+\textbf{Gaussian approximation} (forecast mode, \href{https://arxiv.org/abs/1911.04989}{Pinetti+2020}):
 \begin{align}
 \sigma_0(E) &= 1.20°\,(E/0.5\GeV)^{-0.95} + 0.05° \\[3pt]
 \sigma_b(\ell) &= \sigma_0 / (1 + 0.25\,\sigma_0\,\ell) \\[3pt]
 \Bell^\gamma &= \exp(-\sigma_b^2\,\ell^2/2)
 \end{align}
 
-\textbf{Exact King PSF} (data mode, Ammazzalorso+2018):
+\textbf{Exact King PSF} (data mode, \href{https://arxiv.org/abs/1808.09225}{Ammazzalorso+2018}):
 \begin{equation}
 \mathrm{PSF}(\theta) = \frac{1-1/\gamma}{2\pi\sigma_K^2}\left[1 + \frac{\theta^2}{2\gamma\sigma_K^2}\right]^{-\gamma}, \quad \gamma = 2
 \end{equation}
