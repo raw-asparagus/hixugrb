@@ -9,6 +9,7 @@ from scipy.interpolate import RectBivariateSpline, CubicSpline
 from scipy.integrate import quad, cumulative_simpson
 
 from . import config as cfg
+from .cache import clear_all_lru_caches
 
 # ---------------------------------------------------------------------------
 # Module-level state: initialized on first call to init()
@@ -53,6 +54,7 @@ def init(force=False):
         return
     _cosmo_fingerprint = _current_cosmo_fingerprint()
     _sigma_interp.clear()
+    clear_all_lru_caches()
 
     import camb
 

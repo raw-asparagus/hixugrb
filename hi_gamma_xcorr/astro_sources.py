@@ -13,10 +13,10 @@ GLF sources:
 from functools import lru_cache
 
 import numpy as np
-
 from scipy.integrate import quad
 
 from . import config as cfg
+from .cache import _register_lru
 from . import cosmology as cosmo
 from . import ebl as ebl_mod
 
@@ -85,10 +85,8 @@ def L_sens(z, E_GeV=None, *, alpha, F_sens_baseline=None):
         F_sens_E = F_sens_baseline
 
     # Convert photon luminosity to energy luminosity [erg/s].
-    # I_alpha: rest-frame energy band 0.1–100 GeV (luminosity definition, Eq. 3.67)
-    E_min_L, E_max_L = 0.1, 100.0
-    # J_alpha: Fermi sensitivity band 1–100 GeV with EBL (Eq. 3.76)
-    E_min_F, E_max_F = 1.0, 100.0
+    E_min_L, E_max_L = cfg.E_MIN_LUMINOSITY, cfg.E_MAX_LUMINOSITY
+    E_min_F, E_max_F = cfg.E_MIN_SENSITIVITY, cfg.E_MAX_SENSITIVITY
     if abs(alpha - 2.0) > 0.01:
         I_alpha = (E_max_L**(2.0 - alpha) - E_min_L**(2.0 - alpha)) / (2.0 - alpha)
     else:
@@ -588,59 +586,14 @@ def W_gamma_astro(E_GeV, z, source_class, unresolved_only=True,
                                unresolved_only, unresolved_mode)
 
 
+@_register_lru
 @lru_cache(maxsize=16384)
 def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode):
-    """Core implementation of W_gamma_astro.
+    """Core implementation of W_gamma_astro (lru_cached).
 
-    Per-chi convention: W(chi) is returned in the pipeline's h-dependent
-    comoving units [photons s^-1 sr^-1 GeV^-1 (Mpc/h)^-3].
-
-    The luminosity functions in this module are defined in physical
-    [Mpc^-3 (erg/s)^-1], so the final emissivity is converted to
-    [(Mpc/h)^-3] before returning.
-
-    In-memory lru_cache keyed on the five hashable scalars
-    (E_GeV, z, source_class, unresolved_only, unresolved_mode).
-    Cache is reset on every Python process start. Caveat: if `cfg` astro-source
-    parameters or `cfg.F_SENS` are mutated at runtime, the cache becomes stale --
-    callers should not mutate the config dict.
-
-    Parameters
-    ----------
-    E_GeV : float
-        Observed energy [GeV].
-    z : float
-        Redshift.
-    source_class : str
-        Source class name.
-    unresolved_only : bool
-        If True (default), integrate only up to L_sens (unresolved sources).
-        If False, integrate over the full [L_min, L_max] range (total emission,
-        survey-independent).
-    unresolved_mode : str
-        Controls how the unresolved threshold is computed (only used when
-        unresolved_only=True). The pipeline ships with two canonical modes
-        plus two legacy aliases:
-
-        - ``'pinetti_constant'`` (alias ``'forecast'``): constant F_sens
-          = ``cfg.F_SENS_PINETTI`` = 1e-10 cm^{-2} s^{-1}, the conservative
-          early-Fermi 1FGL/2FGL completeness limit assumed by Pinetti+2020/2022.
-          Used by the legacy MeerKAT/SKA1/SKA2 forecast entries for
-          apples-to-apples comparison against Pinetti+2020 Table 4.
-
-        - ``'4fgl_dr4_psf'`` (alias ``'data'``): the Ammazzalorso, Fornengo,
-          Horiuchi & Regis (2018, arXiv:1808.09225) PSF-area scaling
-          ``F_sens(E) = F_baseline * [sigma_0(E)/sigma_0(E_ref)]^2`` anchored
-          at the 4FGL-DR4 14-year high-Galactic-latitude completeness
-          threshold ``cfg.F_SENS_4FGL_DR4 = 7.3e-11 cm^-2 s^-1`` (1-100 GeV
-          source-class average; converted from the directly-quoted
-          ``cfg.F_SENS_4FGL_DR4_ERG_CGS = 1e-12 erg cm^-2 s^-1`` in the
-          100 MeV - 100 GeV band, Ballet et al. 2023 S5/p12, arXiv:2307.12546;
-          see docs/literature/ballet2023_4fgl_dr4.md). The 4FGL-DR4 baseline
-          is only ~0.73x Pinetti's value (NOT 25x lower); with the PSF
-          scaling on top, low-energy bins are additionally conservative
-          due to PSF degradation. Used by the new ``MeerKLASS_*`` canonical
-          entries.
+    Returns W(chi) in [photons s^-1 sr^-1 GeV^-1 (Mpc/h)^-3].
+    GLFs are in physical [Mpc^-3], converted to [(Mpc/h)^-3] on output.
+    See ``cfg.UnresolvedMode`` for ``unresolved_mode`` semantics.
     """
     if z <= 0:
         return 0.0
@@ -665,20 +618,14 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
         return 0.0
 
     # Compute the physical comoving emissivity j(E_rest, z)
-    # [ph s^{-1} Mpc^{-3} GeV^{-1} sr^{-1}].
-    #
-    # Each source emits: dn/dE_rest = L / (GEV_TO_ERG * I_alpha) * E_rest^{-alpha}  [ph/s/GeV]
-    # where L [erg/s] is the rest-frame 0.1-100 GeV energy luminosity.
-    #
-    # The emissivity is: j = (1/4pi) integral phi(L) * dn/dE_rest dL
-    E_min_band = 0.1     # 100 MeV [GeV]
-    E_max_band = 100.0   # 100 GeV [GeV]
+    # Each source emits: dn/dE_rest = L / (GEV_TO_ERG * I_alpha) * E_rest^{-alpha}
+    E_lo, E_hi = cfg.E_MIN_LUMINOSITY, cfg.E_MAX_LUMINOSITY
 
     # Energy integral: integral E^{1-alpha} dE [GeV^{2-alpha}]
     if abs(alpha - 2.0) > 0.01:
-        energy_integral = (E_max_band**(2.0 - alpha) - E_min_band**(2.0 - alpha)) / (2.0 - alpha)
+        energy_integral = (E_hi**(2.0 - alpha) - E_lo**(2.0 - alpha)) / (2.0 - alpha)
     else:
-        energy_integral = np.log(E_max_band / E_min_band)
+        energy_integral = np.log(E_hi / E_lo)
 
     # Rest-frame energy of observed photon
     E_rest = E_GeV * (1.0 + z)
@@ -692,7 +639,7 @@ def _W_gamma_astro_impl(E_GeV, z, source_class, unresolved_only, unresolved_mode
         # Integrand: phi * dn_dE * L (extra L from d(lnL) Jacobian)
         return phi * dn_dE * L
 
-    val, _ = quad(integrand, np.log(L_min), np.log(L_up), limit=200, epsrel=1e-5)
+    val, _ = quad(integrand, np.log(L_min), np.log(L_up), limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
 
     # val = integral phi * dn/dE dL has units:
     # [Mpc^{-3} (erg/s)^{-1}] * [ph s^{-1} GeV^{-1}] * [erg/s]
@@ -746,8 +693,7 @@ def mean_intensity(E_GeV, source_class, z_max=2.5, n_z=300):
     # area unit to cm^-2 at the module boundary.
     integrand = W_arr * dchi_dz / Mpc_h_cm**2
 
-    dz = z_arr[1] - z_arr[0]
-    return np.sum(integrand) * dz
+    return np.trapezoid(integrand, z_arr)
 
 
 # ---------------------------------------------------------------------------

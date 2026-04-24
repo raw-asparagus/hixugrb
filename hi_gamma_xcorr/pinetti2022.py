@@ -139,7 +139,7 @@ def b_HI_pinetti(z, M_min=None, M_max=None):
         return hm.dndM(M, z) * hi.M_HI(M, z) * bias_pinetti(M, z) * M
 
     val, _ = quad(integrand, np.log(M_min), np.log(M_max),
-                  limit=200, epsrel=1e-5)
+                  limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
     return val / rho
 
 

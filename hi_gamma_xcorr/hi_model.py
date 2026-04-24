@@ -6,13 +6,15 @@ as adopted by Pinetti et al. (2020).
 All masses in M_sun/h, distances in Mpc/h, wavenumbers in h/Mpc.
 """
 
+from functools import lru_cache
+
 import numpy as np
 from scipy.integrate import quad
 
 from . import config as cfg
 from . import cosmology as cosmo
 from . import halo_model as hm
-from .cache import _cache_stable
+from .cache import _cache_stable, _register_lru
 
 # Modified NFW inner slope: rho_HI propto 1 / [(r + a*r_s)(r + r_s)^2]
 _HI_PROFILE_INNER_SLOPE = 0.75
@@ -143,7 +145,7 @@ def _rho_HI_integrand(lnM, z):
 def _rho_HI_default(z):
     """rho_HI_mean at default mass limits."""
     val, _ = quad(_rho_HI_integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
-                  args=(z,), limit=200, epsrel=1e-5)
+                  args=(z,), limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
     return val
 
 
@@ -151,7 +153,7 @@ def _rho_HI_default(z):
 def _rho_HI_scalar(z, M_min, M_max):
     """rho_HI_mean at explicit mass limits for scalar inputs."""
     val, _ = quad(_rho_HI_integrand, np.log(M_min), np.log(M_max),
-                  args=(z,), limit=200, epsrel=1e-5)
+                  args=(z,), limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
     return val
 
 
@@ -169,7 +171,7 @@ def _b_HI_default(z):
         M = np.exp(lnM)
         return hm.dndM(M, z) * M_HI(M, z) * hm.bias(M, z) * M
     val, _ = quad(integrand, np.log(cfg.M_MIN_HI), np.log(cfg.M_MAX_HI),
-                  limit=200, epsrel=1e-5)
+                  limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
     return val / rho
 
 
@@ -314,7 +316,7 @@ def b_HI(z, M_min=None, M_max=None, hi_brightness=cfg.HiBrightness.PADMANABHAN):
         M = np.exp(lnM)
         return hm.dndM(M, z) * M_HI(M, z) * hm.bias(M, z) * M
 
-    val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=200, epsrel=1e-5)
+    val, _ = quad(integrand, np.log(M_min), np.log(M_max), limit=cfg.QUAD_LIMIT, epsrel=cfg.QUAD_EPSREL)
     return val / rho
 
 
@@ -345,6 +347,42 @@ def P_HI_1h(k, z, M_min=None, M_max=None, n_M=160):
     return result * dlnM / rho**2
 
 
+def I_HI_2h(k, z, M_min=None, M_max=None, n_M=160):
+    """HI bias-weighted profile integral for the 2-halo term.
+
+    I_HI = (1/rho_HI) * sum_M dn/dM * b(M) * M_HI(M) * u_HI(k,M) * M * dlnM
+
+    This is the common kernel shared by P_HI_2h, P_HI_astro_2h, and
+    P_HI_DM_2h. Cached via lru_cache so the 5 calls per z-step in the
+    Limber driver hit the cache after the first.
+    """
+    M_min, M_max = _m_limits(M_min, M_max)
+    k = np.atleast_1d(np.asarray(k, dtype=float))
+    k_key = tuple(k.tolist())
+    return _I_HI_2h_cached(k_key, float(z), float(M_min), float(M_max), n_M).copy()
+
+
+@_register_lru
+@lru_cache(maxsize=64)
+def _I_HI_2h_cached(k_key, z, M_min, M_max, n_M):
+    """Cached core of I_HI_2h, keyed on hashable arguments."""
+    k = np.asarray(k_key)
+    rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
+
+    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
+    result = np.zeros_like(k)
+
+    for M in M_arr:
+        dn = hm.dndM(M, z)
+        mhi = M_HI(M, z)
+        b = hm.bias(M, z)
+        u = u_HI(k, M, z)
+        result += dn * b * mhi * u * M
+
+    dlnM = np.log(M_arr[1] / M_arr[0])
+    return result * dlnM / rho
+
+
 def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160,
             hi_brightness=cfg.HiBrightness.PADMANABHAN):
     """Two-halo HI power spectrum P_HI^{2h}(k, z) [(Mpc/h)^3].
@@ -359,22 +397,8 @@ def P_HI_2h(k, z, M_min=None, M_max=None, n_M=160,
         b = float(b_HI_cunnington(z))
         return b * b * cosmo.P_lin(k, z)
 
-    M_min, M_max = _m_limits(M_min, M_max)
-    rho = rho_HI_mean(z, M_min=M_min, M_max=M_max)
-
-    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
-    I_2h = np.zeros_like(k)
-
-    for M in M_arr:
-        dn = hm.dndM(M, z)
-        mhi = M_HI(M, z)
-        b = hm.bias(M, z)
-        u = u_HI(k, M, z)
-        I_2h += dn * b * mhi * u * M  # M from d(lnM)
-
-    dlnM = np.log(M_arr[1] / M_arr[0])
-    I_2h *= dlnM / rho
-    return I_2h**2 * cosmo.P_lin(k, z)
+    I = I_HI_2h(k, z, M_min, M_max, n_M)
+    return I**2 * cosmo.P_lin(k, z)
 
 
 # ---------------------------------------------------------------------------

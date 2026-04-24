@@ -101,6 +101,8 @@ mpl.rcParams.update(
         # Axes
         "axes.linewidth": LW_LIGHT,
         "axes.grid": True,
+        "axes.formatter.useoffset": False,
+        "axes.formatter.use_mathtext": True,
         # Ticks
         "xtick.direction": "in",
         "ytick.direction": "in",

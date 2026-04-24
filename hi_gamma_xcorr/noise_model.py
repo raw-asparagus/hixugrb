@@ -15,6 +15,7 @@ from scipy.integrate import quad
 from scipy.special import eval_legendre
 
 from . import config as cfg
+from .cache import _register_lru
 
 # ---------------------------------------------------------------------------
 # Module-level constants
@@ -154,7 +155,7 @@ def noise_dish(z, telescope, band_name):
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
 
     nu = nu_obs(z_mid)
-    Tsys = T_sys(nu, model=tel.get('T_sys_model', 'pinetti'))
+    Tsys = T_sys(nu, model=tel['T_sys_model'])
 
     # Survey area in steradians
     S_sr = tel['survey_area_deg2'] * (np.pi / 180.0)**2
@@ -192,7 +193,7 @@ def noise_interf(z, ell, telescope, band_name):
     z_mid = 0.5 * (band['z_min'] + band['z_max'])
 
     nu = nu_obs(z_mid)
-    Tsys = T_sys(nu, model=tel.get('T_sys_model', 'pinetti'))
+    Tsys = T_sys(nu, model=tel['T_sys_model'])
     lam = lambda_obs(z_mid)
 
     S_sr = tel['survey_area_deg2'] * (np.pi / 180.0)**2
@@ -244,6 +245,7 @@ def noise_radio_combined(ell, telescope, band_name):
     return _noise_radio_combined_cached(ell_t, telescope, band_name).copy()
 
 
+@_register_lru
 @lru_cache(maxsize=128)
 def _noise_radio_combined_cached(ell_t, telescope, band_name):
     """Cached body of noise_radio_combined keyed on (tuple(ell), telescope, band_name)."""
@@ -358,6 +360,7 @@ def beam_fermi_exact(ell, E_GeV):
     return _beam_fermi_exact_cached(ell_t, float(E_GeV)).copy()
 
 
+@_register_lru
 @lru_cache(maxsize=512)
 def _beam_fermi_exact_cached(ell_t, E_GeV):
     """Cached body of beam_fermi_exact keyed on (tuple(int_ell), float(E_GeV))."""

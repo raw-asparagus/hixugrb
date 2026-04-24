@@ -9,6 +9,7 @@ import numpy as np
 import warnings
 
 from . import config as cfg
+from . import cosmology as cosmo
 
 # Suppress hmf's deprecation warnings
 warnings.filterwarnings('ignore', message="'extrapolate_with_eh'")
@@ -50,8 +51,12 @@ def _hmf_kwargs():
 
 
 def _current_cosmo_fingerprint():
-    return (cfg.H0, cfg.OMEGA_M, cfg.OMEGA_B, cfg.SIGMA_8, cfg.N_S,
-            cfg.SMT_Q, cfg.SMT_P, cfg.SMT_A, cfg.M_MIN, cfg.M_MAX)
+    # Extend cosmology's CAMB fingerprint with hmf-specific parameters
+    # (SMT model params, mass grid) so hmf cache also invalidates when
+    # CAMB-level cosmology changes.
+    return cosmo._current_cosmo_fingerprint() + (
+        cfg.SIGMA_8, cfg.SMT_Q, cfg.SMT_P, cfg.SMT_A, cfg.M_MIN, cfg.M_MAX,
+    )
 
 
 def _ensure_hmf():

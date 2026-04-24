@@ -3,6 +3,8 @@
 Computes C_l^{ij} for all cross-correlations between HI and gamma-ray sources.
 """
 
+from functools import lru_cache
+
 import numpy as np
 
 from . import config as cfg
@@ -11,6 +13,7 @@ from . import halo_model as hm
 from . import hi_model as hi
 from . import dm_model as dm
 from . import astro_sources as astro
+from .cache import _register_lru
 
 # ---------------------------------------------------------------------------
 # HI × DM 3D cross-power spectra (Eqs. 5.1–5.2)
@@ -25,34 +28,26 @@ def P_HI_DM_2h(k, z, n_M=120, hi_brightness=cfg.HiBrightness.PADMANABHAN):
     k = np.atleast_1d(np.asarray(k, dtype=float))
     hi_brightness = cfg.HiBrightness(hi_brightness)
     Delta2 = dm.clumping_factor(z)
-    cunn_mode = hi_brightness is cfg.HiBrightness.CUNNINGTON
-    rho_HI = None if cunn_mode else hi.rho_HI_mean(z)
 
+    # DM bias-weighted rho^2 profile integral (unique to this function)
     M_min = max(cfg.M_MIN_HI, 1e8)
     M_max = min(cfg.M_MAX_HI, 1e16)
     M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
     I_DM = np.zeros_like(k)
-    I_HI = np.zeros_like(k)
-
     for M in M_arr:
         dn = hm.dndM(M, z)
         b = hm.bias(M, z)
         vt = dm.v_tilde(k, M, z)
         I_DM += dn * b * vt / Delta2 * M
-        if not cunn_mode:
-            m_hi = hi.M_HI(M, z)
-            if m_hi > 0:
-                u_hi = hi.u_HI(k, M, z)
-                I_HI += dn * b * u_hi * m_hi / rho_HI * M
-
     dlnM = np.log(M_arr[1] / M_arr[0])
     I_DM *= dlnM
 
-    if cunn_mode:
+    # HI bias integral — shared kernel (see hi.I_HI_2h)
+    if hi_brightness is cfg.HiBrightness.CUNNINGTON:
         b_hi = float(hi.b_HI_cunnington(float(z)))
         return I_DM * b_hi * cosmo.P_lin(k, z)
 
-    I_HI *= dlnM
+    I_HI = hi.I_HI_2h(k, z, n_M=n_M)
     return I_DM * I_HI * cosmo.P_lin(k, z)
 
 
@@ -77,24 +72,7 @@ def P_HI_astro_2h(k, z, source_class, n_M=120,
         b_hi = float(hi.b_HI_cunnington(float(z)))
         return b_hi * b_astro * cosmo.P_lin(k, z)
 
-    rho_HI = hi.rho_HI_mean(z)
-
-    # HI bias integral (same as P_HI_2h but just the integral part)
-    M_min = max(cfg.M_MIN_HI, 1e8)
-    M_max = min(cfg.M_MAX_HI, 1e16)
-    M_arr = np.logspace(np.log10(M_min), np.log10(M_max), n_M)
-    I_HI = np.zeros_like(k)
-
-    for M in M_arr:
-        dn = hm.dndM(M, z)
-        b = hm.bias(M, z)
-        m_hi = hi.M_HI(M, z)
-        u_hi = hi.u_HI(k, M, z)
-        I_HI += dn * b * m_hi * u_hi / rho_HI * M
-
-    dlnM = np.log(M_arr[1] / M_arr[0])
-    I_HI *= dlnM
-
+    I_HI = hi.I_HI_2h(k, z, n_M=n_M)
     return I_HI * b_astro * cosmo.P_lin(k, z)
 
 
@@ -106,91 +84,18 @@ def C_ell_HI_gamma(ell, E_GeV, z_min, z_max, telescope, band_name,
                    m_chi_GeV=100.0, sigma_v=None, channel='bb',
                    source_classes=None, include_DM=True,
                    n_z=200, n_k_M=100, hi_brightness=cfg.HiBrightness.PADMANABHAN):
-    """Compute C_l^{HI × gamma} via Limber integration (Pinetti Eq. 2.1).
+    """Compute C_l^{HI x gamma} via Limber integration at a single energy.
 
-    C_l = integral (dchi/chi^2) W_HI(chi) W_gamma(chi) P(k=(l+1/2)/chi, z)
-
-    Uses half-integer convention k = (ℓ+1/2)/χ for improved low-ℓ accuracy.
-
-    Parameters
-    ----------
-    ell : array
-        Multipoles.
-    E_GeV : float
-        Gamma-ray energy [GeV].
-    z_min, z_max : float
-        Redshift bounds of the HI band.
-    telescope : str
-        Radio telescope name.
-    band_name : str
-        Band name.
-    m_chi_GeV : float
-        DM mass for DM contribution.
-    sigma_v : float
-        DM cross-section. None = thermal relic.
-    source_classes : list of str
-        Astrophysical source classes to include. None = all four.
-    include_DM : bool
-        Whether to include the DM contribution.
-    hi_brightness : HiBrightness or str
-        HI brightness/bias prescription. See ``cfg.HiBrightness``.
-
-    Returns
-    -------
-    C_ell : dict with keys 'total', 'DM', 'BL_Lac', 'FSRQ', 'mAGN', 'SFG'
+    Thin wrapper around ``C_ell_HI_gamma_multi_E`` with a single-element
+    energy array. See that function for full documentation.
     """
-    if source_classes is None:
-        source_classes = ['BL_Lac', 'FSRQ', 'mAGN', 'SFG']
-
-    ell = np.atleast_1d(np.asarray(ell, dtype=float))
-
-    # Redshift grid for integration
-    z_arr = np.linspace(max(z_min, 0.01), z_max, n_z)
-    dz = z_arr[1] - z_arr[0]
-
-    result = {src: np.zeros_like(ell) for src in source_classes}
-    if include_DM:
-        result['DM'] = np.zeros_like(ell)
-
-    for z in z_arr:
-        # Comoving distance and dchi/dz
-        chi_z = cosmo.chi(z)  # Mpc/h
-        H_z = cosmo.H(z)  # km/s/Mpc
-        dchi_dz = cfg.C_LIGHT_KM_S / H_z * cfg.h  # Mpc/h per unit z
-
-        # HI window function
-        W_hi = hi.W_HI(z, z_min, z_max, hi_brightness=hi_brightness)  # mK
-        if W_hi <= 0:
-            continue
-
-        # For each multipole, k = (l + 0.5) / chi
-        k_arr = (ell + 0.5) / chi_z  # h/Mpc
-
-        # Limber weight: C_l = integral (dchi/chi^2) W_i(chi) W_j(chi) P
-        # = integral dz * (dchi/dz)/chi^2 * W_i * W_j * P
-        # All windows are in per-chi convention (Pinetti Eqs. 3.15, 4.1, 4.3).
-        weight = dchi_dz / chi_z**2 * dz
-
-        # Astrophysical source contributions (2-halo term)
-        for src in source_classes:
-            W_gamma = astro.W_gamma_astro(E_GeV, z, src)
-            if W_gamma <= 0:
-                continue
-            P_cross = P_HI_astro_2h(k_arr, z, src, n_M=n_k_M,
-                                    hi_brightness=hi_brightness)
-            result[src] += W_hi * W_gamma * P_cross * weight
-
-        # DM contribution
-        if include_DM:
-            W_dm = dm.W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel)
-            if W_dm > 0:
-                P_dm = P_HI_DM_2h(k_arr, z, n_M=n_k_M,
-                                  hi_brightness=hi_brightness)
-                result['DM'] += W_hi * W_dm * P_dm * weight
-
-    # Total
-    result['total'] = sum(result[key] for key in result)
-    return result
+    results = C_ell_HI_gamma_multi_E(
+        ell, [E_GeV], z_min, z_max, telescope, band_name,
+        m_chi_GeV=m_chi_GeV, sigma_v=sigma_v, channel=channel,
+        source_classes=source_classes, include_DM=include_DM,
+        n_z=n_z, n_k_M=n_k_M, hi_brightness=hi_brightness,
+    )
+    return results[0]
 
 
 # ---------------------------------------------------------------------------
@@ -316,9 +221,22 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100,
                   hi_brightness=cfg.HiBrightness.PADMANABHAN):
     """HI auto-correlation angular power spectrum C_l^{HI,HI}.
 
-    Uses only the 2-halo term for efficiency.
+    Uses only the 2-halo term for efficiency. Cached so that compute_SNR
+    and delta_chi2 (which call with identical arguments) share the result.
     """
     ell = np.atleast_1d(np.asarray(ell, dtype=float))
+    hi_brightness = cfg.HiBrightness(hi_brightness)
+    ell_key = tuple(ell.tolist())
+    return _C_ell_HI_auto_cached(
+        ell_key, float(z_min), float(z_max), n_z, n_M, hi_brightness
+    ).copy()
+
+
+@_register_lru
+@lru_cache(maxsize=16)
+def _C_ell_HI_auto_cached(ell_key, z_min, z_max, n_z, n_M, hi_brightness):
+    """Cached core of C_ell_HI_auto."""
+    ell = np.asarray(ell_key)
     z_arr = np.linspace(max(z_min, 0.01), z_max, n_z)
     dz = z_arr[1] - z_arr[0]
 
@@ -334,14 +252,8 @@ def C_ell_HI_auto(ell, z_min, z_max, n_z=200, n_M=100,
             continue
 
         k_arr = (ell + 0.5) / chi_z
-
-        # Same Limber weight as cross (all windows are per-chi):
-        # C_l = integral dz * (dchi/dz)/chi^2 * W_HI^2 * P
         weight = dchi_dz / chi_z**2 * dz
 
-        # P_HI (2-halo only for speed). Same hi_brightness drives both
-        # the brightness amplitude (W_hi above) and the bias prescription
-        # used inside P_HI_2h, so the auto-power stays self-consistent.
         P_hi = hi.P_HI_2h(k_arr, z, n_M=n_M, hi_brightness=hi_brightness)
         result += W_hi**2 * P_hi * weight
 

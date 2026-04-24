@@ -252,6 +252,14 @@ F_SENS_4FGL_DR4 = 7.3e-11
 F_SENS_4FGL_DR4_ERG_CGS = 1.0e-12  # Ballet+2023 §5, p12 (erg cm^-2 s^-1, 100 MeV - 100 GeV)
 F_SENS = F_SENS_PINETTI
 
+# Gamma-ray energy bands [GeV]
+# Luminosity band: rest-frame 0.1–100 GeV (GLF luminosity definition, Pinetti Eq. 3.67)
+E_MIN_LUMINOSITY = 0.1
+E_MAX_LUMINOSITY = 100.0
+# Sensitivity band: observed-frame 1–100 GeV (Fermi detection threshold, Pinetti Eq. 3.76)
+E_MIN_SENSITIVITY = 1.0
+E_MAX_SENSITIVITY = 100.0
+
 # Thermal relic cross-section [cm^3/s]
 SIGMA_V_THERMAL = 3e-26
 
@@ -665,6 +673,12 @@ T_GAL_INDEX_MEERKAT = 2.75    # Galactic synchrotron spectral index
 # HI 21-cm rest frequency
 NU_21CM = 1420.405              # [MHz]
 LAMBDA_21CM = 0.211061          # [m]
+
+# ---------------------------------------------------------------------------
+# Quadrature defaults for scipy.integrate.quad
+# ---------------------------------------------------------------------------
+QUAD_LIMIT = 200       # Maximum number of subintervals
+QUAD_EPSREL = 1e-5     # Relative tolerance
 
 # ---------------------------------------------------------------------------
 # Computational grids

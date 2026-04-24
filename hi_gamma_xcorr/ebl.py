@@ -52,8 +52,8 @@ def tau(E_GeV, z, model=cfg.EBLModel.DOMINGUEZ):
 
     od = _get_optdepth(model)
     E_TeV = E_GeV / 1000.0  # ebltable uses TeV
-    result = np.array([od.opt_depth(z, e) for e in E_TeV], dtype=float).ravel()
-    return result
+    # opt_depth accepts array E and returns (1 x n_E); squeeze the z axis.
+    return np.asarray(od.opt_depth(z, E_TeV), dtype=float).ravel()
 
 
 def attenuation(E_GeV, z, model=cfg.EBLModel.DOMINGUEZ):

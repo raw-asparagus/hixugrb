@@ -7,12 +7,15 @@ concentration-mass relations, and NFW Fourier transforms.
 All masses in M_sun/h, distances in Mpc/h, wavenumbers in h/Mpc.
 """
 
+from functools import lru_cache
+
 import numpy as np
 from scipy.special import sici
 
 from . import config as cfg
 from . import cosmology as cosmo
 from . import hmf_interface as hmfi
+from .cache import _register_lru
 
 # ---------------------------------------------------------------------------
 # Virial overdensity — Bryan & Norman (1998)
@@ -184,13 +187,23 @@ def c200_to_cvir(c200, z):
     return float(c_vir[0]) if scalar else c_vir
 
 
+@_register_lru
+@lru_cache(maxsize=2048)
+def _concentration_vir_scalar(M_float, z_float):
+    """Cached scalar (M, z) -> c_vir. Eliminates redundant Newton solves."""
+    c200 = float(concentration_correa(M_float, z_float))
+    return float(c200_to_cvir(c200, z_float))
+
+
 def concentration_vir(M, z):
     """Virial concentration c_vir(M, z).
 
     Computes c_200 from Correa et al. (2015) then converts to c_vir
-    using the Bryan & Norman Delta_vir(z).
+    using the Bryan & Norman Delta_vir(z). Scalar inputs hit an lru_cache.
     """
     M = np.asarray(M, dtype=float)
+    if M.ndim == 0:
+        return _concentration_vir_scalar(float(M), float(z))
     c200 = concentration_correa(M, z)
     return c200_to_cvir(c200, z)
 
