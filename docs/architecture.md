@@ -69,8 +69,8 @@
         ┌─────────────────────────────┐
         │notebooks/                   │
         │  pipeline_validation.ipynb  │
-        │  validation plots           │
-        │  SNR table, exclusion curves│
+        │  01_hi_model – 08_statistics│
+        │  (8 component notebooks)    │
         └─────────────────────────────┘
 
   Not shown above:
@@ -87,22 +87,23 @@ For the equation-level implementation reference, see [`equations.md`](equations.
 
 | Module | Role |
 |--------|------|
-| `config.py` | All physical constants, [Planck 2018](literature/planck2018.md) cosmology, instrument specs (MeerKAT/SKA/Fermi), computational grids |
+| `config.py` | All physical constants, [Planck 2018](literature/planck2018.md) cosmology, instrument specs (MeerKAT/SKA/Fermi), computational grids; `StrEnum` classes (`HiBrightness`, `UnresolvedMode`, `AnalysisMode`, `TSysModel`, `BoostScenario`, `Channel`, `EBLModel`) for type-safe dispatch |
 | `cosmology.py` | CAMB wrapper for P_lin(k,z); Hubble rate H(z), comoving distance χ(z), growth factor D(z) |
 | `hmf_interface.py` | Thin wrapper around the `hmf` package; cached MassFunction instances, σ(M), dn/dM |
-| `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M), NFW Fourier transform ũ(k, M) |
-| `cache.py` | Joblib-based disk caching via `_cache_stable` decorator for expensive halo-model integrals |
-| `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI; Cunnington brightness dispatch (`T_bar_b_for_model`, `Omega_HI_cunnington`, `b_HI_cunnington`) |
+| `halo_model.py` | Virial radius R_vir, circular velocity v_c, halo bias b(M), concentration c(M) (cached for scalar inputs), NFW Fourier transform ũ(k, M) |
+| `cache.py` | Joblib-based disk caching via `_cache_stable` decorator; LRU cache registry (`_register_lru`, `clear_all_lru_caches`) for config-aware invalidation of all in-memory caches |
+| `hi_model.py` | HI mass M_HI(M,z), altered NFW HI profile, Ω_HI, b_HI, T̄_b, HI power spectra P_HI^{1h/2h}, window W_HI; shared bias-weighted kernel `I_HI_2h` (used by P_HI_2h, P_HI_astro_2h, P_HI_DM_2h); Cunnington brightness dispatch via `HiBrightness` enum (`T_bar_b_for_model`, `Omega_HI_cunnington`, `b_HI_cunnington`) |
 | `dm_model.py` | NFW ρ² profile and Fourier transform ṽ(k, M), substructure boost B(M), clumping factor Δ², DM window W_γ^DM, DM power spectra |
 | `astro_sources.py` | Gamma-ray luminosity functions: LDDE for FSRQ/BL Lac, radio→gamma chain for mAGN, IR→gamma chain for SFG; astrophysical window W_γ^astro (with EBL attenuation via `ebl.py`); mean UGRB intensity; F_sens dispatch (`F_sens_baseline` plumbing through `L_sens` and `F_sens_energy` for `'4fgl_dr4_psf'` vs `'pinetti_constant'` modes) |
 | `pppc4dmid.py` | PPPC4DMID photon yield table reader/interpolator; dN/dE for bb̄, τ⁺τ⁻, WW channels |
 | `ebl.py` | EBL opacity τ(E,z) via `ebltable` package (Dominguez+2011); analytic fallback |
 | `noise_model.py` | Radio noise (dish + interferometer), beam functions (Gaussian + exact King PSF), Fermi-LAT noise N^γ and PSF, pixel window, Fermissimo specs; T_sys dispatch (`T_sys_pinetti` legacy vs `T_sys_meerkat` canonical, selected via `T_sys_model` key) |
-| `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro}; Limber integration for C_ℓ; HI auto-power C_ℓ^{HI,HI}; `C_ell_HI_gamma_multi_E` for batched multi-energy computation |
+| `angular_power.py` | 3D cross-power spectra P_{HI×DM}, P_{HI×astro} (via `I_HI_2h` shared kernel); Limber integration for C_ℓ (`C_ell_HI_gamma` delegates to `C_ell_HI_gamma_multi_E`); cached HI auto-power C_ℓ^{HI,HI} |
 | `statistics.py` | Gaussian variance ΔC_ℓ, signal-to-noise ratio, Δχ² test statistic, DM exclusion curves σ_v(m_χ); per-telescope dispatch of `default_hi_brightness` and `default_unresolved_mode` from config |
 | `pinetti2022.py` | Thesis-faithful parameter overrides (Correa cosmology, q=0.75 bias, k=ℓ/χ Limber, T̄_b=44 μK) for validation against Pinetti (2022) |
 | `plotting.py` | Matplotlib configuration: page widths, fonts, styling for publication figures |
-| `notebooks/pipeline_validation.ipynb` | Jupyter notebook with validation plots, window-function comparisons, SNR tables, and exclusion-curve outputs |
+| `notebooks/pipeline_validation.ipynb` | Integration notebook: 3-mode HI comparison, SNR table (12 telescopes), exclusion curves |
+| `notebooks/01_hi_model.ipynb` – `08_statistics.ipynb` | 8 component notebooks: step-by-step physics derivation + diagnostics per pipeline stage |
 
 ## Window Function Pipeline
 
