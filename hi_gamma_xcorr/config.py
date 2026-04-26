@@ -75,7 +75,6 @@ class TSysModel(StrEnum):
 class BoostScenario(StrEnum):
     """DM substructure boost model."""
     NO_BOOST     = 'no_boost'
-    CONSERVATIVE = 'conservative'
     INTERMEDIATE = 'intermediate'
 
     @classmethod

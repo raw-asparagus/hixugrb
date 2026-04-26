@@ -17,7 +17,11 @@ Refines predictions for substructure enhancement of dark matter annihilation sig
 
 ## Assumed Cosmology
 
-Planck 2015: Ω_m = 0.309, Ω_Λ = 0.691, h = 0.677, σ₈ = 0.816, n_s = 0.967. The boost factor polynomial is calibrated from N-body simulations (Via Lactea II, ELVIS) which have weak dependence on the exact cosmological parameters.
+The boost factor polynomial is calibrated from two N-body simulations run under WMAP-era cosmologies:
+- **Via Lactea II** (Diemand+ 2008): Ω_m = 0.238, Ω_Λ = 0.762, h = 0.73, σ₈ = 0.74, n_s = 0.951
+- **ELVIS** (Garrison-Kimmel+ 2014): Ω_m = 0.266, Ω_Λ = 0.734, h = 0.71, σ₈ = 0.801, n_s = 0.963
+
+The boost factor has weak dependence on the exact cosmological parameters (it is driven by the concentration–mass relation and subhalo mass function slope, not the background expansion).
 
 ## Key Equations
 

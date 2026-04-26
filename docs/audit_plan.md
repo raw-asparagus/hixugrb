@@ -106,7 +106,7 @@ Verify each `literature/*.md` review faithfully summarizes its corresponding `do
 
 | ID  | Check | Files | Pass |
 |-----|-------|-------|------|
-| 4.1 | **Active deviations in code:** D2,D4,D5,D6,D7,D8,D12,D13,D14 confirmed present. Resolved D3,D9,D11 confirmed absent. **NEW deviations to verify present (after Phase 1.1 assigns Dx numbers)**: Cunnington brightness mode, MeerKAT canonical T_sys, 4FGL-DR4 F_sens dispatch — each must be reachable via at least one config entry and exercised by `compute_SNR` for at least one telescope. | conventions.md S7, code | Each deviation verified |
+| 4.1 | **Active deviations in code:** D2,D4,D5,D6,D7,D8,D12,D14 confirmed present. Resolved D3,D9,D11,D13 confirmed absent. **NEW deviations to verify present (after Phase 1.1 assigns Dx numbers)**: Cunnington brightness mode, MeerKAT canonical T_sys, 4FGL-DR4 F_sens dispatch — each must be reachable via at least one config entry and exercised by `compute_SNR` for at least one telescope. | conventions.md S7, code | Each deviation verified |
 | 4.2 | **Window evidence matrix spot-check:** pick 3 of 6 matrices, 5 claims each, verify vs current code. Focus near known deviations. | window-functions/*_evidence_matrix.md, code | 15 sampled claims hold |
 | 4.3 | **pinetti2022.py parallel implementation:** thesis-faithful functions differ from main pipeline in exactly the documented ways (concentration coefficients, q=0.75, ell/chi, T_bar=180). | pinetti2022.py, evidence matrices | Differences match documentation |
 | 4.4 | **Ammazzalorso bin audit:** config bins match conventions.md S6 and equations.md S8; noise_model.py uses them correctly in data-analysis mode. | config.py, conventions.md, noise_model.py | Consistent |

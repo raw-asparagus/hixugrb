@@ -9,8 +9,6 @@ import os
 
 import numpy as np
 from scipy.interpolate import RectBivariateSpline
-from scipy.integrate import trapezoid
-
 from .config import Channel
 
 _data_dir = os.path.join(os.path.dirname(__file__), 'data', 'pppc4dmid')
@@ -247,8 +245,3 @@ def dNdE(E_GeV, m_chi_GeV, channel=Channel.BB):
     return dNdx(x, m_chi_GeV, channel) / m_chi_GeV
 
 
-def total_multiplicity(m_chi_GeV, channel=Channel.BB, n_pts=500):
-    """Total photon multiplicity: integral dN/dx dx."""
-    x = np.logspace(-6, -0.001, n_pts)
-    spectrum = dNdx(x, m_chi_GeV, channel)
-    return trapezoid(spectrum, x)

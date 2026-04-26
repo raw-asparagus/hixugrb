@@ -272,30 +272,3 @@ def u_nfw(k, M, z, c_func=None):
     return result
 
 
-# ---------------------------------------------------------------------------
-# Validation integrals
-# ---------------------------------------------------------------------------
-
-def check_mass_normalization(z=0.0, M_min=1e6, M_max=1e16):
-    """Check integral (dn/dM) * (M/rho_bar) dM ≈ 1.  Uses hmf grid."""
-    from scipy.integrate import trapezoid
-    m_arr, dndm_arr = dndM_array(z)
-    mask = (m_arr >= M_min) & (m_arr <= M_max)
-    m = m_arr[mask]
-    dn = dndm_arr[mask]
-    rho_bar = hmfi.mean_density()
-    integrand = dn * m**2 / rho_bar
-    return trapezoid(integrand, np.log(m))
-
-
-def check_bias_normalization(z=0.0, M_min=1e6, M_max=1e16):
-    """Check integral (dn/dM) * (M/rho_bar) * b(M) dM ≈ 1.  Uses hmf grid."""
-    from scipy.integrate import trapezoid
-    m_arr, dndm_arr = dndM_array(z)
-    mask = (m_arr >= M_min) & (m_arr <= M_max)
-    m = m_arr[mask]
-    dn = dndm_arr[mask]
-    b_arr = np.array([bias(mi, z) for mi in m])
-    rho_bar = hmfi.mean_density()
-    integrand = dn * m**2 / rho_bar * b_arr
-    return trapezoid(integrand, np.log(m))

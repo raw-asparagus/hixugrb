@@ -133,7 +133,11 @@ def boost_moline(M, z, M_min_sub=1e-6):
 
 @_cache_stable(module=__name__)
 def _clumping_compute(z, M_min, M_max, boost_scenario):
-    """Core clumping computation using adaptive quadrature over ln M."""
+    """Core clumping computation using adaptive quadrature over ln M.
+
+    Cached via joblib: deterministic in (z, M_min, M_max, boost_scenario).
+    After source edits, run ``rm -rf .joblib-cache`` to flush stale entries.
+    """
 
     def integrand(lnM):
         M = np.exp(lnM)

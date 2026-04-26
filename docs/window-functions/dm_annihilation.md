@@ -54,7 +54,7 @@ with $A=0.3222$, $q=0.707$, $p=0.3$, and $\nu = \delta_c^2/\sigma^2(M,z)$, $\del
 
 $$b(\nu) = 1 + \frac{q\nu - 1}{\delta_c} + \frac{2p}{\delta_c(1 + (q\nu)^p)}$$
 
-**Implementation:** `halo_model.py:bias(M, z)` (line 110) with $q=0.707$.
+**Implementation:** `halo_model.py:bias(M, z)` (line 111) with $q=0.707$.
 **Pinetti 2022:** `pinetti2022.bias_pinetti(M, z)` with $q=0.75$.
 
 ### 2c. Virial overdensity -- Bryan & Norman (1998)
@@ -63,7 +63,7 @@ $$\Delta_{\rm vir}(z) = 18\pi^2 + 82x - 39x^2, \qquad x = \Omega_M(z) - 1$$
 
 relative to $\rho_c(z)$. At $z=0$ with Planck 2018: $\Delta_{\rm vir} \approx 103$ (relative to critical density), equivalently $\sim 327$ relative to mean matter density.
 
-**Implementation:** `halo_model.py:Delta_vir(z)` (line 23), `halo_model.py:R_vir(M, z)` (line 42). Same in both pipelines.
+**Implementation:** `halo_model.py:Delta_vir(z)` (line 24), `halo_model.py:R_vir(M, z)` (line 43). Same in both pipelines.
 
 ### 2d. Concentration--mass relation -- Correa et al. (2015)
 
@@ -78,9 +78,9 @@ where:
 
 **Critical for DM:** Valid down to $\sim 10^{-2}\,M_\odot$, essential for microhalo contributions to the clumping factor.
 
-**Implementation:** `halo_model.py:concentration_correa(M, z)` (line 125). Converts $M_\odot/h \to M_\odot$ via `M * h` (line 138). **Note:** this h-factor conversion is inconsistent with `v_circ` which uses `M / h` -- see evidence matrix for analysis.
+**Implementation:** `halo_model.py:concentration_correa(M, z)` (line 126). Converts $M_\odot/h \to M_\odot$ via `M / cfg.h` (line 139). Uses `M / cfg.h` for physical mass conversion, consistent with `v_circ`.
 
-**Pinetti 2022:** `pinetti2022.concentration_correa_thesis(M, z)` uses thesis-specific coefficients (Eq. 3.36, p.99) from a different cosmology fit within the same Correa et al. (2015) paper. Same `M * h` conversion.
+**Pinetti 2022:** `pinetti2022.concentration_correa_thesis(M, z)` uses thesis-specific coefficients (Eq. 3.36, p.99) from a different cosmology fit within the same Correa et al. (2015) paper. Same `M / cfg.h` conversion.
 
 ### DM-specific mass range
 
@@ -110,7 +110,7 @@ $$\int_0^{R_{\rm vir}} 4\pi r^2\, \rho_{\rm NFW}^2(r)\, dr = 4\pi\rho_s^2 r_s^3 
 
 where the substitution $x = r/r_s$ transforms $\rho^2 = \rho_s^2/(x^2(1+x)^4)$ and $r^2\,dr = r_s^3 x^2\,dx$, yielding $\int_0^c (1+x)^{-4}dx = \frac{1}{3}[1 - (1+c)^{-3}]$.
 
-**Implementation:** `dm_model.py:rho2_integral_analytic(M, z)` (line 33). Returns $[(M_\odot/h)^2\,({\rm Mpc}/h)^{-3}]$. **Verified correct.**
+**Implementation:** `dm_model.py:rho2_integral_analytic(M, z)` (line 31). Returns $[(M_\odot/h)^2\,({\rm Mpc}/h)^{-3}]$. **Verified correct.**
 
 ### 3c. Fourier transform of $\rho^2$ profile
 
@@ -120,7 +120,7 @@ Normalized so that $\tilde{v}(k\to 0) = \int\rho^2\,d^3x\;/\;\bar\rho_m^2$.
 
 This enters the two-halo cross-power spectrum (Pinetti Eqs. 5.1--5.2), where it is divided by $\Delta^2$ to normalize the DM density-squared field: $\tilde{v}/\Delta^2$ gives each halo's fractional contribution to the mean $\langle\rho^2\rangle$.
 
-**Implementation:** `dm_model.py:v_tilde(k, M, z)` (line 54). Numerical integration via `scipy.quad` with $r_{\rm min} = 10^{-6}\,r_s$. Falls back to the analytic $k\to 0$ limit for $k < 10^{-10}$.
+**Implementation:** `dm_model.py:v_tilde(k, M, z)` (line 50). Numerical integration via `scipy.quad` with $r_{\rm min} = 10^{-6}\,r_s$. Falls back to the analytic $k\to 0$ limit for $k < 10^{-10}$.
 
 ---
 
@@ -158,9 +158,9 @@ $$B(M, z) = \frac{B(M, z{=}0)}{1 + z}$$
 
 Application: $\rho^2_{\rm eff} = (1 + B)\;\rho^2_{\rm smooth}$
 
-**Implementation:** `dm_model.py:boost_moline(M, z, M_min_sub)` (line 98). Converts pipeline masses $M_\odot/h \to M_\odot$ via `M * h` (line 115). Clipped to $[0, 1000]$ for numerical safety.
+**Implementation:** `dm_model.py:boost_moline(M, z, M_min_sub)` (line 92). Converts pipeline masses $M_\odot/h \to M_\odot$ via `M / cfg.h` (line 106).
 
-**Parameters:** `config.py:MOLINE_BOOST_COEFFS` (line 121).
+**Parameters:** `config.py:MOLINE_BOOST_COEFFS` (line 271).
 
 ---
 
@@ -186,7 +186,7 @@ Identical between pipeline and Pinetti 2022 parallel (concentration differences 
 
 **Caching:** Results cached by $(\text{round}(z, 4),\; \text{boost\_scenario})$.
 
-**Implementation:** `dm_model.py:clumping_factor(z, boost_scenario)` (line 149).
+**Implementation:** `dm_model.py:clumping_factor(z, boost_scenario)` (line 157).
 
 ---
 
@@ -212,7 +212,7 @@ Evaluated at **rest-frame (emitted) energy**: $E' = (1+z)\,E_\gamma$
 
 2D `RectBivariateSpline` in $(\log_{10} m_\chi,\; \log_{10} x)$ space, cubic in both dimensions. Interpolation in $\log_{10}(dN/d\log_{10}x)$ space for accuracy across many orders of magnitude.
 
-**Implementation:** `pppc4dmid.py:dNdE(E_GeV, m_chi_GeV, channel)` (line 226), via `dNdx` (line 183) and `_dNdlog10x_table` (line 111). Analytic fallbacks for `bb`, `tautau`, `WW` when tables unavailable.
+**Implementation:** `pppc4dmid.py:dNdE(E_GeV, m_chi_GeV, channel)` (line 227), via `dNdx` (line 184) and `_dNdlog10x_table` (line 112). Analytic fallbacks for `bb`, `tautau`, `WW` when tables unavailable.
 
 ---
 
@@ -238,7 +238,7 @@ $$\tau(E,z) \approx 2.5 \left(\frac{E}{100\,{\rm GeV}}\right)^{1.0} \left(\frac{
 
 Calibrated to Dominguez et al. anchor points. Not derived from the paper -- a pipeline convenience approximation.
 
-**Implementation:** `ebl.py:attenuation(E_GeV, z)` (line 70), `ebl.py:tau(E_GeV, z)` (line 37).
+**Implementation:** `ebl.py:attenuation(E_GeV, z)` (line 59), `ebl.py:tau(E_GeV, z)` (line 30).
 
 ---
 
@@ -288,7 +288,7 @@ where:
 | Channel | -- | `bb` | $b\bar{b}$ annihilation |
 | Boost scenario | -- | `intermediate` | Full subhalo hierarchy |
 
-**Implementation:** `dm_model.py:W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario)` (line 200).
+**Implementation:** `dm_model.py:W_gamma_DM(E_GeV, z, m_chi_GeV, sigma_v, channel, boost_scenario)` (line 219).
 
 ---
 
@@ -302,7 +302,7 @@ The $\tilde{v}/\Delta^2$ normalization ensures the DM integral approaches $\sim 
 
 **Mass range:** Uses HI-relevant range $[10^8, 10^{16}]\,M_\odot/h$ (cross-power vanishes where $M_{\rm HI} = 0$).
 
-**Implementation:** `angular_power.py:P_HI_DM_2h(k, z)` (line 21).
+**Implementation:** `angular_power.py:P_HI_DM_2h(k, z)` (line 22).
 
 **Pinetti 2022:** The bias integral in $P_{\rm HI\times DM}^{2h}$ would use $q=0.75$ via `pinetti2022.bias_pinetti()`. No separate cross-power override exists yet.
 
@@ -310,7 +310,7 @@ The $\tilde{v}/\Delta^2$ normalization ensures the DM integral approaches $\sim 
 
 $$C_\ell = \int_{z_{\rm min}}^{z_{\rm max}} \frac{c\,h}{H(z)\,\chi^2(z)}\; W_{\rm HI}(\chi)\; W_\gamma^{\rm DM}(\chi)\; P_{\rm HI\times DM}^{2h}\!\left(k=\frac{\ell+1/2}{\chi},\, z\right)\; dz$$
 
-**Implementation:** `angular_power.py:C_ell_HI_gamma(ell, E_GeV, z_min, z_max, ...)` (line 101).
+**Implementation:** `angular_power.py:C_ell_HI_gamma(ell, E_GeV, z_min, z_max, ...)` (line 83).
 
 **Pinetti 2022:** Would use $k = \ell/\chi$ via `pinetti2022.limber_k()`.
 

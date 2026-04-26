@@ -124,9 +124,9 @@ Integration limits: $M_{\min}=10^8\,M_\odot/h$, $M_{\max}=10^{16}\,M_\odot/h$. T
 
 ### 3f. HI density parameter (Pinetti+ Eq. 3.3)
 
-$$\Omega_{\rm HI}(z) = \frac{\bar\rho_{\rm HI}(z)}{(1+z)^3\,\rho_c}$$
+$$\Omega_{\rm HI}(z) = \frac{\bar\rho_{\rm HI}^\mathrm{com}(z)}{\rho_c}$$
 
-The pipeline computes this from the halo integral (z-dependent), rather than using a fixed value.
+The pipeline computes this from the halo integral (z-dependent, **D5**), rather than using a fixed value. Both $\bar\rho_{\rm HI}$ and $\rho_c$ are comoving (z=0) quantities — no $(1+z)^3$ factor.
 
 **Implementation:** `hi_model.py:Omega_HI(z)`.
 
@@ -179,30 +179,30 @@ Both computed via summation over a log-spaced mass grid (n_M=160 points, $10^8$�
 ## Complete Dependency Graph
 
 ```
-W_HI(z, z_min, z_max)                           [hi_model.py:281]
-├── T_bar_b(z)                                   [hi_model.py:177]  Pinetti+ Eq. 3.4
-│   ├── Omega_HI(z)                              [hi_model.py:168]  Pinetti+ Eq. 3.3
-│   │   ├── rho_HI_mean(z)                       [hi_model.py:143]  Pinetti+ Eq. 3.2
+W_HI(z, z_min, z_max)                           [hi_model.py:408]
+├── T_bar_b(z)                                   [hi_model.py:206]  Pinetti+ Eq. 3.4
+│   ├── Omega_HI(z)                              [hi_model.py:192]  Pinetti+ Eq. 3.3
+│   │   ├── rho_HI_mean(z)                       [hi_model.py:178]  Pinetti+ Eq. 3.2
 │   │   │   ├── dn/dM(M,z)                       [hmf_interface.py] SMT 2001 via hmf
 │   │   │   │   ├── sigma(M,z)                    [hmf_interface.py] from CAMB-backed hmf transfer
-│   │   │   │   └── delta_c = 1.686               [config.py:61]    spherical collapse
-│   │   │   └── M_HI(M,z)                        [hi_model.py:21]   Padmanabhan+ 2017 Eq. 1
-│   │   │       ├── alpha=0.176, beta=-0.69       [config.py:71-72]  Table A1
-│   │   │       ├── v_c0=40.7 km/s                [config.py:73]     Table A1
-│   │   │       ├── f_Hc = (1-Y_P)*Omega_B/Omega_M [config.py:77]
-│   │   │       └── v_circ(M,z)                   [halo_model.py:40] from R_vir, Delta_vir(z)
-│   │   └── rho_crit                              [config.py:55]     Planck 2018
-│   ├── h = 0.6736                                [config.py:36]     Planck 2018
-│   └── E(z)                                      [cosmology.py:99]  flat LCDM
-├── b_HI(z)                                       [hi_model.py:188]  used by P_HI(k,z), not by W_HI()
+│   │   │   │   └── delta_c = 1.686               [config.py:160]   spherical collapse
+│   │   │   └── M_HI(M,z)                        [hi_model.py:33]   Padmanabhan+ 2017 Eq. 1
+│   │   │       ├── alpha=0.176, beta=-0.69       [config.py:170-171] Table A1
+│   │   │       ├── v_c0=40.7 km/s                [config.py:172]    Table A1
+│   │   │       ├── f_Hc = (1-Y_P)*Omega_B/Omega_M [config.py:177]
+│   │   │       └── v_circ(M,z)                   [halo_model.py:73] from R_vir, Delta_vir(z)
+│   │   └── rho_crit                              [config.py:149]    Planck 2018
+│   ├── h = 0.6736                                [config.py:133]    Planck 2018
+│   └── E(z)                                      [cosmology.py:161] flat LCDM
+├── b_HI(z)                                       [hi_model.py:295]  used by P_HI(k,z), not by W_HI()
 │   ├── rho_HI_mean(z)                            (same as above)
 │   ├── dn/dM(M,z)                                (same as above)
 │   ├── M_HI(M,z)                                 (same as above)
-│   └── b(M,z)                                    [halo_model.py:78] Sheth & Tormen 1999
-│       ├── q=0.707, p=0.3                        [config.py:62-63]
+│   └── b(M,z)                                    [halo_model.py:111] Sheth & Tormen 1999
+│       ├── q=0.707, p=0.3                        [config.py:161-162]
 │       └── nu = delta_c^2/sigma^2(M,z)           [hmf_interface.py]
 ├── phi(z) = 1/(z_max - z_min)                    top-hat selection
-└── H(z)/c                                        [cosmology.py:105] cosmological Jacobian
+└── H(z)/c                                        [cosmology.py:167] cosmological Jacobian
 ```
 
 ---

@@ -53,7 +53,6 @@ def init(force=False):
     if _camb_results is not None and not force:
         return
     _cosmo_fingerprint = _current_cosmo_fingerprint()
-    _sigma_interp.clear()
     clear_all_lru_caches()
 
     import camb
@@ -302,34 +301,3 @@ def sigma_R(R, z):
     return np.sqrt(val)
 
 
-# ---------------------------------------------------------------------------
-# Tabulated sigma(M, z) with interpolation for fast access
-# ---------------------------------------------------------------------------
-
-_sigma_interp = {}  # keyed by round(z, 4): interpolator log_sigma(log_M)
-_sigma_fine_M = np.logspace(np.log10(cfg.M_MIN), np.log10(cfg.M_MAX), 500)
-
-
-def _build_sigma_interp(z):
-    """Build a 1D interpolator for log sigma(log M) at redshift z."""
-    from scipy.interpolate import interp1d
-    z_key = round(float(z), 4)
-    if z_key in _sigma_interp:
-        return _sigma_interp[z_key]
-
-    R_arr = (3.0 * _sigma_fine_M / (4.0 * np.pi * cfg.RHO_BAR))**(1.0 / 3.0)
-    sig_arr = np.array([sigma_R(R, z) for R in R_arr])
-    log_sig = np.log(sig_arr)
-    log_M = np.log(_sigma_fine_M)
-    interp = interp1d(log_M, log_sig, kind='cubic',
-                       bounds_error=False,
-                       fill_value=(log_sig[0], log_sig[-1]))
-    _sigma_interp[z_key] = interp
-    return interp
-
-
-def sigma_M(M, z):
-    """RMS density fluctuation sigma(M, z) using precomputed interpolation table."""
-    _ensure_init()
-    interp = _build_sigma_interp(z)
-    return np.exp(interp(np.log(M)))

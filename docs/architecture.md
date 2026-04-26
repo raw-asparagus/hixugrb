@@ -42,7 +42,7 @@
      │ GLFs (4 sources), F_sens       │  │
      │ dispatch, W_γ^astro × e^{-τ}  │  │
      │ (imports: config, cosmology,   │  │
-     │  ebl)                          │  │
+     │  ebl, noise_model)            │  │
      └────────────────┬───────────────│──┘
                       │               │
          ┌────────────▼───────────────▼──┐     ┌───────────────┐

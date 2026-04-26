@@ -36,52 +36,9 @@ PINETTI_P = 0.3                # Same as pipeline
 PINETTI_OMEGA_HI = 2.45e-4     # Fixed Omega_HI (thesis p.122)
 PINETTI_T_B_MK = 0.044         # 44 muK = 0.044 mK (thesis brightness temp)
 
-# Thesis Correa coefficients (Eq. 3.36, p.99) — different cosmology fit
-# from the same Correa et al. (2015) paper vs pipeline's Planck Appendix B1.
-CORREA_THESIS_ALPHA_Z0 = 1.6280
-CORREA_THESIS_ALPHA_Z1 = -0.2514
-CORREA_THESIS_ALPHA_Z2 = 0.01825
-CORREA_THESIS_BETA_Z0 = 1.6610
-CORREA_THESIS_BETA_Z1 = -0.00495
-CORREA_THESIS_BETA_Z2 = -1.6580
-CORREA_THESIS_BETA_ZEXP = 0.02804
-CORREA_THESIS_GAMMA_Z0 = -0.02002
-CORREA_THESIS_GAMMA_Z1 = 0.01072
-CORREA_THESIS_GAMMA_ZEXP = -0.3544
-
-
 # ---------------------------------------------------------------------------
 # Halo model overrides
 # ---------------------------------------------------------------------------
-
-def concentration_correa_thesis(M, z):
-    """Correa c_200(M, z) with thesis-specific coefficients (Eq. 3.36, p.99).
-
-    Same functional form as pipeline's concentration_correa, but with
-    different fitting coefficients from a different cosmology within
-    Correa et al. (2015).
-    """
-    M = np.asarray(M, dtype=float)
-    z = float(z)
-    log_M = np.log10(np.clip(M / cfg.h, 1e-2, 1e16))  # M_sun/h -> M_sun: M_phys = M_code / h
-
-    if z <= 4:
-        zp1 = 1.0 + z
-        alpha = (CORREA_THESIS_ALPHA_Z0 + CORREA_THESIS_ALPHA_Z1 * zp1
-                 + CORREA_THESIS_ALPHA_Z2 * zp1**2)
-        beta = (CORREA_THESIS_BETA_Z0 + CORREA_THESIS_BETA_Z1 * zp1
-                + CORREA_THESIS_BETA_Z2 * zp1**CORREA_THESIS_BETA_ZEXP)
-        gamma = (CORREA_THESIS_GAMMA_Z0
-                 + CORREA_THESIS_GAMMA_Z1 * zp1**CORREA_THESIS_GAMMA_ZEXP)
-        log_c = alpha + beta * log_M * (1.0 + gamma * log_M**2)
-    else:
-        zp1 = 1.0 + z
-        alpha = 1.3081 - 0.1078 * zp1 + 0.00398 * zp1**2
-        beta = 0.0223 - 0.0944 * zp1**(-0.3907)
-        log_c = alpha + beta * log_M
-
-    return np.maximum(10.0**log_c, 1.0)
-
 
 def bias_pinetti(M, z):
     """Sheth-Tormen halo bias with q=0.75 (thesis Eq. 3.51, p.102).
@@ -182,7 +139,7 @@ DEVIATIONS = {
     },
     'correa_coeffs': {
         'pipeline': 'Planck Appendix B1 fit',
-        'pinetti': 'thesis Eq. 3.36 fit',
+        'pinetti': 'thesis Eq. 3.36 fit (D2; validation function removed)',
         'description': 'Correa c(M,z) fitting coefficients',
         'affects': ['c_200 (DM NFW concentration)'],
         'severity': 'Minor (DM cross-power only)',

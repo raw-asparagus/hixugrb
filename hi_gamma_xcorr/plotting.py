@@ -145,30 +145,6 @@ def textwidth_figure(height_out_of_16, subfigures=None):
     return _make_figure(TEXTWIDTH_IN, 16, height_out_of_16, subfigures)
 
 
-def columnwidth_figure(height_out_of_7_5, subfigures=None):
-    """Create a figure spanning a single column width.
-
-    Returns (fig, ax) for a single panel, or (fig, subfigs) when
-    subfigures=(nrows, ncols).
-    """
-    return _make_figure(COLUMNWIDTH_IN, 7.5, height_out_of_7_5, subfigures)
-
-
-def landscapewidth_figure(height_out_of_10, subfigures=None):
-    """Create a figure spanning the A4 usable height (landscape width).
-
-    Returns (fig, ax) for a single panel, or (fig, subfigs) when
-    subfigures=(nrows, ncols).
-    """
-    return _make_figure(A4_USABLE_HEIGHT_IN, 10, height_out_of_10, subfigures)
-
-
-def corner_figure():
-    """Create a square figure at 0.7x text width for corner plots."""
-    side = 0.7 * TEXTWIDTH_IN
-    return plt.figure(figsize=(side, side))
-
-
 def subpanels(
     parent,
     nrows: int,
@@ -209,11 +185,6 @@ def subpanels(
         sharey=sharey,
         gridspec_kw=gridspec_kw,
     )
-
-
-def zero_line(ax) -> None:
-    """Draw a horizontal reference line at y=0."""
-    ax.axhline(0.0, **GUIDE_STYLE)
 
 
 def unity_line(ax, label: str | None = None) -> None:

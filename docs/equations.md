@@ -20,7 +20,7 @@ Every equation, empirical relation, and scholarly result used in the pipeline, o
 | 1.10 | $W(x) = 3\frac{\sin x - x\cos x}{x^3}$ (top-hat window) | Standard | `_tophat_W(kR)` |
 | 1.11 | $R(M) = (3M / 4\pi\bar\rho_m)^{1/3}$ | Mass–radius relation | `sigma_M(M, z)` |
 
-**[Planck 2018](literature/planck2018.md) parameters** (`config.py`): $h=0.6736$, $\Omega_bh^2=0.02237$, $\Omega_ch^2=0.1200$, $n_s=0.9649$, $\sigma_8=0.8111$, $A_s=2.1\times10^{-9}$, $\Omega_M=0.3153$, $T_\text{CMB}=2.7255$ K, $\tau=0.0544$. *Note:* $\tau$ is hardcoded in `cosmology.py::init()` (not stored in `config.py`).
+**[Planck 2018](literature/planck2018.md) parameters** (`config.py`): $h=0.6736$, $\Omega_bh^2=0.02237$, $\Omega_ch^2=0.1200$, $n_s=0.9649$, $\sigma_8=0.8111$, $A_s=2.1\times10^{-9}$, $\Omega_M=0.3153$, $T_\text{CMB}=2.7255$ K, $\tau=0.0544$. *Note:* $\tau$ is stored in `config.py` as `TAU_REIO` and read by `cosmology.py::init()` via `cfg.TAU_REIO`.
 
 **Performance splines.** After CAMB initialisation, `init()` builds two cubic splines for fast evaluation:
 
@@ -92,7 +92,7 @@ When `hi_brightness='cunnington'` (alias `'meerfish'`, `'cunnington2025'`), the 
 | 4.3 | $\tilde v(k \mid M) = \frac{4\pi}{\bar\rho_m^2}\int_0^{R_\text{vir}}r^2\rho_\text{NFW}^2\frac{\sin kr}{kr}dr$ | Fourier transform of $\rho^2$ | `v_tilde(k, M, z)` |
 | 4.4a | $\log_{10}B(M,z{=}0) = \sum_{i=0}^{5}b_i[\log_{10}(M/M_\odot)]^i$ | [Moliné et al. (2017)](literature/moline2017.md) Eq. 18, Table 3 ($\alpha{=}2$) | `boost_moline` |
 | 4.4b | $B(M,z) = B(M,z{=}0)/(1+z)$ | Thesis Eq. 3.48 | `boost_moline` |
-| 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2 | `clumping_factor` |
+| 4.5 | $\Delta^2(z) = \frac{1}{\bar\rho_m^2(1+z)^3}\int\frac{dn}{dM}[1+B(M,z)]\int\rho^2\,d^3x\,dM$ | [[Pinetti+](literature/pinetti2020.md) (2020)](literature/pinetti2020.md) Eq. 4.2; the $(1+z)^3$ denominator converts the comoving halo integral to a physical-density clumping ratio | `clumping_factor` |
 | 4.6 | $W_\gamma^\text{DM}(\chi) = \frac{\langle\sigma v\rangle}{8\pi}\left(\frac{\rho_\text{DM}}{m_\chi}\right)^2(1+z)^3\Delta^2\frac{dN}{dE'}e^{-\tau}$ | [Pinetti+ (2020)](literature/pinetti2020.md) Eq. 4.1 for the emissivity factors; current implementation does **not** bake a $1/H(z)$ factor into `W_gamma_DM()` | `W_gamma_DM` |
 |   | $E'=(1+z)E_\gamma$; $\langle\sigma v\rangle_\text{thermal}=3\times10^{-26}$ cm³/s | | |
 | 4.7 | $P_\text{DM}^\text{1h} = \int\frac{dn}{dM}[\tilde v/\Delta^2]^2\,dM$ | [Pinetti+](literature/pinetti2020.md) Eq. 4.4 | (not needed; pipeline uses cross-power only) |
@@ -122,7 +122,7 @@ When `hi_brightness='cunnington'` (alias `'meerfish'`, `'cunnington2025'`), the 
 
 *Note:* The $\alpha$ column is the luminosity dependence of $z_c$: $z_c(L) = z_c^*(L/L_\text{ref})^\alpha$. Code uses `alpha` for both sources; [Ajello+ (2014)](literature/ajello2014.md) calls the BL Lac parameter $\beta$.
 
-*Implementation remark:* [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the blazar inverse-sum as $[r^{-p_1}+r^{-p_2}]^{-1}$. The active pipeline keeps the Ajello positive-exponent form above so the published Ajello fit parameters are used in the convention in which they were fitted.
+*Implementation remark:* [Pinetti (2022)](literature/pinetti2022_thesis.md) Eq. C.4 writes the blazar inverse-sum as $[r^{-p_1}+r^{-p_2}]^{-1}$. The active pipeline uses the same negative-exponent form (`ratio**(-p1) + ratio**(-p2)`) so the published Ajello fit parameters are applied in the convention in which they were fitted.
 
 ### mAGN GLF — Radio→Gamma Conversion Chain ([Di Mauro+ 2014](literature/dimauro2014.md))
 

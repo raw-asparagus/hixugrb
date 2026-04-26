@@ -51,9 +51,9 @@ $$z_c(L) = z_\star\left(\frac{L}{10^{48}\,{\rm erg/s}}\right)^{\beta}$$
 
 ### 2d. Sign Convention Remark
 
-Ajello+ (2014) Eq. 18 writes the inverse-sum with **positive exponents** $[r^{p_1} + r^{p_2}]^{-1}$, and that is what the active implementation evaluates. [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.4 rewrites the same inverse-sum with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. Because the BL Lac fit parameters are taken from Ajello+ (2014) Table 3, the repository intentionally keeps the Ajello sign convention rather than the thesis sign flip.
+Both Ajello+ (2014) Eq. 18 and [Pinetti (2022)](../literature/pinetti2022_thesis.md) Eq. C.4 write the inverse-sum with **negative exponents** $[r^{-p_1} + r^{-p_2}]^{-1}$. The active implementation evaluates the same form. With the fitted parameters ($p_1 > 0$, $p_2 < 0$), the negative exponents produce the correct physical behavior: rise at low $z$ governed by $p_1$, decline at high $z$ governed by $|p_2|$.
 
-**Implementation:** `astro_sources._glf_BL_Lac()` calls `astro_sources._ldde_glf(..., evolution_form='ldde_inv')`, and the current `ldde_inv` branch evaluates `1.0 / (ratio**p1 + ratio**p2)`.
+**Implementation:** `astro_sources._glf_BL_Lac()` calls `astro_sources._ldde_glf(..., evolution_form='ldde_inv')`, and the `ldde_inv` branch evaluates `1.0 / (ratio**(-p1) + ratio**(-p2))`.
 
 ---
 
@@ -175,7 +175,7 @@ bias_BL_Lac(z)                                       [astro_sources.bias_astro]
 | BL Lac GLF structure | Ajello+ (2014) ApJ 780, 73 | LAT 2FGL sample, LDDE fit |
 | LDDE functional form | Ajello+ (2014) Eq. 18 | Pinetti (2022) thesis Eq. C.4 writes the inverse-sum with opposite exponent signs |
 | Parameter values | Ajello+ (2014) Table 3 (LDDE1) | Pinetti thesis Table C.1 reproduces the same LDDE1 values |
-| Sign convention remark | Active pipeline follows Ajello+ positive exponents | Thesis Eq. C.4 uses negative exponents; the repository intentionally does not adopt that sign flip |
+| Sign convention remark | Active pipeline uses negative exponents $[r^{-p_1}+r^{-p_2}]^{-1}$, matching both Ajello+ and thesis | Both conventions are equivalent; the implementation uses `ratio**(-p1) + ratio**(-p2)` |
 | Photon index $\alpha = 2.11$ | Pinetti+ (2020) Table 3 | Ajello+ 2014 LDDE1 $\mu_\star = 2.12 \pm 0.03$ |
 | Window function formula | Pinetti+ (2020) Eq. 4.3 | Generic astro window |
 | Halo mass assumption | Standard blazar clustering | Pinetti (2022) thesis; no explicit M-L relation |
@@ -202,7 +202,7 @@ The BL Lac window function has distinctive features relative to other UGRB compo
 
 ## Pipeline (Pinetti 2022) Parallel
 
-The `pinetti2022.py` parallel module provides **no BL Lac-specific GLF or window override**. For BL Lac, the implemented source of truth is the main `astro_sources.py` path. Relative to the thesis text, the active pipeline makes one explicit blazar-specific choice: it keeps Ajello+ (2014) Eq. 18 with positive exponents rather than the sign-flipped thesis Eq. C.4. Other differences enter only through the shared halo-model infrastructure used in the 2-halo cross-power:
+The `pinetti2022.py` parallel module provides **no BL Lac-specific GLF or window override**. For BL Lac, the implemented source of truth is the main `astro_sources.py` path. The LDDE evolution uses the same negative-exponent inverse-sum form as both Ajello+ (2014) and thesis Eq. C.4. Differences from the thesis enter only through the shared halo-model infrastructure used in the 2-halo cross-power:
 
 - **Halo bias**: Pinetti 2022 uses $q=0.75$ (thesis) via `pinetti2022.bias_pinetti()` vs pipeline's $q=0.707$. Affects the Sheth-Tormen bias evaluated at $M_{\rm halo} = 10^{13}\,M_\odot/h$.
 - **Limber $k$-substitution**: Pinetti 2022 uses $k=\ell/\chi$ (thesis) vs pipeline's $k=(\ell+1/2)/\chi$.
