@@ -13,7 +13,7 @@ GLF sources:
 from functools import lru_cache
 
 import numpy as np
-from scipy.integrate import quad
+from scipy.integrate import quad, simpson
 
 from . import config as cfg
 from .cache import _register_lru
@@ -103,7 +103,8 @@ def L_sens(z, E_GeV=None, *, alpha, F_sens_baseline=None):
 def _J_alpha_ebl(z, alpha, E_min, E_max, n_pts=50):
     """Compute J_alpha = int E^{-alpha} exp(-tau(E, z)) dE over [E_min, E_max].
 
-    Uses trapezoidal integration over a log-spaced energy grid.
+    Uses Simpson's rule over a log-spaced energy grid (O(h^4) vs trapezoid's
+    O(h^2)) to keep ebl_mod.attenuation in its vectorised path.
     At z <= 0 or when EBL is negligible, falls back to the analytic integral.
     """
     if z <= 0:
@@ -116,7 +117,7 @@ def _J_alpha_ebl(z, alpha, E_min, E_max, n_pts=50):
     E_arr = np.logspace(np.log10(E_min), np.log10(E_max), n_pts)
     atten = ebl_mod.attenuation(E_arr, z)
     integrand = E_arr**(-alpha) * atten
-    return np.trapezoid(integrand, E_arr)
+    return simpson(integrand, x=E_arr)
 
 
 def F_sens_energy(E_GeV, F_sens_baseline=None):
@@ -693,7 +694,7 @@ def mean_intensity(E_GeV, source_class, z_max=2.5, n_z=300):
     # area unit to cm^-2 at the module boundary.
     integrand = W_arr * dchi_dz / Mpc_h_cm**2
 
-    return np.trapezoid(integrand, z_arr)
+    return simpson(integrand, x=z_arr)
 
 
 # ---------------------------------------------------------------------------

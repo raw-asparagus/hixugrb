@@ -6,7 +6,7 @@ Uses CAMB as the Boltzmann solver.  All outputs are in h-dependent units:
 
 import numpy as np
 from scipy.interpolate import RectBivariateSpline, CubicSpline
-from scipy.integrate import quad, cumulative_simpson
+from scipy.integrate import quad, cumulative_simpson, simpson
 
 from . import config as cfg
 from .cache import clear_all_lru_caches
@@ -287,17 +287,17 @@ def _tophat_W(kR):
 def sigma_R(R, z):
     """RMS density fluctuation sigma(R, z) smoothed with top-hat of radius R [Mpc/h].
 
-    Uses trapezoidal integration on the k-grid for speed (no quad).
+    Uses Simpson's rule on the fixed log-k grid (O(h^4) vs trapezoid's O(h^2))
+    to keep P_lin in its vectorised path; quad would force per-point spline
+    evaluations.
     """
     _ensure_init()
     k = _k_grid
     Pk = P_lin(k, z)
     W = _tophat_W(k * R)
     integrand = k**3 * Pk * W**2 / (2.0 * np.pi**2)
-    # Trapezoidal in log-k space
     lnk = np.log(k)
-    from scipy.integrate import trapezoid
-    val = trapezoid(integrand, lnk)
+    val = simpson(integrand, x=lnk)
     return np.sqrt(val)
 
 
